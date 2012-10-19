@@ -53,7 +53,7 @@ OBJS=analysis.o \
 		 timer.o \
 		 util.o 
 
-LDFLAGS=-L./lib lib/libevent.a -pthread -lgthread-2.0 -lrt -lglib-2.0 -lm 
+LDFLAGS=-L./lib lib/libevent.a -lglib-2.0 -lm 
 
 
 all: libs src
