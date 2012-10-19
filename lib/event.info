@@ -1,0 +1,112 @@
+This is Info file event.info, produced by Makeinfo-1.55 from the input
+file event.texi.
+
+   This file documents the libevent library for event handling.
+
+   By Gary Wong, 1996.
+
+
+File: event.info,  Node: Top,  Next: Introduction,  Prev: (DIR),  Up: (DIR)
+
+libevent library
+****************
+
+   This manual documents how to use the libevent library for
+asynchronous event handling.  It corresponds to version 0.0 (updated in
+September, 1996).
+
+* Menu:
+
+* Introduction::
+* Generators::
+* Handlers::
+* Timeouts::
+* Concept Index::		  Index of concepts described in this manual.
+* Function and Variable Index::	  Index of externally visible functions
+				  and variables.
+
+
+File: event.info,  Node: Introduction,  Next: Generators,  Prev: Top,  Up: Top
+
+Introduction
+************
+
+   FIXME general introduction.
+
+   Every event has a generator and a handler.  Only the generator may
+signal that the event has occurred, and only the handler can mark
+handling as completed.
+
+   Each event is handled either synchronously or asynchronously (FIXME
+the generator decides?) -- when a generator signals a synchronous
+event, it is handled immediately and the result from the handler is
+available on completion; but when an asynchronous event is handled the
+generator retains control, and the handler is invoked at some later
+stage.  The generator cannot directly obtain the result of the handler
+in this case.
+
+   In general, an event handler cannot know in advance whether it can
+handle a message immediately or not.
+
+   All events can have timeouts (which are normally set by the
+handler).  If it has not occurred within the timeout period, the
+timeout handler is called instead of the normal handler.
+
+
+File: event.info,  Node: Generators,  Next: Handlers,  Prev: Introduction,  Up: Top
+
+Generators
+**********
+
+   Generator can:  - signal event as occurred  - close generation of
+further events
+
+
+File: event.info,  Node: Handlers,  Next: Timeouts,  Prev: Generators,  Up: Top
+
+Handlers
+********
+
+   Handler can:  - mark handling as complete  - set, clear or change
+timeout
+
+
+File: event.info,  Node: Timeouts,  Next: Concept Index,  Prev: Handlers,  Up: Top
+
+Timeouts
+********
+
+   Blah blah.
+
+
+File: event.info,  Node: Concept Index,  Next: Function and Variable Index,  Prev: Timeouts,  Up: Top
+
+Concept Index
+*************
+
+* Menu:
+
+* generator:                            Generators.
+* handler:                              Handlers.
+* introduction:                         Introduction.
+* timeout:                              Timeouts.
+
+
+File: event.info,  Node: Function and Variable Index,  Prev: Concept Index,  Up: Top
+
+Function and Variable Index
+***************************
+
+* Menu:
+
+
+Tag Table:
+Node: Top178
+Node: Introduction670
+Node: Generators1695
+Node: Handlers1890
+Node: Timeouts2070
+Node: Concept Index2190
+Node: Function and Variable Index2540
+
+End Tag Table
