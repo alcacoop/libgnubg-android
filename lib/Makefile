@@ -1,6 +1,6 @@
 CC=gcc
 
-CFLAGS=-DHAVE_CONFIG_H -g -O2
+CFLAGS=-DHAVE_CONFIG_H -g -O2 -fPIC
 INCLUDES=-I. -I.. -I./.. -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include
 
 OBJS = list.o \
@@ -17,6 +17,7 @@ OBJS = list.o \
 
 libs: $(OBJS) 
 	ar rcs libevent.a $(OBJS)
+	#$(CC) -shared -o libevent.so $(OBJS)
 
 clean:
 	rm -rf $(OBJS) libevent.a

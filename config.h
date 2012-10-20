@@ -169,7 +169,9 @@
 /* #undef USE_GTK */
 
 /* Define if you want to have multithread support */
-#define USE_MULTITHREAD 1
+#define USE_MULTITHREAD 0
+#undef USE_MULTITHREAD
+
 
 /* Define if you want to use Python inside gnubg */
 /* #undef USE_PYTHON */
@@ -178,7 +180,8 @@
 /* #undef USE_SQLITE */
 
 /* Define if you want to compile with SSE2 support */
-#define USE_SSE2 1
+#define USE_SSE2 0
+#undef USE_SSE2
 
 /* Define if you want to compile with SSE support */
 #define USE_SSE_VECTORIZE 0
