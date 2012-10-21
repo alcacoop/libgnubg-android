@@ -2,3 +2,4 @@
 *.a
 gnubg
 *.swp
+libgnubg.so

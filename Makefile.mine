@@ -1,0 +1,28 @@
+CC=gcc
+
+CFLAGS=-DHAVE_CONFIG_H -g -O2 -DLOCALEDIR=\"/usr/share/locale\" -pthread -DAC_DATADIR=\"/usr/share\" -DAC_PKGDATADIR=\"/usr/share/gnubg\" -DAC_DOCDIR=\"/usr/share/doc/gnubg/\" -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -fPIC
+INCLUDES=-I. -I./lib
+
+
+OBJS= \
+		  analysis.o eval.o matchequity.o positionid.o matchid.o osr.o \
+			bearoffgammon.o bearoff.o mec.o util.o dice.o multithread.o
+
+LDFLAGS=-L./lib lib/libevent.a -lglib-2.0 -lm 
+
+all: libs src
+	#$(CC) -o gnubg $(OBJS) $(LDFLAGS)
+	$(CC) -shared -o libgnubg.so $(OBJS) $(LDFLAGS)
+
+%.o : %.c
+	$(CC) $(INCLUDES) $(CFLAGS) -o $@ -c $<
+
+src: $(OBJS) 
+
+libs:
+	make -C lib 
+
+clean: 
+	make -C lib clean
+	rm -rf $(OBJS)
+
