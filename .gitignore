@@ -1,5 +1,7 @@
 *.o
 *.a
 gnubg
+test
 *.swp
 libgnubg.so
+*.so

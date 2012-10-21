@@ -69,5 +69,5 @@ libs:
 
 clean: 
 	make -C lib clean
-	rm -rf $(OBJS)
+	rm -rf $(OBJS) gnubg
 
