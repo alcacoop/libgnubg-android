@@ -747,8 +747,10 @@ extern int RollDice(unsigned int anDice[2], rng *prng, rngcontext *rngctx)
 		rngctx->c += 2;
 		break;
 
+#ifndef  IS_LIBRARY
 	case RNG_MANUAL:
 		return GetManualDice(anDice);
+#endif
 
 	case RNG_MD5:{
 			union _hash {
@@ -771,6 +773,9 @@ extern int RollDice(unsigned int anDice[2], rng *prng, rngcontext *rngctx)
 			break;
 		}
 
+#ifdef  IS_LIBRARY
+	case RNG_MANUAL:
+#endif
 	case RNG_MERSENNE:
 		while ((tmprnd = genrand_int32(&rngctx->mti, rngctx->mt))  >= exp232_l)
 			;	/* Try again */
@@ -800,9 +805,14 @@ extern int RollDice(unsigned int anDice[2], rng *prng, rngcontext *rngctx)
 
 	}
 	if (anDice[0] < 1 || anDice[1] < 1 || anDice[0] > 6 || anDice[1] > 6) {
+#ifndef IS_LIBRARY
 		outputerrf(_("Your dice generator isn't working. Failing back on RNG_MERSENNE"));
 		SetRNG(prng, rngctx, RNG_MERSENNE, "");
 		RollDice(anDice, prng, rngctx);
+#else
+    anDice[0]=0;
+    anDice[1]=0;
+#endif
 	}
 	return 0;
 }

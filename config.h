@@ -1,3 +1,9 @@
+#ifdef IS_ANDROID
+  #define _(s) s
+  #define N_(s) s
+  #define gettext(s) s
+#endif
+
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
@@ -93,7 +99,7 @@
 /* #undef HAVE_SIGVEC */
 
 /* Define if the system supports AF_LOCAL sockets. */
-#define HAVE_SOCKETS 1
+#define HAVE_SOCKETS 0
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
