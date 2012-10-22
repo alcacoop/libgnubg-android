@@ -6,7 +6,7 @@ EvaluatePosition
 
 EvalInitialise(
   gnubg.weights, 
-  gnubg.wh, 
+  gnubg.wd, 
   FALSE (bearoff file), 
   NULL
 )
