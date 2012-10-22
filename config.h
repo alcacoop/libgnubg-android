@@ -35,8 +35,8 @@
 #define HAVE_BIND_TEXTDOMAIN_CODESET 1
 
 /* Define if you want to use libcairo */
-/* #undef HAVE_CAIRO */
-
+#define HAVE_CAIRO 0
+#undef HAVE_CAIRO
 /* Define if you want to use gstreamer */
 /* #undef HAVE_CANBERRA */
 
@@ -52,6 +52,7 @@
 
 /* Define if you have freetype2 */
 #define HAVE_FREETYPE 0
+#undef HAVE_FREETYPE
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #define HAVE_GETTEXT 1
@@ -73,9 +74,12 @@
 
 /* Define if you have libpng */
 #define HAVE_LIBPNG 0
+#undef HAVE_LIBPNG
 
 /* Define if you have libreadline */
-/* #undef HAVE_LIBREADLINE */
+#define HAVE_LIBREADLINE 0
+#undef HAVE_LIBREADLINE
+
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
@@ -84,7 +88,8 @@
 #define HAVE_MEMORY_H 1
 
 /* Define if you want to use pangocairo */
-/* #undef HAVE_PANGOCAIRO */
+#define HAVE_PANGOCAIRO 0
+#undef HAVE_PANGOCAIRO
 
 /* Define to 1 if you have the `random' function. */
 #define HAVE_RANDOM 1
@@ -99,7 +104,7 @@
 /* #undef HAVE_SIGVEC */
 
 /* Define if the system supports AF_LOCAL sockets. */
-#define HAVE_SOCKETS 0
+#define HAVE_SOCKETS 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
@@ -172,18 +177,20 @@
 #define USE_EXTENDEDMATCHID 1
 
 /* Define if you want to use the gtk gui */
-/* #undef USE_GTK */
+#define USE_GTK 0
+#undef USE_GTK
 
 /* Define if you want to have multithread support */
 #define USE_MULTITHREAD 0
 #undef USE_MULTITHREAD
 
-
 /* Define if you want to use Python inside gnubg */
-/* #undef USE_PYTHON */
+#define USE_PYTHON 0
+#undef USE_PYTHON
 
 /* Define if you want to use sqlite */
-/* #undef USE_SQLITE */
+#define USE_SQLITE 0
+#undef USE_SQLITE
 
 /* Define if you want to compile with SSE2 support */
 #define USE_SSE2 0
@@ -191,6 +198,7 @@
 
 /* Define if you want to compile with SSE support */
 #define USE_SSE_VECTORIZE 0
+#undef USE_SSE_VECTORIZE
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE

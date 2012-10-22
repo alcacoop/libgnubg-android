@@ -1,21 +1,24 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
+/* A Bison parser, made by GNU Bison 2.3.  */
 
-/* Bison interface for Yacc-like parsers in C
-   
-      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
-   
-   This program is free software: you can redistribute it and/or modify
+/* Skeleton interface for Bison's Yacc-like parsers in C
+
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -26,10 +29,9 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-   
+
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
-
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -47,12 +49,10 @@
      NOISE = 265,
      REDUCED = 266,
      PRUNE = 267,
-     CRAWFORDRULE = 268,
-     JACOBYRULE = 269,
-     FIBSBOARD = 270,
-     AFIBSBOARD = 271,
-     ON = 272,
-     OFF = 273
+     FIBSBOARD = 268,
+     AFIBSBOARD = 269,
+     ON = 270,
+     OFF = 271
    };
 #endif
 /* Tokens.  */
@@ -66,36 +66,28 @@
 #define NOISE 265
 #define REDUCED 266
 #define PRUNE 267
-#define CRAWFORDRULE 268
-#define JACOBYRULE 269
-#define FIBSBOARD 270
-#define AFIBSBOARD 271
-#define ON 272
-#define OFF 273
+#define FIBSBOARD 268
+#define AFIBSBOARD 269
+#define ON 270
+#define OFF 271
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
+#line 48 "external_y.y"
 {
-
-/* Line 2068 of yacc.c  */
-#line 49 "external_y.y"
-
   int number;
   char *sval;
-
-
-
-/* Line 2068 of yacc.c  */
-#line 93 "external_y.h"
-} YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
+}
+/* Line 1489 of yacc.c.  */
+#line 86 "external_y.h"
+	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
 
 extern YYSTYPE extlval;
-
 

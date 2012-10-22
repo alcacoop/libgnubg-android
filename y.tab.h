@@ -1,24 +1,21 @@
-/* A Bison parser, made by GNU Bison 2.3.  */
+/* A Bison parser, made by GNU Bison 2.5.  */
 
-/* Skeleton interface for Bison's Yacc-like parsers in C
-
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-   Free Software Foundation, Inc.
-
-   This program is free software; you can redistribute it and/or modify
+/* Bison interface for Yacc-like parsers in C
+   
+      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
+   
+   This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -29,9 +26,10 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
+
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -39,33 +37,65 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     PROPERTY = 258,
-     VALUETEXT = 259
+     STRING = 258,
+     NUMBER = 259,
+     EVALUATION = 260,
+     PLIES = 261,
+     CUBE = 262,
+     CUBEFUL = 263,
+     CUBELESS = 264,
+     NOISE = 265,
+     REDUCED = 266,
+     PRUNE = 267,
+     CRAWFORDRULE = 268,
+     JACOBYRULE = 269,
+     FIBSBOARD = 270,
+     AFIBSBOARD = 271,
+     ON = 272,
+     OFF = 273
    };
 #endif
 /* Tokens.  */
-#define PROPERTY 258
-#define VALUETEXT 259
+#define STRING 258
+#define NUMBER 259
+#define EVALUATION 260
+#define PLIES 261
+#define CUBE 262
+#define CUBEFUL 263
+#define CUBELESS 264
+#define NOISE 265
+#define REDUCED 266
+#define PRUNE 267
+#define CRAWFORDRULE 268
+#define JACOBYRULE 269
+#define FIBSBOARD 270
+#define AFIBSBOARD 271
+#define ON 272
+#define OFF 273
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 93 "sgf_y.y"
 {
-    char ach[ 2 ]; /* property identifier */
-    char *pch; /* property value */
-    property *pp; /* complete property */
-    listOLD *pl; /* nodes, sequences, gametrees */
-}
-/* Line 1489 of yacc.c.  */
-#line 64 "sgf_y.h"
-	YYSTYPE;
+
+/* Line 2068 of yacc.c  */
+#line 49 "external_y.y"
+
+  int number;
+  char *sval;
+
+
+
+/* Line 2068 of yacc.c  */
+#line 93 "y.tab.h"
+} YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
-# define YYSTYPE_IS_TRIVIAL 1
 #endif
 
-extern YYSTYPE sgflval;
+extern YYSTYPE extlval;
+
 
