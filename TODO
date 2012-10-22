@@ -1,4 +1,23 @@
-EvalInitialise
 FindBestMove
 GeneralCubeDecisionE
 EvaluatePosition
+
+
+
+EvalInitialise(
+  gnubg.weights, 
+  gnubg.wh, 
+  FALSE (bearoff file), 
+  NULL
+)
+
+
+
+
+ASSETS NECESSARI:
+----------------
+NOTA: la directory da cui carica gli asset viene passata dal FLAG AC_PKGDATADIR e dovrebbe essere utilizzata dalla funzione BuildFilename
+
+gnubg.wd
+gnubg.weights
+gnubg_ts0.bd
