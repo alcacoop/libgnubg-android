@@ -4,6 +4,8 @@
   #define gettext(s) s
 #endif
 
+#define DEBUG 1
+
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
@@ -104,7 +106,8 @@
 /* #undef HAVE_SIGVEC */
 
 /* Define if the system supports AF_LOCAL sockets. */
-#define HAVE_SOCKETS 1
+#define HAVE_SOCKETS 0
+#undef HAVE_SOCKETS
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1

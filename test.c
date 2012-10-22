@@ -17,4 +17,6 @@ int main (int argc, char** argv) {
     RollDice(d, &_rng, _rngctx);
     printf("LANCIO: %d %d\n", d[0], d[1]);
   }
+
+  EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
 }

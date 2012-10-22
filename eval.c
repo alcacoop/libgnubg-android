@@ -46,6 +46,11 @@
 #define BINARY 0
 #endif
 
+#ifdef IS_LIBRARY
+#undef BuildFilename
+#define BuildFilename(s) s
+#endif
+
 typedef int ( *classevalfunc )( const TanBoard anBoard, float arOutput[],
                                  const bgvariation bgv, NNState *nnStates );
 
@@ -646,7 +651,9 @@ extern void EvalInitialise(char *szWeights, char *szWeightsBinary,
 		gnubg_bearoff_os = BuildFilename("gnubg_os0.bd");
 		if( !pbc1 )
 			pbc1 = BearoffInit( gnubg_bearoff_os, (int)BO_IN_MEMORY, NULL );
+#ifndef IS_LIBRARY           
 		g_free(gnubg_bearoff_os);
+#endif
 
 		if( !pbc1 )
 			pbc1 = BearoffInit ( NULL, BO_HEURISTIC, pfProgress );
@@ -654,7 +661,9 @@ extern void EvalInitialise(char *szWeights, char *szWeightsBinary,
 		/* read two-sided db from gnubg.bd */
 		gnubg_bearoff = BuildFilename("gnubg_ts0.bd");
 		pbc2 = BearoffInit ( gnubg_bearoff, BO_IN_MEMORY | BO_MUST_BE_TWO_SIDED, NULL );
+#ifndef IS_LIBRARY
 			g_free(gnubg_bearoff);
+#endif
 
 		if ( ! pbc2 )
 			fprintf ( stderr, 
@@ -668,14 +677,21 @@ extern void EvalInitialise(char *szWeights, char *szWeightsBinary,
 					"README for more details\n\n" );
 
 		gnubg_bearoff_os = BuildFilename("gnubg_os.bd");
+#ifdef DEBUG
+                printf("%s\n", gnubg_bearoff_os);
+#endif
 		/* init one-sided db */
 		pbcOS = BearoffInit ( gnubg_bearoff_os, BO_IN_MEMORY, NULL );
+#ifndef IS_LIBRARY
 		g_free(gnubg_bearoff_os);
+#endif
 
 		gnubg_bearoff = BuildFilename("gnubg_ts.bd");
 		/* init two-sided db */
 		pbcTS = BearoffInit ( gnubg_bearoff, BO_IN_MEMORY, NULL );
+#ifndef IS_LIBRARY
 		g_free(gnubg_bearoff);
+#endif
 
 			/* hyper-gammon databases */
 
@@ -685,7 +701,9 @@ extern void EvalInitialise(char *szWeights, char *szWeightsBinary,
 				sprintf(sz, "hyper%1d.bd", i + 1);
 				fn = BuildFilename(sz);
 				apbcHyper[i] = BearoffInit(fn, BO_NONE, NULL);
+#ifndef IS_LIBRARY
 				g_free(fn);
+#endif
 			}
 
 	}
@@ -704,6 +722,9 @@ extern void EvalInitialise(char *szWeights, char *szWeightsBinary,
 					    !NeuralNetLoadBinary(&nnpCrashed, pfWeights ) &&
 					    !NeuralNetLoadBinary(&nnpRace, pfWeights ) ) ) { 
 			    perror( szWeightsBinary );
+#ifdef DEBUG
+                            printf("BINARY WEIGHTS NOT LOADED\n");
+#endif
 		    }
 	    }
 	    if (pfWeights)
@@ -725,8 +746,12 @@ extern void EvalInitialise(char *szWeights, char *szWeightsBinary,
 					    !NeuralNetLoad( &nnpContact, pfWeights ) &&
 					    !NeuralNetLoad( &nnpCrashed, pfWeights ) &&
 					    !NeuralNetLoad( &nnpRace, pfWeights ) 
-			 ) )
+                           ) ) {
 			    perror( szWeights );
+#ifdef DEBUG
+                            printf("WEIGHTS NOT LOADED\n");
+#endif
+                    }
 		setlocale (LC_ALL, "");
 	    }
 	    if (pfWeights)
