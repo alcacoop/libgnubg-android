@@ -601,7 +601,7 @@ extern void CommandExportPositionPS(char *);
 extern void CommandExportPositionSnowieTxt(char *);
 extern void CommandExportPositionSVG(char *);
 extern void CommandExportPositionText(char *);
-extern void CommandExternal(char *);
+//extern void CommandExternal(char *);
 extern void CommandFirstGame(char *);
 extern void CommandFirstMove(char *);
 extern void CommandHelp(char *);

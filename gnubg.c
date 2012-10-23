@@ -70,7 +70,7 @@ static char szCommandSeparators[] = " \t\n\r\v\f";
 #include "format.h"
 #include "relational.h"
 #include "credits.h"
-#include "external.h"
+//#include "external.h"
 #include "neuralnet.h"
 #include "util.h"
 

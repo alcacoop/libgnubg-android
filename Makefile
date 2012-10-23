@@ -3,6 +3,9 @@ CC=gcc
 CFLAGS=-DHAVE_CONFIG_H -g -O2 -DLOCALEDIR=\"/usr/share/locale\" -pthread -DAC_DATADIR=\"/usr/share\" -DAC_PKGDATADIR=\".\" -DAC_DOCDIR=\"/usr/share/doc/gnubg/\" -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include
 INCLUDES=-I. -I./lib
 
+		 #external.o \
+		 external_l.o \
+		 external_y.o \
 
 OBJS=analysis.o \
 		 bearoff.o \
@@ -16,9 +19,6 @@ OBJS=analysis.o \
 		 evallock.o \
 		 eval.o \
 		 export.o \
-		 external.o \
-		 external_l.o \
-		 external_y.o \
 		 file.o \
 		 format.o \
 		 formatgs.o \

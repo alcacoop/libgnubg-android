@@ -30,7 +30,7 @@
 #include "backgammon.h"
 #include "dice.h"
 #include "drawboard.h"
-#include "external.h"
+//#include "external.h"
 #include "eval.h"
 #include "positionid.h"
 #include "matchid.h"

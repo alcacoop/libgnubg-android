@@ -59,7 +59,7 @@
 #include "backgammon.h"
 #include "dice.h"
 #include "eval.h"
-#include "external.h"
+//#include "external.h"
 #include "export.h"
 
 #if USE_GTK

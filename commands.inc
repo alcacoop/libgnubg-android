@@ -1403,8 +1403,8 @@ command cER = {
     { "exit", CommandQuit, N_("Leave GNU Backgammon"), NULL, NULL },
     { "export", NULL, N_("Write data for use by other programs"), 
       NULL, acExport },
-    { "external", CommandExternal, N_("Make moves for an external controller"),
-      szFILENAME, &cFilename },
+    /*{ "external", CommandExternal, N_("Make moves for an external controller"),
+      szFILENAME, &cFilename },*/
     { "first", NULL, N_("Goto first move or game"),
       NULL, acFirst },
     { "help", CommandHelp, N_("Describe commands"), szOPTCOMMAND, NULL },
