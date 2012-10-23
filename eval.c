@@ -5894,6 +5894,8 @@ extern int FindnSaveBestMoves( movelist *pml, int nDice0, int nDice1,
       pml->amMoves = NULL;
       return 0;
   }
+
+  printf("\n\n-->FindBestMove: %d\n", pml->cMoves);
  
   /* Save moves */
   pm = (move *) malloc ( pml->cMoves * sizeof ( move ) );
@@ -6019,6 +6021,19 @@ extern int FindnSaveBestMoves( movelist *pml, int nDice0, int nDice1,
         break;
       }
   }
+
+
+  move m = pml->amMoves[pml->iMoveBest];
+  int *ms = m.anMove;
+  int ii=0;
+  for (ii=0;ii<4;ii++){
+    printf(" -%d- ", ms[ii]);
+  }
+  printf(" | ");
+  for (ii=4;ii<8;ii++){
+    printf(" -%d- ", ms[ii]);
+  }
+  printf(" (Best[%d])\n\n", pml->iMoveBest);
 
   return 0;
 

@@ -1,6 +1,7 @@
 FindBestMove
 GeneralCubeDecisionE
 EvaluatePosition
+getResignation
 
 
 
