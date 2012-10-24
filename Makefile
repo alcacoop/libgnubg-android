@@ -1,6 +1,6 @@
 CC=gcc
 
-CFLAGS=-DHAVE_CONFIG_H -g -O2 -DLOCALEDIR=\"/usr/share/locale\" -pthread -DAC_DATADIR=\"/usr/share\" -DAC_PKGDATADIR=\".\" -DAC_DOCDIR=\"/usr/share/doc/gnubg/\" -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include
+CFLAGS=-DHAVE_LIBREADLINE -DHAVE_CONFIG_H -g -O2 -DLOCALEDIR=\"/usr/share/locale\" -pthread -DAC_DATADIR=\"/usr/share\" -DAC_PKGDATADIR=\".\" -DAC_DOCDIR=\"/usr/share/doc/gnubg/\" -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include
 INCLUDES=-I. -I./lib
 
 		 #external.o \
@@ -53,7 +53,7 @@ OBJS=analysis.o \
 		 timer.o \
 		 util.o 
 
-LDFLAGS=-L./lib lib/libevent.a -lglib-2.0 -lm 
+LDFLAGS=-L./lib lib/libevent.a -lglib-2.0 -lm -lreadline
 
 
 all: libs src

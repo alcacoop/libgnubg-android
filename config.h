@@ -79,8 +79,8 @@
 #undef HAVE_LIBPNG
 
 /* Define if you have libreadline */
-#define HAVE_LIBREADLINE 0
-#undef HAVE_LIBREADLINE
+//#define HAVE_LIBREADLINE 0
+//#undef HAVE_LIBREADLINE
 
 
 /* Define to 1 if you have the <locale.h> header file. */
