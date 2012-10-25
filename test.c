@@ -12,17 +12,36 @@ void printBoard(int board [2][25]) {
   }
 }
 
+void printMove(int move[8]){
+  int i=0;
+  for (i=0;i<4;i++){
+    printf("\t%d", move[i]);
+  }
+  printf("\t|");
+  for (i=4;i<8;i++){
+    printf("\t%d", move[i]);
+  }
+  printf("\n");
+}
+
+
 void checkMoves() {
   EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
 
   int move [8];
+  /*
   int board [2][25] = { 
     {0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
     {0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} 
   };
+  */
+  int board [2][25] = { 
+    {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
+    {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0}
+  };
   cubeinfo ci;
   ci.nCube = 1;
-  ci.fCubeOwner = -1:
+  ci.fCubeOwner = -1;
   ci.fMove = 0;
   ci.nMatchTo = 1;
   ci.anScore[0] = 0;
@@ -36,47 +55,33 @@ void checkMoves() {
   ec.fCubeful = 1;
   ec.nPlies = 0;
   ec.fUsePrune = 0;
-  ec.fDeterministic = 1;
+  ec.fDeterministic = 0;
   ec.rNoise = 0.060;
 
-  //  printBoard(board);
-
-  FindBestMove(move, 5, 1, board, &ci, NULL, NULL);
-  int ii=0;
-  for (ii=0;ii<4;ii++){
-    printf(" -%d- ", move[ii]);
-  }
-  printf(" | ");
-  for (ii=4;ii<8;ii++){
-    printf(" -%d- ", move[ii]);
-  }
-  printf("\n");
-
-  //  printBoard(board);
+  FindBestMove(move, 3, 1, board, &ci, &ec, NULL);
+  printMove(move);
+  //printBoard(board);
 };
 
-int main (int argc, char** argv) {
-  int d[2];
+
+void rollDice(int d[2]) {
   unsigned long a;
   int b;
   rng _rng = RNG_MERSENNE;
   //rng _rng = RNG_ISAAC;
   rngcontext *_rngctx;
-  int i;
   
   _rngctx = InitRNG(&a, &b, TRUE, _rng);
-  //  printf("%d %d\n", a,b);
   //rcRollout.nSeed ^= 0x792A584B;
-  /* for (i=0; i<10; i++) { */
-  /*   RollDice(d, &_rng, _rngctx); */
-  /*   printf("LANCIO: %d %d\n", d[0], d[1]); */
-  /* } */
-  
-  //  EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
+  RollDice(d, &_rng, _rngctx); 
+}
 
+
+
+int main (int argc, char** argv) {
+  EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
   int _k;
-  for(_k = 0; _k < 30; _k++) {
+  for(_k = 0; _k < 10; _k++) {
     checkMoves();
-    /* printf("\n"); */
   }
 }

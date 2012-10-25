@@ -40,6 +40,10 @@
 #include "multithread.h"
 #include "util.h"
 
+
+//#define DEBUG 1
+
+
 #ifdef WIN32
 #define BINARY O_BINARY
 #else
@@ -5895,7 +5899,9 @@ extern int FindnSaveBestMoves( movelist *pml, int nDice0, int nDice1,
       return 0;
   }
 
+#ifdef DEBUG
   printf("\n\n-->FindBestMove: %d\n", pml->cMoves);
+#endif
  
   /* Save moves */
   pm = (move *) malloc ( pml->cMoves * sizeof ( move ) );
@@ -6023,6 +6029,7 @@ extern int FindnSaveBestMoves( movelist *pml, int nDice0, int nDice1,
   }
 
 
+#ifdef DEBUG
   move m = pml->amMoves[pml->iMoveBest];
   int *ms = m.anMove;
   int ii=0;
@@ -6034,6 +6041,7 @@ extern int FindnSaveBestMoves( movelist *pml, int nDice0, int nDice1,
     printf(" -%d- ", ms[ii]);
   }
   printf(" (Best[%d])\n\n", pml->iMoveBest);
+#endif
 
   return 0;
 
