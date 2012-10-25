@@ -51,14 +51,34 @@ void checkMoves() {
   ci.fBeavers = 3;
   ci.bgv = VARIATION_STANDARD;
 
+  //CONFIGURAZIONE SUPREMO
   evalcontext ec;
   ec.fCubeful = 1;
-  ec.nPlies = 0;
-  ec.fUsePrune = 0;
-  ec.fDeterministic = 0;
-  ec.rNoise = 0.060;
+  ec.nPlies = 3;
+  ec.fUsePrune = 1;
+  ec.fDeterministic = 1;
+  ec.rNoise = 0.000;
 
-  FindBestMove(move, 3, 1, board, &ci, &ec, NULL);
+  movefilter mf[] = {
+     {0, 16, 0.32000},
+     {0, 0, 0.00000},
+     {0, 0, 0.00000},
+     {0, 0, 0.00000},
+     {0, 16, 0.32000},
+     {-1, 0, 0.00000},
+     {0, 0, 0.00000},
+     {0, 0, 0.00000},
+     {0, 16, 0.32000},
+     {-1, 0, 0.00000},
+     {0, 4, 0.08000},
+     {0, 0, 0.00000},
+     {0, 16, 0.32000},
+     {-1, 0, 0.00000},
+     {0, 4, 0.08000},
+     {-1, 0, 0.00000}
+  };
+
+  FindBestMove(move, 5, 1, board, &ci, &ec, mf);
   printMove(move);
   //printBoard(board);
 };
@@ -81,7 +101,7 @@ void rollDice(int d[2]) {
 int main (int argc, char** argv) {
   EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
   int _k;
-  for(_k = 0; _k < 10; _k++) {
+  for(_k = 0; _k < 1; _k++) {
     checkMoves();
   }
 }
