@@ -1,6 +1,60 @@
 #include "dice.h"
 #include "eval.h"
+
 #define TRUE 1
+
+/*
+  int board [2][25] = { 
+  {0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
+  {0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} 
+  };
+*/
+
+int board [2][25] = { 
+  {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
+  {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0}
+};
+
+cubeinfo ci = {
+  .nCube = 1,
+  .fCubeOwner = -1,
+  .fMove = 0,
+  .nMatchTo = 1,
+  .anScore[0] = 0,
+  .anScore[1] = 0,
+  .fCrawford = 0,
+  .fJacoby = 1,
+  .fBeavers = 3,
+  .bgv = VARIATION_STANDARD
+};
+
+//CONFIGURAZIONE SUPREMO
+evalcontext ec = {
+  .fCubeful = 1,
+  .nPlies = 3,
+  .fUsePrune = 1,
+  .fDeterministic = 1,
+  .rNoise = 0.000
+};
+
+movefilter mf[] = {
+  {0, 16, 0.32000},
+  {0, 0, 0.00000},
+  {0, 0, 0.00000},
+  {0, 0, 0.00000},
+  {0, 16, 0.32000},
+  {-1, 0, 0.00000},
+  {0, 0, 0.00000},
+  {0, 0, 0.00000},
+  {0, 16, 0.32000},
+  {-1, 0, 0.00000},
+  {0, 4, 0.08000},
+  {0, 0, 0.00000},
+  {0, 16, 0.32000},
+  {-1, 0, 0.00000},
+  {0, 4, 0.08000},
+  {-1, 0, 0.00000}
+};
 
 void printBoard(int board [2][25]) {
   int i, j;
@@ -29,54 +83,6 @@ void checkMoves() {
   EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
 
   int move [8];
-  /*
-  int board [2][25] = { 
-    {0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
-    {0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} 
-  };
-  */
-  int board [2][25] = { 
-    {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
-    {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0}
-  };
-  cubeinfo ci;
-  ci.nCube = 1;
-  ci.fCubeOwner = -1;
-  ci.fMove = 0;
-  ci.nMatchTo = 1;
-  ci.anScore[0] = 0;
-  ci.anScore[1] = 0;
-  ci.fCrawford = 0;
-  ci.fJacoby = 1;
-  ci.fBeavers = 3;
-  ci.bgv = VARIATION_STANDARD;
-
-  //CONFIGURAZIONE SUPREMO
-  evalcontext ec;
-  ec.fCubeful = 1;
-  ec.nPlies = 3;
-  ec.fUsePrune = 1;
-  ec.fDeterministic = 1;
-  ec.rNoise = 0.000;
-
-  movefilter mf[] = {
-     {0, 16, 0.32000},
-     {0, 0, 0.00000},
-     {0, 0, 0.00000},
-     {0, 0, 0.00000},
-     {0, 16, 0.32000},
-     {-1, 0, 0.00000},
-     {0, 0, 0.00000},
-     {0, 0, 0.00000},
-     {0, 16, 0.32000},
-     {-1, 0, 0.00000},
-     {0, 4, 0.08000},
-     {0, 0, 0.00000},
-     {0, 16, 0.32000},
-     {-1, 0, 0.00000},
-     {0, 4, 0.08000},
-     {-1, 0, 0.00000}
-  };
 
   FindBestMove(move, 5, 1, board, &ci, &ec, mf);
   printMove(move);
@@ -96,7 +102,12 @@ void rollDice(int d[2]) {
   RollDice(d, &_rng, _rngctx); 
 }
 
-
+void cubeDecision() {
+  float aarOutput[ 2 ][ NUM_ROLLOUT_OUTPUTS ];
+  
+  int r = GeneralCubeDecisionE(aarOutput, board, &ci, &ec, NULL);
+  printf("Cube decision: %d\n", r);
+}
 
 int main (int argc, char** argv) {
   EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
@@ -104,4 +115,5 @@ int main (int argc, char** argv) {
   for(_k = 0; _k < 1; _k++) {
     checkMoves();
   }
+  cubeDecision();
 }
