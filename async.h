@@ -9,6 +9,6 @@
 void asyncMoveDecisionE(decisionData *pdd);
 void asyncEvalRoll(decisionData *pdd);
 extern int RunAsyncProcess(AsyncFun fn, void *data, const char *msg);
-
+void asyncCubeDecision(decisionData *pdd);
 
 #endif

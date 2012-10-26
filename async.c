@@ -40,3 +40,10 @@ extern int RunAsyncProcess(AsyncFun fn, void *data, const char *msg)
 
 	return ret;
 }
+
+void asyncCubeDecision(decisionData *pdd)
+{
+	if ( GeneralCubeDecision( pdd->aarOutput, pdd->aarStdDev, pdd->aarsStatistics,
+			pdd->pboard, pdd->pci, pdd->pes, NULL, NULL ) < 0 )
+		MT_SetResultFailed();
+}

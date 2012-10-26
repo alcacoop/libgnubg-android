@@ -120,6 +120,186 @@ int acceptResign() {
 
 }
 
+void acceptDouble() {
+  decisionData dd;
+  cubedecision cd;
+  cubeinfo ci;
+  float arDouble[4];
+  evalsetup es;
+  es.et = EVAL_EVAL;
+  es.ec = ec;
+  es.rc = rcRollout;
+
+  /* Consider cube action */
+
+  /* 
+   * We may get here in three different scenarios: 
+   * (1) normal double by opponent: fMove != fTurn and fCubeOwner is
+   *     either -1 (centered cube) or = fMove.
+   * (2) beaver by opponent: fMove = fTurn and fCubeOwner = !
+   *     fMove
+   * (3) raccoon by opponent: fMove != fTurn and fCubeOwner =
+   *     fTurn.
+   *
+   */
+
+  if ( ms.fMove != ms.fTurn && ms.fCubeOwner == ms.fTurn ) {
+
+    /* raccoon: consider this a normal double, i.e. 
+       fCubeOwner = fMove */
+        
+    SetCubeInfo ( &ci, ci.nCube,
+                  ci.fMove, ci.fMove,
+                  ci.nMatchTo, ci.anScore, ci.fCrawford,
+                  ci.fJacoby, ci.fBeavers, ci.bgv );
+
+  }
+      
+  if ( ms.fMove == ms.fTurn && ms.fCubeOwner != ms.fMove ) {
+
+    /* opponent beavered: consider this a normal double by me */
+
+    SetCubeInfo ( &ci, ci.nCube,
+                  ci.fMove, ci.fMove,
+                  ci.nMatchTo, ci.anScore, ci.fCrawford,
+                  ci.fJacoby, ci.fBeavers, ci.bgv );
+
+  }
+
+  /* Evaluate cube decision */
+  dd.pboard = ms.anBoard;
+  dd.pci = &ci;
+  dd.pes = &es;
+  if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, _("Considering cube action...")) != 0)
+    return -1;
+
+  current_pmr_cubedata_update(dd.pes, dd.aarOutput, dd.aarStdDev);
+
+  cd = FindCubeDecision ( arDouble,  dd.aarOutput, &ci );
+
+  if ( ms.fTurn == ms.fMove ) {
+
+    /* opponent has beavered */
+
+    switch ( cd ) {
+
+    case DOUBLE_TAKE:
+    case REDOUBLE_TAKE:
+    case TOOGOOD_TAKE:
+    case TOOGOODRE_TAKE:
+    case DOUBLE_PASS:
+    case TOOGOOD_PASS:
+    case REDOUBLE_PASS:
+    case TOOGOODRE_PASS:
+    case OPTIONAL_DOUBLE_TAKE:
+    case OPTIONAL_REDOUBLE_TAKE:
+    case OPTIONAL_DOUBLE_PASS:
+    case OPTIONAL_REDOUBLE_PASS:
+
+      /* Opponent out of his right mind: Raccoon if possible */
+
+      if ( ms.cBeavers < nBeavers && ! ms.nMatchTo &&
+           ms.nCube < ( MAX_CUBE >> 1 ) ) {}
+        /* he he: raccoon */
+        // CommandRedouble ( NULL );
+      else {}
+        /* Damn, no raccoons allowed */
+        // CommandTake ( NULL );
+
+      break;
+
+          
+    case NODOUBLE_TAKE:
+    case NO_REDOUBLE_TAKE:
+
+      /* hmm, oops: opponent beavered us:
+         consider dropping the beaver */
+
+      /* Note, this should not happen as the computer plays
+         "perfectly"!! */
+
+      if ( arDouble[ OUTPUT_TAKE ] <= -1.0 ) {}
+        /* drop beaver */
+        // CommandDrop ( NULL );
+      else {}
+        /* take */
+        // CommandTake ( NULL );
+          
+      break;
+
+
+    case DOUBLE_BEAVER:
+    case NODOUBLE_BEAVER:
+    case NO_REDOUBLE_BEAVER:
+    case OPTIONAL_DOUBLE_BEAVER:
+
+      /* opponent beaver was correct */
+
+      // CommandTake ( NULL );
+      break;
+
+    default:
+
+      g_assert ( FALSE );
+          
+    } /* switch cubedecision */
+
+  } /* consider beaver */
+  else {
+
+    /* normal double by opponent */
+
+    switch ( cd ) {
+        
+    case DOUBLE_TAKE:
+    case NODOUBLE_TAKE:
+    case TOOGOOD_TAKE:
+    case REDOUBLE_TAKE:
+    case NO_REDOUBLE_TAKE:
+    case TOOGOODRE_TAKE:
+    case NODOUBLE_DEADCUBE:
+    case NO_REDOUBLE_DEADCUBE:
+    case OPTIONAL_DOUBLE_TAKE:
+    case OPTIONAL_REDOUBLE_TAKE:
+
+      // CommandTake ( NULL );
+      break;
+
+    case DOUBLE_PASS:
+    case TOOGOOD_PASS:
+    case REDOUBLE_PASS:
+    case TOOGOODRE_PASS:
+    case OPTIONAL_DOUBLE_PASS:
+    case OPTIONAL_REDOUBLE_PASS:
+
+      // CommandDrop ( NULL );
+      break;
+
+    case DOUBLE_BEAVER:
+    case NODOUBLE_BEAVER:
+    case NO_REDOUBLE_BEAVER:
+    case OPTIONAL_DOUBLE_BEAVER:
+
+      if ( ms.cBeavers < nBeavers && ! ms.nMatchTo &&
+           ms.nCube < ( MAX_CUBE >> 1 ) ) {}
+        /* Beaver all night! */
+        // CommandRedouble ( NULL );
+      else {}
+        /* Damn, no beavers allowed */
+        // CommandTake ( NULL );
+
+      break;
+
+    default:
+
+      g_assert ( FALSE );
+
+    } /* switch cubedecision */
+
+  } /* normal cube */
+      
+}
+
 void testResignation() {
   unsigned int b[2][25] = 
     {
