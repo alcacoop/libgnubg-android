@@ -1504,8 +1504,10 @@ RolloutGeneral(ConstTanBoard * apBoard,
 #if USE_GTK
 	if (!fX)
 #endif
+#ifndef IS_LIBRARY
                 if (!fInterrupt)
 		        outputf(_("\nRollout done. Printing final results.\n"));
+#endif
 
 	if (!fInterrupt) UpdateProgress(NULL);
 
@@ -1537,6 +1539,7 @@ RolloutGeneral(ConstTanBoard * apBoard,
 				(*apStdDev[alt])[i] = aarSigma[alt][i];
 	}
 
+#ifndef IS_LIBRARY
 	if (fShowProgress && !fInterrupt
 #if USE_GTK
 	    && !fX
@@ -1548,6 +1551,7 @@ RolloutGeneral(ConstTanBoard * apBoard,
 		outputc('\r');
 		fflush(stdout);
 	}
+#endif
 
 	return trialsDone;
 }
@@ -1711,12 +1715,16 @@ GeneralCubeDecisionR ( float aarOutput[ 2 ][ NUM_ROLLOUT_OUTPUTS ],
                 pci->fJacoby, pci->fBeavers, pci->bgv );
 
   if ( ! GetDPEq ( NULL, NULL, &aci[ 0 ] ) ) {
+#ifndef IS_LIBRARY
     outputl ( _("Cube not available!") );
+#endif
     return -1;
   }
 
   if ( ! prc->fCubeful ) {
+#ifndef IS_LIBRARY
     outputl ( _("Setting cubeful on") );
+#endif
     prc->fCubeful = TRUE;
   }
 

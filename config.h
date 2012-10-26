@@ -17,7 +17,8 @@
 #define GETTEXT_PACKAGE "gnubg"
 
 /* Define if you wish to use glib threads */
-#define GLIB_THREADS 1
+//#define GLIB_THREADS 1
+# undef GLIB_THREADS
 
 /* Define if you want to disable deprecated gtk functions */
 /* #undef GTK_DISABLE_DEPRECATED */

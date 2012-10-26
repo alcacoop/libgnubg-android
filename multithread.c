@@ -542,8 +542,10 @@ int MT_WaitForTasks(gboolean (*pCallback)(gpointer), int callbackTime, int autos
 	GTKSuspendInput();
 #endif
 
+#ifndef IS_LIBRARY
 	if (autosave)
 		as_source = g_timeout_add(nAutoSaveTime*60000, save_autosave, NULL);
+#endif
 	multi_debug("Waiting for all tasks");
     while (!WaitForAllTasks(polltime))
     {
@@ -555,11 +557,13 @@ int MT_WaitForTasks(gboolean (*pCallback)(gpointer), int callbackTime, int autos
         }
 	ProcessEvents();
 	}
+#ifndef IS_LIBRARY
 	if (autosave)
 	{
 		g_source_remove(as_source);
 		save_autosave(NULL);
 	}
+#endif
 	multi_debug("Done waiting for all tasks");
 
 	td.doneTasks = td.addedTasks = 0;
@@ -749,8 +753,10 @@ int MT_WaitForTasks(gboolean(*pCallback) (gpointer), int callbackTime, int autos
 
 	pCallback(NULL);
 	cb_source = g_timeout_add(1000, pCallback, NULL);
+#ifndef IS_LIBRARY
 	if (autosave)
 		as_source = g_timeout_add(nAutoSaveTime*60000, save_autosave, NULL);
+#endif
 	for (member = g_list_first(td.tasks); member; member = member->next, td.doneTasks++) {
 		Task *task = member->data;
 		task->fun(task->data);
@@ -759,11 +765,13 @@ int MT_WaitForTasks(gboolean(*pCallback) (gpointer), int callbackTime, int autos
 		ProcessEvents();
 	}
 	g_list_free(td.tasks);
+#ifndef IS_LIBRARY
 	if (autosave)
 	{
 		g_source_remove(as_source);
 		save_autosave(NULL);
 	}
+#endif
 	td.tasks = NULL;
 
 #if USE_GTK
