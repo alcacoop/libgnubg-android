@@ -5,3 +5,8 @@ test
 *.swp
 libgnubg.so
 *.so
+
+## EMACS
+*~
+\#*
+.\#*

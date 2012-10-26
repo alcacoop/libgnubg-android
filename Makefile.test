@@ -5,11 +5,13 @@ INCLUDES=-I. -I./lib
 
 
 OBJS= \
+                globals.o \
 		async.o \
 		dice.o \
 		eval.o \
 		bearoff.o \
 		bearoffgammon.o \
+                imported_functions.o \
 		matchequity.o \
 		matchid.o \
 		util.o \

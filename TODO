@@ -1,19 +1,11 @@
-FindBestMove
-GeneralCubeDecisionE
-EvaluatePosition
-getResignation
-
-
-
-EvalInitialise(
-  gnubg.weights, 
-  gnubg.wd, 
-  FALSE (bearoff file), 
-  NULL
-)
-
-
-
+Cosa deve fare il sistema?
+* Tirare i dadi: rollDice()
+* Valutare se accettare o meno un resign: acceptResign()
+* Valutare se accettare o meno un raddoppio: acceptDouble() TODO
+* Turno di gioco IA: TODO
+** Valutare se arrendersi
+** Valutare se proporre un raddoppio
+** Tirare i dadi e valutare la mossa migliore
 
 ASSETS NECESSARI:
 ----------------
@@ -22,3 +14,4 @@ NOTA: la directory da cui carica gli asset viene passata dal FLAG AC_PKGDATADIR 
 gnubg.wd
 gnubg.weights
 gnubg_ts0.bd
+InitMatchEquity("/usr/share/gnubg/met/zadeh.xml");
