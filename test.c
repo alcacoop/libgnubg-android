@@ -2,7 +2,6 @@
 #include "async.h"
 #include "imported_functions.h"
 
-//CONFIGURAZIONE SUPREMO
 extern evalcontext ec;
 extern movefilter mf[];
 
@@ -49,6 +48,7 @@ void rollDice(int d[2]) {
   RollDice(d, &_rng, rngctxCurrent); 
 }
 
+
 extern int check_resigns(cubeinfo * pci)
 {
   float rEqBefore, rEqAfter;
@@ -80,6 +80,7 @@ extern int check_resigns(cubeinfo * pci)
   return resigned == 4 ? -1 : resigned;
 }
 
+
 //TODO: move to API
 int acceptResign() {
   int *board = ms.anBoard;
@@ -98,28 +99,24 @@ int acceptResign() {
     
     get_eq_before_resign(&ci, &dd);
     getResignEquities(dd.aarOutput[0], &ci, ms.fResigned, &rEqBefore, &rEqAfter);
-    if (rEqAfter - rEqBefore < max_gain ) {
+    if (rEqAfter - rEqBefore < max_gain )
       resign = ms.fResigned;
-      printf("QUALCOSA %d\n", resign);
-    }
-    else {
+    else
       resign = -1;
-      printf("QUALCOSA2 %d\n", resign);
-    }
   }
 
-  if (resign > 0)
-    {
-      ms.fResigned = resign;
-      printf("Resign decision: ACCEPTED!\n");    
-    }
+  if (resign > 0) {
+    ms.fResigned = resign;
+    printf("RESIGN ACCEPTED!\n");
+  }
   else
-    {
-      printf("Resign decision: NOT ACCEPTED!\n");
-    }
+    printf("RESIGN NOT ACCEPTED!\n");
 
 }
 
+
+
+//TODO: move to API
 void acceptDouble() {
   decisionData dd;
   cubedecision cd;
@@ -130,127 +127,18 @@ void acceptDouble() {
   es.ec = ec;
   es.rc = rcRollout;
 
-  /* Consider cube action */
-
-  /* 
-   * We may get here in three different scenarios: 
-   * (1) normal double by opponent: fMove != fTurn and fCubeOwner is
-   *     either -1 (centered cube) or = fMove.
-   * (2) beaver by opponent: fMove = fTurn and fCubeOwner = !
-   *     fMove
-   * (3) raccoon by opponent: fMove != fTurn and fCubeOwner =
-   *     fTurn.
-   *
-   */
-
-  if ( ms.fMove != ms.fTurn && ms.fCubeOwner == ms.fTurn ) {
-
-    /* raccoon: consider this a normal double, i.e. 
-       fCubeOwner = fMove */
-        
-    SetCubeInfo ( &ci, ci.nCube,
-                  ci.fMove, ci.fMove,
-                  ci.nMatchTo, ci.anScore, ci.fCrawford,
-                  ci.fJacoby, ci.fBeavers, ci.bgv );
-
-  }
-      
-  if ( ms.fMove == ms.fTurn && ms.fCubeOwner != ms.fMove ) {
-
-    /* opponent beavered: consider this a normal double by me */
-
-    SetCubeInfo ( &ci, ci.nCube,
-                  ci.fMove, ci.fMove,
-                  ci.nMatchTo, ci.anScore, ci.fCrawford,
-                  ci.fJacoby, ci.fBeavers, ci.bgv );
-
-  }
+  GetMatchStateCubeInfo( &ci, &ms );
 
   /* Evaluate cube decision */
   dd.pboard = ms.anBoard;
   dd.pci = &ci;
   dd.pes = &es;
-  if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, _("Considering cube action...")) != 0)
+  if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, "Considering cube action...") != 0)
     return -1;
-
-  current_pmr_cubedata_update(dd.pes, dd.aarOutput, dd.aarStdDev);
-
   cd = FindCubeDecision ( arDouble,  dd.aarOutput, &ci );
 
-  if ( ms.fTurn == ms.fMove ) {
-
-    /* opponent has beavered */
-
-    switch ( cd ) {
-
-    case DOUBLE_TAKE:
-    case REDOUBLE_TAKE:
-    case TOOGOOD_TAKE:
-    case TOOGOODRE_TAKE:
-    case DOUBLE_PASS:
-    case TOOGOOD_PASS:
-    case REDOUBLE_PASS:
-    case TOOGOODRE_PASS:
-    case OPTIONAL_DOUBLE_TAKE:
-    case OPTIONAL_REDOUBLE_TAKE:
-    case OPTIONAL_DOUBLE_PASS:
-    case OPTIONAL_REDOUBLE_PASS:
-
-      /* Opponent out of his right mind: Raccoon if possible */
-
-      if ( ms.cBeavers < nBeavers && ! ms.nMatchTo &&
-           ms.nCube < ( MAX_CUBE >> 1 ) ) {}
-        /* he he: raccoon */
-        // CommandRedouble ( NULL );
-      else {}
-        /* Damn, no raccoons allowed */
-        // CommandTake ( NULL );
-
-      break;
-
-          
-    case NODOUBLE_TAKE:
-    case NO_REDOUBLE_TAKE:
-
-      /* hmm, oops: opponent beavered us:
-         consider dropping the beaver */
-
-      /* Note, this should not happen as the computer plays
-         "perfectly"!! */
-
-      if ( arDouble[ OUTPUT_TAKE ] <= -1.0 ) {}
-        /* drop beaver */
-        // CommandDrop ( NULL );
-      else {}
-        /* take */
-        // CommandTake ( NULL );
-          
-      break;
-
-
-    case DOUBLE_BEAVER:
-    case NODOUBLE_BEAVER:
-    case NO_REDOUBLE_BEAVER:
-    case OPTIONAL_DOUBLE_BEAVER:
-
-      /* opponent beaver was correct */
-
-      // CommandTake ( NULL );
-      break;
-
-    default:
-
-      g_assert ( FALSE );
-          
-    } /* switch cubedecision */
-
-  } /* consider beaver */
-  else {
-
-    /* normal double by opponent */
-
-    switch ( cd ) {
-        
+  /* normal double by opponent */
+  switch ( cd ) {
     case DOUBLE_TAKE:
     case NODOUBLE_TAKE:
     case TOOGOOD_TAKE:
@@ -261,8 +149,8 @@ void acceptDouble() {
     case NO_REDOUBLE_DEADCUBE:
     case OPTIONAL_DOUBLE_TAKE:
     case OPTIONAL_REDOUBLE_TAKE:
-
       // CommandTake ( NULL );
+      printf("DOUBLE ACCEPTED!\n");
       break;
 
     case DOUBLE_PASS:
@@ -271,60 +159,82 @@ void acceptDouble() {
     case TOOGOODRE_PASS:
     case OPTIONAL_DOUBLE_PASS:
     case OPTIONAL_REDOUBLE_PASS:
-
       // CommandDrop ( NULL );
+      printf("DOUBLE NOT ACCEPTED!\n");
       break;
 
     case DOUBLE_BEAVER:
     case NODOUBLE_BEAVER:
     case NO_REDOUBLE_BEAVER:
     case OPTIONAL_DOUBLE_BEAVER:
-
-      if ( ms.cBeavers < nBeavers && ! ms.nMatchTo &&
-           ms.nCube < ( MAX_CUBE >> 1 ) ) {}
-        /* Beaver all night! */
-        // CommandRedouble ( NULL );
-      else {}
-        /* Damn, no beavers allowed */
-        // CommandTake ( NULL );
-
+      // CommandTake ( NULL );
+      printf("DOUBLE ACCEPTED!\n");
       break;
 
     default:
-
       g_assert ( FALSE );
-
-    } /* switch cubedecision */
-
-  } /* normal cube */
-      
+  } 
 }
+
+
 
 void testResignation() {
   unsigned int b[2][25] = 
     {
       {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-      {13, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
     };
   memcpy(ms.anBoard, b, sizeof(TanBoard));
-  printBoard(ms.anBoard);
   ms.fResigned = 2;
   // fTurn = chi deve decidere (accettare double/resign: 0: umano; 1: pc)
   // fMove = chi deve lanciare i dadi (0: umano; 1: pc)
   ms.fMove = 1;
   ms.fTurn = 0;
-  cubeinfo ci;
-  GetMatchStateCubeInfo( &ci, &ms );
+  ms.anScore[0] = 0;
+  ms.anScore[1] = 0;
+  ms.nMatchTo = 7;
+
+  //printBoard(ms.anBoard);
   acceptResign();
 }
 
+
+
+void testDoubling() {
+  unsigned int b[2][25] = 
+    {
+      {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
+    };
+  memcpy(ms.anBoard, b, sizeof(TanBoard));
+  ms.fDoubled = 1;
+  ms.nCube = 4;
+  ms.fCubeOwner = -1;
+  ms.fMove = 1;
+  ms.fTurn = 0;
+  ms.anScore[0] = 0;
+  ms.anScore[1] = 0;
+  ms.nMatchTo = 7;
+
+  //printBoard(ms.anBoard);
+  acceptDouble();
+}
+
+
+
+
 int main (int argc, char** argv) {
   init_rng();
-  InitMatchEquity("/usr/share/gnubg/met/zadeh.xml");
+  InitMatchEquity("zadeh.xml");
+  EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
+
   int d[2];
+
   rollDice(d);
   printf("%d %d\n", d[0], d[1]);
-  EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
-  //  checkMoves();
+
+  //checkMoves();
+  
   testResignation();
+  testDoubling();
 }
