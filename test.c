@@ -4,6 +4,8 @@
 
 extern evalcontext ec;
 extern movefilter mf[];
+extern matchstate ms;
+
 
 void printBoard(int board [2][25]) {
   int i, j;
@@ -17,26 +19,22 @@ void printBoard(int board [2][25]) {
 
 void printMove(int move[8]){
   int i=0;
-  for (i=0;i<4;i++){
-    printf("\t%d", move[i]);
-  }
-  printf("\t|");
-  for (i=4;i<8;i++){
-    printf("\t%d", move[i]);
-  }
+  printf("MOVE: ");
+  printf("%d/%d ", move[0], move[1]);
+  printf("%d/%d ", move[2], move[3]);
+  printf(" | %d/%d ", move[4], move[5]);
+  printf("%d/%d", move[6], move[7]);
   printf("\n");
 }
 
-void checkMoves() {
-  EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
+void findMove(int d1, int d2) {
   int move [8];
   cubeinfo ci;
   int *board = ms.anBoard;
 
-  GetMatchStateCubeInfo( &ci, &ms );
-  FindBestMove(move, 5, 1, board, &ci, &ec, mf);
+  GetMatchStateCubeInfo(&ci, &ms);
+  FindBestMove(move, d1, d2, board, &ci, &ec, mf);
   printMove(move);
-  //printBoard(board);
 };
 
 void rollDice(int d[2]) {
@@ -60,7 +58,7 @@ extern int check_resigns(cubeinfo * pci)
 
   if (pci == NULL)
     {
-      GetMatchStateCubeInfo( &ci, &ms );
+      GetMatchStateCubeInfo(&ci, &ms);
       pci = &ci;
     }
 
@@ -85,7 +83,7 @@ extern int check_resigns(cubeinfo * pci)
 int acceptResign() {
   int *board = ms.anBoard;
   cubeinfo ci;
-  GetMatchStateCubeInfo( &ci, &ms );
+  GetMatchStateCubeInfo(&ci, &ms);
   
   int resign;
   if (ms.fResigned == -1) {
@@ -107,10 +105,10 @@ int acceptResign() {
 
   if (resign > 0) {
     ms.fResigned = resign;
-    printf("RESIGN ACCEPTED!\n");
+    printf("RESIGN WITH VALUE %d ACCEPTED!\n", ms.fResigned);
   }
   else
-    printf("RESIGN NOT ACCEPTED!\n");
+    printf("RESIGN WITH VALUE %d NOT ACCEPTED!\n", ms.fResigned);
 
 }
 
@@ -127,7 +125,7 @@ void acceptDouble() {
   es.ec = ec;
   es.rc = rcRollout;
 
-  GetMatchStateCubeInfo( &ci, &ms );
+  GetMatchStateCubeInfo(&ci, &ms);
 
   /* Evaluate cube decision */
   dd.pboard = ms.anBoard;
@@ -135,10 +133,10 @@ void acceptDouble() {
   dd.pes = &es;
   if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, "Considering cube action...") != 0)
     return -1;
-  cd = FindCubeDecision ( arDouble,  dd.aarOutput, &ci );
+  cd = FindCubeDecision(arDouble, dd.aarOutput, &ci);
 
   /* normal double by opponent */
-  switch ( cd ) {
+  switch (cd) {
     case DOUBLE_TAKE:
     case NODOUBLE_TAKE:
     case TOOGOOD_TAKE:
@@ -149,7 +147,6 @@ void acceptDouble() {
     case NO_REDOUBLE_DEADCUBE:
     case OPTIONAL_DOUBLE_TAKE:
     case OPTIONAL_REDOUBLE_TAKE:
-      // CommandTake ( NULL );
       printf("DOUBLE ACCEPTED!\n");
       break;
 
@@ -159,7 +156,6 @@ void acceptDouble() {
     case TOOGOODRE_PASS:
     case OPTIONAL_DOUBLE_PASS:
     case OPTIONAL_REDOUBLE_PASS:
-      // CommandDrop ( NULL );
       printf("DOUBLE NOT ACCEPTED!\n");
       break;
 
@@ -167,25 +163,131 @@ void acceptDouble() {
     case NODOUBLE_BEAVER:
     case NO_REDOUBLE_BEAVER:
     case OPTIONAL_DOUBLE_BEAVER:
-      // CommandTake ( NULL );
       printf("DOUBLE ACCEPTED!\n");
       break;
 
     default:
-      g_assert ( FALSE );
+      g_assert(FALSE);
   } 
 }
 
 
+int playTurn(){
+
+  findData fd;
+  TanBoard anBoardMove;
+  float arResign[NUM_ROLLOUT_OUTPUTS];
+  cubeinfo ci;
+  float arDouble[4];
+  float rDoublePoint;
+
+  GetMatchStateCubeInfo(&ci, &ms);
+  memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
+
+  /* Consider resigning */
+  int nResign;
+  evalcontext ecResign = {FALSE, 0, FALSE, TRUE, 0.0};
+  evalsetup esResign;
+  esResign.et = EVAL_EVAL;
+  esResign.ec = ecResign;
+  nResign = getResignation(arResign, ms.anBoard, &ci, &esResign);
+  if (nResign > 0) {
+    printf("RESIGN %d!\n", nResign);
+    return 0;
+  } else {
+    printf("NOT RESIGN %d!\n", nResign);
+  }
+
+
+  /* Consider doubling */
+  //if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
+  if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
+  //if (TRUE) {
+    evalcontext ecDH;
+    float arOutput[NUM_ROLLOUT_OUTPUTS];
+    memcpy(&ecDH, &ec, sizeof ecDH);
+    ecDH.fCubeful = FALSE;
+    if (ecDH.nPlies) ecDH.nPlies--;
+
+    /* We have access to the cube */
+    /* Determine market window */
+    if (EvaluatePosition(NULL, (ConstTanBoard)anBoardMove, arOutput, &ci, &ecDH))
+      return -1;
+
+    rDoublePoint = GetDoublePointDeadCube(arOutput, &ci);
+    if (arOutput[0] >= rDoublePoint) {
+      /* We're in market window */
+      evalsetup es;
+      es.et = EVAL_EVAL;
+      es.ec = ec;
+      es.rc = rcRollout;
+      decisionData dd;
+      cubedecision cd;
+
+      /* Consider cube action */
+      dd.pboard = ms.anBoard;
+      dd.pci = &ci;
+      dd.pes = &es;
+      if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, "Considering cube action...") != 0)
+        return -1;
+
+      cd = FindCubeDecision(arDouble, dd.aarOutput, &ci);
+      switch (cd) {
+        case DOUBLE_TAKE:
+        case REDOUBLE_TAKE:
+        case DOUBLE_PASS:
+        case REDOUBLE_PASS:
+        case DOUBLE_BEAVER:
+          printf("RICHIESTA DI RADDOPPIO!\n");
+          return 0;
+
+        case NODOUBLE_TAKE:
+        case TOOGOOD_TAKE:
+        case NO_REDOUBLE_TAKE:
+        case TOOGOODRE_TAKE:
+        case TOOGOOD_PASS:
+        case TOOGOODRE_PASS:
+        case NODOUBLE_BEAVER:
+        case NO_REDOUBLE_BEAVER:
+          printf("MEGLIO NON RADDOPPIARE!\n");
+          break;
+
+        case OPTIONAL_DOUBLE_BEAVER:
+        case OPTIONAL_DOUBLE_TAKE:
+        case OPTIONAL_REDOUBLE_TAKE:
+        case OPTIONAL_DOUBLE_PASS:
+        case OPTIONAL_REDOUBLE_PASS:
+          if (ec.nPlies==0) { /* double if 0-ply */
+            printf("RICHIESTA DI RADDOPPIO (0-ply)!\n");
+            return 0;
+          }
+          printf("MEGLIO NON RADDOPPIARE (0-ply)!\n");
+          break;
+        default:
+          printf("ASSERT FALSE %d!\n", cd);
+          break;
+      }
+    } /* market window */
+  } /* access to cube */
+
+
+  /* Roll dice and move */
+  RollDice(ms.anDice, &rngCurrent, rngctxCurrent);
+  printf("DICE: %d %d\n", ms.anDice[0], ms.anDice[1]);
+  findMove(ms.anDice[0], ms.anDice[1]);
+
+  return 0;
+}
+
 
 void testResignation() {
   unsigned int b[2][25] = 
-    {
-      {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
-    };
+  {
+    {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
+  };
   memcpy(ms.anBoard, b, sizeof(TanBoard));
-  ms.fResigned = 2;
+  ms.fResigned = 3;
   // fTurn = chi deve decidere (accettare double/resign: 0: umano; 1: pc)
   // fMove = chi deve lanciare i dadi (0: umano; 1: pc)
   ms.fMove = 1;
@@ -194,18 +296,20 @@ void testResignation() {
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
-  //printBoard(ms.anBoard);
+  printf("TEST ACCETTAZIONE RESIGN...\n");
+  printBoard(ms.anBoard);
   acceptResign();
+  printf("\n\n");
 }
 
 
 
 void testDoubling() {
   unsigned int b[2][25] = 
-    {
-      {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
-    };
+  {
+    {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
+  };
   memcpy(ms.anBoard, b, sizeof(TanBoard));
   ms.fDoubled = 1;
   ms.nCube = 4;
@@ -216,8 +320,42 @@ void testDoubling() {
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
-  //printBoard(ms.anBoard);
+  printf("TEST ACCETTAZIONE DOUBLE...\n");
+  printBoard(ms.anBoard);
   acceptDouble();
+  printf("\n\n");
+}
+
+
+
+void testPlayTurn() {
+  unsigned int b[2][25] = 
+  {
+    //MEGLIO NON RADDOPPIARE
+    //{0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    //{0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+    //RICHIESTA DI RADDOPPIO
+    //{0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    //{0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+    //RACE GAME..
+    {0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
+    {0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} 
+  };
+  memcpy(ms.anBoard, b, sizeof(TanBoard));
+  ms.nCube = 1;
+  ms.fCubeOwner = 0;
+  ms.fMove = 0;
+  ms.fTurn = 0;
+  ms.anScore[0] = 3;
+  ms.anScore[1] = 0;
+  ms.nMatchTo = 7;
+
+  printf("TEST TURNO IA...\n");
+  printBoard(ms.anBoard);
+  playTurn();
+  printf("\n\n");
 }
 
 
@@ -225,16 +363,11 @@ void testDoubling() {
 
 int main (int argc, char** argv) {
   init_rng();
-  InitMatchEquity("zadeh.xml");
   EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
+  InitMatchEquity("zadeh.xml");
+  printf("\n");
 
-  int d[2];
-
-  rollDice(d);
-  printf("%d %d\n", d[0], d[1]);
-
-  //checkMoves();
-  
   testResignation();
   testDoubling();
+  testPlayTurn();
 }
