@@ -372,13 +372,27 @@ void testPlayTurn() {
 
 
 
-int main (int argc, char** argv) {
+void testAll () {
+  char *w1, *w2, *met;
+  w1 = BuildFilename("gnubg.weights");
+  w2 = BuildFilename("gnubg.wd");
+  met = BuildFilename("zadeh.xml");
+
+  MYLOG("\n\n");
+  MYLOG(w1);
+  MYLOG(w2);
+  MYLOG(met);
+  MYLOG("\n\n");
+
+  EvalInitialise(w1, w2, 0, NULL);
+  InitMatchEquity(met);
   init_rng();
-  EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
-  InitMatchEquity("zadeh.xml");
-  MYLOG("\n");
 
   testResignation();
   testDoubling();
   testPlayTurn();
+}
+
+int main (int argc, char** argv) {
+  testAll();
 }

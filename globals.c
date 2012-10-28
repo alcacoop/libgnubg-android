@@ -109,7 +109,7 @@ extern matchstate ms = {
 //CONFIGURAZIONE SUPREMO
 extern evalcontext ec = {
   .fCubeful = 1,
-  .nPlies = 3,
+  .nPlies = 1,
   .fUsePrune = 1,
   .fDeterministic = 1,
   .rNoise = 0.000
@@ -133,3 +133,14 @@ extern movefilter mf[] = {
   {0, 4, 0.08000},
   {-1, 0, 0.00000}
 };
+
+
+extern char* BuildFilename(char* str)
+{
+  char* buf;
+  buf=(char*)calloc(255, sizeof(char));
+  strcat(buf, DATA_DIR);
+  strcat(buf, str);
+  //printf("-> %s\n",buf);
+  return buf;
+}

@@ -51,8 +51,7 @@
 #endif
 
 #ifdef IS_LIBRARY
-#undef BuildFilename
-#define BuildFilename(s) s
+#include "globals.h"
 #endif
 
 typedef int ( *classevalfunc )( const TanBoard anBoard, float arOutput[],
