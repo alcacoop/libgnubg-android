@@ -21,7 +21,7 @@ extern void get_eq_before_resign(cubeinfo *pci, decisionData *pdd)
     float t;
     /* Opponent has rolled the dice and then resigned. We want to find out if the resignation is OK after
        the roll */
-    RunAsyncProcess((AsyncFun) asyncEvalRoll, pdd, _("Considering resignation..."));
+    RunAsyncProcess((AsyncFun) asyncEvalRoll, pdd, "Considering resignation...");
     /* Swap the equities as evaluation is for other player */
     pdd->aarOutput[0][OUTPUT_WIN] = 1 - pdd->aarOutput[0][OUTPUT_WIN];
     t = pdd->aarOutput[0][OUTPUT_WINGAMMON];
@@ -31,12 +31,12 @@ extern void get_eq_before_resign(cubeinfo *pci, decisionData *pdd)
     pdd->aarOutput[0][OUTPUT_WINBACKGAMMON] = pdd->aarOutput[0][OUTPUT_LOSEBACKGAMMON];
     pdd->aarOutput[0][OUTPUT_LOSEBACKGAMMON] = t;
   } else {
-    RunAsyncProcess((AsyncFun) asyncMoveDecisionE, pdd, _("Considering resignation..."));
+    RunAsyncProcess((AsyncFun) asyncMoveDecisionE, pdd, "Considering resignation...");
   }
 }
 
 extern void EvaluateRoll ( float ar[ NUM_ROLLOUT_OUTPUTS ], int nDie1, int nDie2, const TanBoard anBoard, 
-                           const cubeinfo *pci, const evalcontext *pec) {
+    const cubeinfo *pci, const evalcontext *pec) {
   TanBoard anBoardTemp;
   cubeinfo ciOpp;
 
@@ -46,7 +46,7 @@ extern void EvaluateRoll ( float ar[ NUM_ROLLOUT_OUTPUTS ], int nDie1, int nDie2
   memcpy( &anBoardTemp[ 0 ][ 0 ], &anBoard[ 0 ][ 0 ], 2 * 25 * sizeof( int ) );
 
   if( FindBestMove( NULL, nDie1, nDie2, anBoardTemp,
-                    (cubeinfo *) pci, NULL, defaultFilters ) < 0 )
+        (cubeinfo *) pci, NULL, defaultFilters ) < 0 )
     return;
 
 
@@ -70,7 +70,7 @@ extern void init_rng(void)
 extern void GetMatchStateCubeInfo( cubeinfo* pci, const matchstate* pms )
 {
   SetCubeInfo( pci, pms->nCube, pms->fCubeOwner, pms->fMove,
-               pms->nMatchTo, pms->anScore, pms->fCrawford,
-               pms->fJacoby, 3, pms->bgv );
+      pms->nMatchTo, pms->anScore, pms->fCrawford,
+      pms->fJacoby, 3, pms->bgv );
 }
 

@@ -13,26 +13,31 @@ include $(GLIB_TOP)gthread/Android.mk
 
 LOCAL_PATH :=/home/dmt/Progetti/Android/workspace/TestNDK/jni/
 LOCAL_SRC_FILES := \
-		 lib/list.c \
-		 lib/neuralnet.c \
-		 lib/mt19937ar.c \
-		 lib/isaac.c \
-		 lib/md5.c \
-		 lib/cache.c \
-		 lib/inputs.c \
-		 gnubgAPI.c \
-     dice.c \
-     eval.c \
-     bearoff.c \
-     bearoffgammon.c \
-     matchequity.c \
-     matchid.c \
-     util.c \
-     mec.c \
-     positionid.c 
+	lib/list.c \
+	lib/neuralnet.c \
+	lib/mt19937ar.c \
+	lib/isaac.c \
+	lib/md5.c \
+	lib/cache.c \
+	lib/inputs.c \
+	gnubgAPI.c \
+	globals.c \
+	async.c \
+	dice.c \
+	eval.c \
+	bearoff.c \
+	bearoffgammon.c \
+	imported_functions.c \
+	matchequity.c \
+	matchid.c \
+	util.c \
+	mec.c \
+	positionid.c \
+	rollout.c \
+	test.c
 
 
-#LOCAL_LDLIBS := -lglib-2.0
+LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -llog
 LOCAL_MODULE := libgnubg
 LOCAL_MODULE_FILENAME := libgnubg
 

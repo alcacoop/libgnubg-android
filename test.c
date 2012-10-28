@@ -9,22 +9,27 @@ extern matchstate ms;
 
 void printBoard(int board [2][25]) {
   int i, j;
+  char buf[200];
+  sprintf(buf, "");
   for(i = 0; i<2; i++) {
     for(j=0; j<25; j++) {
-      printf(" %u ", board[i][j]);
+      sprintf(buf+strlen(buf), " %d ", board[i][j]);
     }
-    printf("\n");
+    sprintf(buf+strlen(buf), "\n");
   }
+  MYLOG(buf);
 }
 
 void printMove(int move[8]){
   int i=0;
-  printf("MOVE: ");
-  printf("%d/%d ", move[0], move[1]);
-  printf("%d/%d ", move[2], move[3]);
-  printf(" | %d/%d ", move[4], move[5]);
-  printf("%d/%d", move[6], move[7]);
-  printf("\n");
+  char buf[200];
+  sprintf(buf, "MOVE: ");
+  sprintf(buf+strlen(buf), "%d/%d ", move[0], move[1]);
+  sprintf(buf+strlen(buf), "%d/%d ", move[2], move[3]);
+  sprintf(buf+strlen(buf), " | %d/%d ", move[4], move[5]);
+  sprintf(buf+strlen(buf), "%d/%d", move[6], move[7]);
+  sprintf(buf+strlen(buf), "\n");
+  MYLOG(buf);
 }
 
 void findMove(int d1, int d2) {
@@ -87,7 +92,7 @@ int acceptResign() {
   
   int resign;
   if (ms.fResigned == -1) {
-    printf("RESIGNED = -1\n");
+    MYLOG("RESIGNED = -1\n");
     resign = check_resigns(&ci);
   }
   else {
@@ -103,12 +108,15 @@ int acceptResign() {
       resign = -1;
   }
 
+  char buf[50];
   if (resign > 0) {
     ms.fResigned = resign;
-    printf("RESIGN WITH VALUE %d ACCEPTED!\n", ms.fResigned);
+    sprintf(buf, "RESIGN WITH VALUE %d ACCEPTED!\n", ms.fResigned);
   }
-  else
-    printf("RESIGN WITH VALUE %d NOT ACCEPTED!\n", ms.fResigned);
+  else {
+    sprintf(buf, "RESIGN WITH VALUE %d NOT ACCEPTED!\n", ms.fResigned);
+  }
+  MYLOG(buf);
 
 }
 
@@ -147,7 +155,7 @@ void acceptDouble() {
     case NO_REDOUBLE_DEADCUBE:
     case OPTIONAL_DOUBLE_TAKE:
     case OPTIONAL_REDOUBLE_TAKE:
-      printf("DOUBLE ACCEPTED!\n");
+      MYLOG("DOUBLE ACCEPTED!\n");
       break;
 
     case DOUBLE_PASS:
@@ -156,14 +164,14 @@ void acceptDouble() {
     case TOOGOODRE_PASS:
     case OPTIONAL_DOUBLE_PASS:
     case OPTIONAL_REDOUBLE_PASS:
-      printf("DOUBLE NOT ACCEPTED!\n");
+      MYLOG("DOUBLE NOT ACCEPTED!\n");
       break;
 
     case DOUBLE_BEAVER:
     case NODOUBLE_BEAVER:
     case NO_REDOUBLE_BEAVER:
     case OPTIONAL_DOUBLE_BEAVER:
-      printf("DOUBLE ACCEPTED!\n");
+      MYLOG("DOUBLE ACCEPTED!\n");
       break;
 
     default:
@@ -180,6 +188,7 @@ int playTurn(){
   cubeinfo ci;
   float arDouble[4];
   float rDoublePoint;
+  char buf[100];
 
   GetMatchStateCubeInfo(&ci, &ms);
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
@@ -192,11 +201,12 @@ int playTurn(){
   esResign.ec = ecResign;
   nResign = getResignation(arResign, ms.anBoard, &ci, &esResign);
   if (nResign > 0) {
-    printf("RESIGN %d!\n", nResign);
+    sprintf(buf, "RESIGN %d!\n", nResign);
     return 0;
   } else {
-    printf("NOT RESIGN %d!\n", nResign);
+    sprintf(buf, "NOT RESIGN %d!\n", nResign);
   }
+  MYLOG(buf);
 
 
   /* Consider doubling */
@@ -238,7 +248,7 @@ int playTurn(){
         case DOUBLE_PASS:
         case REDOUBLE_PASS:
         case DOUBLE_BEAVER:
-          printf("RICHIESTA DI RADDOPPIO!\n");
+          MYLOG("RICHIESTA DI RADDOPPIO!\n");
           return 0;
 
         case NODOUBLE_TAKE:
@@ -249,7 +259,7 @@ int playTurn(){
         case TOOGOODRE_PASS:
         case NODOUBLE_BEAVER:
         case NO_REDOUBLE_BEAVER:
-          printf("MEGLIO NON RADDOPPIARE!\n");
+          MYLOG("MEGLIO NON RADDOPPIARE!\n");
           break;
 
         case OPTIONAL_DOUBLE_BEAVER:
@@ -258,13 +268,13 @@ int playTurn(){
         case OPTIONAL_DOUBLE_PASS:
         case OPTIONAL_REDOUBLE_PASS:
           if (ec.nPlies==0) { /* double if 0-ply */
-            printf("RICHIESTA DI RADDOPPIO (0-ply)!\n");
+            MYLOG("RICHIESTA DI RADDOPPIO (0-ply)!\n");
             return 0;
           }
-          printf("MEGLIO NON RADDOPPIARE (0-ply)!\n");
+          MYLOG("MEGLIO NON RADDOPPIARE (0-ply)!\n");
           break;
         default:
-          printf("ASSERT FALSE %d!\n", cd);
+          MYLOG("ASSERT FALSE!\n");
           break;
       }
     } /* market window */
@@ -273,7 +283,8 @@ int playTurn(){
 
   /* Roll dice and move */
   RollDice(ms.anDice, &rngCurrent, rngctxCurrent);
-  printf("DICE: %d %d\n", ms.anDice[0], ms.anDice[1]);
+  sprintf(buf, "DICE: %d %d\n", ms.anDice[0], ms.anDice[1]);
+  MYLOG(buf);
   findMove(ms.anDice[0], ms.anDice[1]);
 
   return 0;
@@ -296,10 +307,10 @@ void testResignation() {
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
-  printf("TEST ACCETTAZIONE RESIGN...\n");
+  MYLOG("TEST ACCETTAZIONE RESIGN...\n");
   printBoard(ms.anBoard);
   acceptResign();
-  printf("\n\n");
+  MYLOG("\n\n");
 }
 
 
@@ -320,10 +331,10 @@ void testDoubling() {
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
-  printf("TEST ACCETTAZIONE DOUBLE...\n");
+  MYLOG("TEST ACCETTAZIONE DOUBLE...\n");
   printBoard(ms.anBoard);
   acceptDouble();
-  printf("\n\n");
+  MYLOG("\n\n");
 }
 
 
@@ -352,10 +363,10 @@ void testPlayTurn() {
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
-  printf("TEST TURNO IA...\n");
+  MYLOG("TEST TURNO IA...\n");
   printBoard(ms.anBoard);
   playTurn();
-  printf("\n\n");
+  MYLOG("\n\n");
 }
 
 
@@ -365,7 +376,7 @@ int main (int argc, char** argv) {
   init_rng();
   EvalInitialise("gnubg.weights", "gnubg.wd", 0, NULL);
   InitMatchEquity("zadeh.xml");
-  printf("\n");
+  MYLOG("\n");
 
   testResignation();
   testDoubling();
