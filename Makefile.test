@@ -5,24 +5,23 @@ INCLUDES=-I. -I./lib
 
 
 OBJS= \
-                globals.o \
+		globals.o \
 		async.o \
 		dice.o \
 		eval.o \
 		bearoff.o \
 		bearoffgammon.o \
-                imported_functions.o \
+		imported_functions.o \
 		matchequity.o \
 		matchid.o \
 		util.o \
 		mec.o \
 		positionid.o \
 		rollout.o \
-		multithread.o \
 		test.o
 
-LDFLAGS=-L./lib lib/libevent.a -lglib-2.0 -lm 
 
+LDFLAGS=-L./lib lib/libevent.a -lglib-2.0 -lm 
 
 all: libs src
 	$(CC) -o test $(OBJS) $(LDFLAGS)

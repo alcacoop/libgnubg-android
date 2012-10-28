@@ -1300,6 +1300,8 @@ static gboolean UpdateProgress(gpointer unused)
 	return TRUE;
 }
 
+
+#ifndef IS_LIBRARY
 extern int
 RolloutGeneral(ConstTanBoard * apBoard,
 	       float (*apOutput[])[NUM_ROLLOUT_OUTPUTS],
@@ -1555,6 +1557,7 @@ RolloutGeneral(ConstTanBoard * apBoard,
 
 	return trialsDone;
 }
+#endif
 
 /*
  * General evaluation functions.
@@ -1578,10 +1581,12 @@ GeneralEvaluation ( float arOutput[ NUM_ROLLOUT_OUTPUTS ],
 
     return GeneralEvaluationE ( arOutput, (ConstTanBoard)anBoard, pci, &pes->ec );
 
+#ifndef IS_LIBRARY
   case EVAL_ROLLOUT:
 
     return GeneralEvaluationR ( arOutput, arStdDev, arsStatistics,
                                 (ConstTanBoard)anBoard, pci, &pes->rc, pf, p );
+#endif
 
   case EVAL_NONE:
 
@@ -1594,6 +1599,7 @@ GeneralEvaluation ( float arOutput[ NUM_ROLLOUT_OUTPUTS ],
   return 0;
 }
 
+#ifndef IS_LIBRARY
 extern int
 GeneralEvaluationR ( float arOutput [ NUM_ROLLOUT_OUTPUTS ],
                      float arStdDev [ NUM_ROLLOUT_OUTPUTS ],
@@ -1628,6 +1634,7 @@ GeneralEvaluationR ( float arOutput [ NUM_ROLLOUT_OUTPUTS ],
   
   return 0;
 }
+#endif
 
 extern int
 GeneralCubeDecision ( float aarOutput[ 2 ][ NUM_ROLLOUT_OUTPUTS ], 
@@ -1648,10 +1655,12 @@ GeneralCubeDecision ( float aarOutput[ 2 ][ NUM_ROLLOUT_OUTPUTS ],
 
     return GeneralCubeDecisionE ( aarOutput, anBoard, pci, &pes->ec, pes );
 
+#ifndef IS_LIBRARY
   case EVAL_ROLLOUT:
 
     return GeneralCubeDecisionR ( aarOutput, aarStdDev, aarsStatistics, 
                                   anBoard, pci, &pes->rc, pes, pf, p );
+#endif
 
   case EVAL_NONE:
 
@@ -1665,7 +1674,7 @@ GeneralCubeDecision ( float aarOutput[ 2 ][ NUM_ROLLOUT_OUTPUTS ],
   return 0;
 }
 
-
+#ifndef IS_LIBRARY
 extern int
 GeneralCubeDecisionR ( float aarOutput[ 2 ][ NUM_ROLLOUT_OUTPUTS ], 
                        float aarStdDev[ 2 ][ NUM_ROLLOUT_OUTPUTS ], 
@@ -1740,6 +1749,7 @@ GeneralCubeDecisionR ( float aarOutput[ 2 ][ NUM_ROLLOUT_OUTPUTS ],
   return 0;
 
 }
+#endif
 
 
 
@@ -1858,6 +1868,7 @@ getResignEquities ( float arResign[ NUM_ROLLOUT_OUTPUTS ],
 }
 
 
+#ifndef IS_LIBRARY
 extern int
 ScoreMoveRollout ( move **ppm, const cubeinfo** ppci, int cMoves,
                    rolloutprogressfunc *pf, void *p ) {
@@ -1933,5 +1944,6 @@ ScoreMoveRollout ( move **ppm, const cubeinfo** ppci, int cMoves,
 
   return 0;
 }
+#endif
 
 #endif
