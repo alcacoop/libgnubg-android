@@ -109,7 +109,7 @@ extern matchstate ms = {
 //CONFIGURAZIONE SUPREMO
 extern evalcontext ec = {
   .fCubeful = 1,
-  .nPlies = 1,
+  .nPlies = 3,
   .fUsePrune = 1,
   .fDeterministic = 1,
   .rNoise = 0.000

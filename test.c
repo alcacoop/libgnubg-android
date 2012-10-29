@@ -20,7 +20,7 @@ void printBoard(int board [2][25]) {
   MYLOG(buf);
 }
 
-void printMove(int move[8]){
+void printMove(int move[8]) {
   int i=0;
   char buf[200];
   sprintf(buf, "MOVE: ");
@@ -32,23 +32,18 @@ void printMove(int move[8]){
   MYLOG(buf);
 }
 
-void findMove(int d1, int d2) {
-  int move [8];
-  cubeinfo ci;
-  int *board = ms.anBoard;
+void printDices(int dices[2]) {
+  int i=0;
+  char buf[200];
+  sprintf(buf, "DICES: %d %d\n", dices[0], dices[1]);
+  MYLOG(buf);
+}
 
-  GetMatchStateCubeInfo(&ci, &ms);
-  FindBestMove(move, d1, d2, board, &ci, &ec, mf);
-  printMove(move);
-};
 
-void rollDice(int d[2]) {
-  unsigned long a;
-  int b;
+void rollDice(int dices[2]) {
   rng _rng = RNG_MERSENNE;
   //rng _rng = RNG_ISAAC;
-  
-  RollDice(d, &_rng, rngctxCurrent); 
+  RollDice(dices, &_rng, rngctxCurrent); 
 }
 
 
@@ -180,15 +175,12 @@ void acceptDouble() {
 }
 
 
-int playTurn(){
-
-  findData fd;
+//VALUTA SE ARRENDERSI
+int askForResignation() {
   TanBoard anBoardMove;
-  float arResign[NUM_ROLLOUT_OUTPUTS];
   cubeinfo ci;
-  float arDouble[4];
-  float rDoublePoint;
   char buf[100];
+  float arResign[NUM_ROLLOUT_OUTPUTS];
 
   GetMatchStateCubeInfo(&ci, &ms);
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
@@ -207,20 +199,32 @@ int playTurn(){
     sprintf(buf, "NOT RESIGN %d!\n", nResign);
   }
   MYLOG(buf);
+  return 0;
+}
+
+
+//VALUTA SE CHIEDERE UN RADDOPPIO AL GIOCATORE UMANO
+int askForDoubling() {
+  TanBoard anBoardMove;
+  cubeinfo ci;
+  float arDouble[4];
+  float rDoublePoint;
+  char buf[100];
+
+  GetMatchStateCubeInfo(&ci, &ms);
+  memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
 
 
   /* Consider doubling */
   //if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
-  int i = GetDPEq(NULL, NULL, &ci);
   if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
-  //if (TRUE) {
+  //if (WE HAVE ACCESS TO CUBE) {
     evalcontext ecDH;
     float arOutput[NUM_ROLLOUT_OUTPUTS];
     memcpy(&ecDH, &ec, sizeof ecDH);
     ecDH.fCubeful = FALSE;
     if (ecDH.nPlies) ecDH.nPlies--;
 
-    /* We have access to the cube */
     /* Determine market window */
     if (EvaluatePosition(NULL, (ConstTanBoard)anBoardMove, arOutput, &ci, &ecDH)) {
       MYLOG("EVALUATE POSITION ERROR");
@@ -288,12 +292,16 @@ int playTurn(){
     }
   } /* access to cube */
 
+}
 
-  /* Roll dice and move */
-  RollDice(ms.anDice, &rngCurrent, rngctxCurrent);
-  sprintf(buf, "DICE: %d %d\n", ms.anDice[0], ms.anDice[1]);
-  MYLOG(buf);
-  findMove(ms.anDice[0], ms.anDice[1]);
+
+int evaluateBestMove(int dices[2], int move[8]) {
+  TanBoard anBoardMove;
+  cubeinfo ci;
+
+  GetMatchStateCubeInfo(&ci, &ms);
+  memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
+  FindBestMove(move, dices[0], dices[1], anBoardMove, &ci, &ec, mf);
 
   return 0;
 }
@@ -377,7 +385,14 @@ void testPlayTurn() {
 
   MYLOG("TEST TURNO IA...\n");
   printBoard(ms.anBoard);
-  playTurn();
+  askForResignation();
+  askForDoubling();
+  int dices[2];
+  int move[8];
+  rollDice(dices);
+  printDices(dices);
+  evaluateBestMove(dices, move);
+  printMove(move);
   MYLOG("\n\n");
 }
 
