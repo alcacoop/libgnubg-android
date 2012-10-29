@@ -5,17 +5,6 @@
 #include "rollout.h"
 #include "backgammon.h"
 
-#ifdef IS_ANDROID
-#include <android/log.h>
-#endif
-
-
-
-#ifdef IS_ANDROID
-#define MYLOG(msg) __android_log_write(ANDROID_LOG_ERROR,"MYLOG()",msg);
-#else
-#define MYLOG(msg) printf(msg)
-#endif
 
 extern void ProcessEvents(void);
 extern void get_eq_before_resign(cubeinfo *pci, decisionData *pdd);

@@ -22,5 +22,13 @@
 #undef BuildFilename
 extern char* BuildFilename(char* str);
 
+
+#ifdef IS_ANDROID
+#include <android/log.h>
+#define MYLOG(msg) __android_log_write(ANDROID_LOG_ERROR,"MYLOG()",msg);
+#else
+#define MYLOG(msg) printf(msg)
+#endif
+
 #endif
 
