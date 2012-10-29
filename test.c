@@ -211,6 +211,7 @@ int playTurn(){
 
   /* Consider doubling */
   //if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
+  int i = GetDPEq(NULL, NULL, &ci);
   if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
   //if (TRUE) {
     evalcontext ecDH;
@@ -221,11 +222,15 @@ int playTurn(){
 
     /* We have access to the cube */
     /* Determine market window */
-    if (EvaluatePosition(NULL, (ConstTanBoard)anBoardMove, arOutput, &ci, &ecDH))
+    if (EvaluatePosition(NULL, (ConstTanBoard)anBoardMove, arOutput, &ci, &ecDH)) {
+      MYLOG("EVALUATE POSITION ERROR");
       return -1;
+    }
 
-    rDoublePoint = GetDoublePointDeadCube(arOutput, &ci);
-    if (arOutput[0] >= rDoublePoint) {
+    float f;
+    rDoublePoint = GetDoublePointDeadCube(arOutput, &ci, &f);
+
+    if (arOutput[0] >= f) {
       /* We're in market window */
       evalsetup es;
       es.et = EVAL_EVAL;
@@ -278,6 +283,9 @@ int playTurn(){
           break;
       }
     } /* market window */
+    else {
+      MYLOG("NOT IN MARKET WINDOW\n");
+    }
   } /* access to cube */
 
 
@@ -294,7 +302,7 @@ int playTurn(){
 void testResignation() {
   unsigned int b[2][25] = 
   {
-    {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //PC
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
   };
   memcpy(ms.anBoard, b, sizeof(TanBoard));
@@ -318,7 +326,7 @@ void testResignation() {
 void testDoubling() {
   unsigned int b[2][25] = 
   {
-    {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //PC
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
   };
   memcpy(ms.anBoard, b, sizeof(TanBoard));
@@ -344,22 +352,26 @@ void testPlayTurn() {
   {
     //MEGLIO NON RADDOPPIARE
     //{0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    //{0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+    //{0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
 
-    //RICHIESTA DI RADDOPPIO
-    //{0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    //{0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+    //RICHIESTA DI RADDOPPIO SU 0 A 0
+    {1, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0}, 
+    {0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
 
     //RACE GAME..
-    {0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
-    {0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} 
+    //{0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
+    //{0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} //PC
+
+    //INIT GAME
+    //{0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
+    //{0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0} //PC
   };
   memcpy(ms.anBoard, b, sizeof(TanBoard));
   ms.nCube = 1;
-  ms.fCubeOwner = 0;
+  ms.fCubeOwner = -1;
   ms.fMove = 0;
   ms.fTurn = 0;
-  ms.anScore[0] = 3;
+  ms.anScore[0] = 0;
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
@@ -376,7 +388,7 @@ void testAll () {
   char *w1, *w2, *met;
   w1 = BuildFilename("gnubg.weights");
   w2 = BuildFilename("gnubg.wd");
-  met = BuildFilename("zadeh.xml");
+  met = BuildFilename("g11.xml");
 
   MYLOG("\n\n");
   MYLOG(w1);
@@ -392,6 +404,8 @@ void testAll () {
   testDoubling();
   testPlayTurn();
 }
+
+
 
 int main (int argc, char** argv) {
   testAll();
