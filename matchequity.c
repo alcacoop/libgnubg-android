@@ -47,6 +47,11 @@
 #include "backgammon.h"
 
 
+#ifdef IS_LIBRARY
+#include "globals.h"
+#endif
+
+
 typedef struct _parameter {
 
   char *szName;
@@ -633,8 +638,12 @@ GetPoints ( float arOutput [ 5 ], const cubeinfo *pci, float arCP[ 2 ] ) {
 
 }
 
+#ifdef IS_LIBRARY
 extern float
-GetDoublePointDeadCube ( float arOutput [ 5 ], cubeinfo *pci ) {
+GetDoublePointDeadCube ( float arOutput [ 5 ], cubeinfo *pci , float *out) {
+#else
+GetDoublePointDeadCube ( float arOutput [ 5 ], cubeinfo *pci) {
+#endif
   /*
    * Calculate double point for dead cubes
    */
@@ -752,8 +761,10 @@ GetDoublePointDeadCube ( float arOutput [ 5 ], cubeinfo *pci ) {
     rRisk = rNDL - rDTL;
     rGain = rDTW - rNDW;
 
+#ifdef IS_LIBRARY
+    *out =  rRisk / ( rRisk +  rGain );
+#endif
     return rRisk / ( rRisk +  rGain );
-
   }
 
 }

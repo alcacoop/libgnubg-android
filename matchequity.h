@@ -86,8 +86,12 @@ InitMatchEquity ( const char *szFileName );
 extern int
 GetPoints ( float arOutput [ 5 ], const cubeinfo *pci, float arCP[ 2 ] );
 
+#ifdef IS_LIBRARY
 extern float
-GetDoublePointDeadCube ( float arOutput [ 5 ], cubeinfo *pci );
+GetDoublePointDeadCube ( float arOutput [ 5 ], cubeinfo *pci , float *out);
+#else
+GetDoublePointDeadCube ( float arOutput [ 5 ], cubeinfo *pci);
+#endif
 
 extern void
 invertMET ( void );
