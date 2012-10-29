@@ -1,6 +1,8 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
+#include "eval.h"
+
 #define TRUE 1
 #define FALSE 0
 #define EXIT_FAILURE -1
@@ -29,6 +31,9 @@ extern char* BuildFilename(char* str);
 #else
 #define MYLOG(msg) printf(msg)
 #endif
+
+extern evalcontext ec;
+extern movefilter mf[4][4];
 
 #endif
 

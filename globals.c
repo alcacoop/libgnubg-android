@@ -1,6 +1,5 @@
 #include "globals.h"
 #include "dice.h"
-#include "eval.h"
 #include "backgammon.h"
 #include "rollout.h"
 
@@ -107,15 +106,18 @@ extern matchstate ms = {
 
 
 //CONFIGURAZIONE SUPREMO
-extern evalcontext ec = {
+//extern evalcontext ec;
+/*
+ = {
   .fCubeful = 1,
   .nPlies = 3,
   .fUsePrune = 1,
   .fDeterministic = 1,
   .rNoise = 0.000
 };
-
-extern movefilter mf[] = {
+*/
+//extern movefilter mf[4][4];
+/* = {
   {0, 16, 0.32000},
   {0, 0, 0.00000},
   {0, 0, 0.00000},
@@ -133,7 +135,7 @@ extern movefilter mf[] = {
   {0, 4, 0.08000},
   {-1, 0, 0.00000}
 };
-
+*/
 
 extern char* BuildFilename(char* str)
 {

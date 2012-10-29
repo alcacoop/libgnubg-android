@@ -1,10 +1,10 @@
 #include "globals.h"
 #include "async.h"
+#include "levels.h"
 #include "imported_functions.h"
 
-extern evalcontext ec;
-extern movefilter mf[];
-extern matchstate ms;
+evalcontext ec;
+movefilter mf[4][4];
 
 
 void printBoard(int board [2][25]) {
@@ -363,16 +363,16 @@ void testPlayTurn() {
     //{0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
 
     //RICHIESTA DI RADDOPPIO SU 0 A 0
-    {1, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0}, 
-    {0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
+    //{1, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0}, 
+    //{0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
 
     //RACE GAME..
     //{0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
     //{0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} //PC
 
     //INIT GAME
-    //{0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
-    //{0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0} //PC
+    {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
+    {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0} //PC
   };
   memcpy(ms.anBoard, b, sizeof(TanBoard));
   ms.nCube = 1;
@@ -387,9 +387,9 @@ void testPlayTurn() {
   printBoard(ms.anBoard);
   askForResignation();
   askForDoubling();
-  int dices[2];
+  int dices[2] = {6, 3};
   int move[8];
-  rollDice(dices);
+  //rollDice(dices);
   printDices(dices);
   evaluateBestMove(dices, move);
   printMove(move);
@@ -398,28 +398,30 @@ void testPlayTurn() {
 
 
 
-
-void testAll () {
+void initEnvironment() {
   char *w1, *w2, *met;
   w1 = BuildFilename("gnubg.weights");
   w2 = BuildFilename("gnubg.wd");
   met = BuildFilename("g11.xml");
 
-  MYLOG("\n\n");
-  MYLOG(w1);
-  MYLOG(w2);
-  MYLOG(met);
-  MYLOG("\n\n");
-
   EvalInitialise(w1, w2, 0, NULL);
   InitMatchEquity(met);
   init_rng();
+}
 
+void setAILevel(available_levels l) {
+  memcpy(&ec, &levels[l].ec, sizeof(evalcontext));
+  memcpy(&mf, &levels[l].mf, sizeof(movefilter)*16);
+}
+
+
+void testAll () {
+  initEnvironment();
+  setAILevel(EXPERT);
   testResignation();
   testDoubling();
   testPlayTurn();
 }
-
 
 
 int main (int argc, char** argv) {
