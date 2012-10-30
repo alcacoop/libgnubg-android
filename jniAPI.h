@@ -10,10 +10,26 @@ extern "C" {
 /*
  * Class:     com_example_testndk_gnubgAPI
  * Method:    RollDice
- * Signature: (Ljava/lang/String;)V
+ * Signature: ([II)Ljava/lang/String;
  */
 JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_RollDice
+  (JNIEnv *, jclass, jintArray);
+
+/*
+ * Class:     com_example_testndk_gnubgAPI
+ * Method:    InitializeEnvironment
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_InitializeEnvironment
   (JNIEnv *, jclass);
+
+/*
+ * Class:     com_example_testndk_gnubgAPI
+ * Method:    SetIALevel
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetIALevel
+  (JNIEnv *, jclass, jint);
 
 #ifdef __cplusplus
 }
