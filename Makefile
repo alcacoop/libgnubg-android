@@ -12,21 +12,22 @@ OBJS= \
     lib/md5.o \
     lib/cache.o \
     lib/inputs.o \
-		globals.o \
-		async.o \
-		dice.o \
-		eval.o \
-		bearoff.o \
-		bearoffgammon.o \
-		imported_functions.o \
-		levels.o \
-		matchequity.o \
-		matchid.o \
-		util.o \
-		mec.o \
-		positionid.o \
-		rollout.o \
-		test.o
+    globals.o \
+    async.o \
+    dice.o \
+    eval.o \
+    bearoff.o \
+    bearoffgammon.o \
+    imported_functions.o \
+    levels.o \
+    matchequity.o \
+    matchid.o \
+    nativeAPI.o \
+    util.o \
+    mec.o \
+    positionid.o \
+    rollout.o \
+    test.o
 
 
 LDFLAGS=-L./lib lib/libevent.a -lglib-2.0 -lm 
