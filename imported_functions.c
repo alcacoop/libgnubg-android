@@ -13,7 +13,7 @@ extern void get_eq_before_resign(cubeinfo *pci, decisionData *pdd)
 {
   const evalcontext ecResign = { FALSE, 2, FALSE, TRUE, 0.0 };
 
-  pdd->pboard = ms.anBoard;
+  pdd->pboard = (ConstTanBoard)ms.anBoard;
   pdd->pci = pci;
   pdd->pec = &ecResign;
 
@@ -72,5 +72,36 @@ extern void GetMatchStateCubeInfo( cubeinfo* pci, const matchstate* pms )
   SetCubeInfo( pci, pms->nCube, pms->fCubeOwner, pms->fMove,
       pms->nMatchTo, pms->anScore, pms->fCrawford,
       pms->fJacoby, 3, pms->bgv );
+}
+
+extern int check_resigns(cubeinfo * pci)
+{
+  float rEqBefore, rEqAfter;
+  const float max_cost = 0.05f;
+  const float max_gain = 1e-6f;
+  decisionData dd;
+  cubeinfo ci;
+  int resigned = 1;
+
+  if (pci == NULL)
+    {
+      GetMatchStateCubeInfo(&ci, &ms);
+      pci = &ci;
+    }
+
+  get_eq_before_resign(pci, &dd);
+  do
+    {
+      getResignEquities(dd.aarOutput[0], pci, resigned, &rEqBefore, &rEqAfter);
+      if (rEqBefore - rEqAfter > max_cost)
+        {
+          resigned=4;
+          break;
+        }
+      else if (rEqAfter - rEqBefore < max_gain )
+        break;
+    }
+  while (resigned++ < 3);
+  return resigned == 4 ? -1 : resigned;
 }
 

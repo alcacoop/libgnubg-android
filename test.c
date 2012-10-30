@@ -3,11 +3,9 @@
 #include "levels.h"
 #include "imported_functions.h"
 
-evalcontext ec;
-movefilter mf[4][4];
 
-
-void printBoard(int board [2][25]) {
+//UTILS: PRINT A BOARD
+void printBoard(ConstTanBoard board) {
   int i, j;
   char buf[200];
   sprintf(buf, "");
@@ -20,6 +18,8 @@ void printBoard(int board [2][25]) {
   MYLOG(buf);
 }
 
+
+//UTILS: PRINT A MOVE
 void printMove(int move[8]) {
   int i=0;
   char buf[200];
@@ -32,6 +32,8 @@ void printMove(int move[8]) {
   MYLOG(buf);
 }
 
+
+//UTILS: PRINT A COUPLE OF DICES
 void printDices(int dices[2]) {
   int i=0;
   char buf[200];
@@ -40,6 +42,7 @@ void printDices(int dices[2]) {
 }
 
 
+//API: ROLL DICES WITH MERSENNE TWISTER ALGORITHM
 void rollDice(int dices[2]) {
   rng _rng = RNG_MERSENNE;
   //rng _rng = RNG_ISAAC;
@@ -47,41 +50,28 @@ void rollDice(int dices[2]) {
 }
 
 
-extern int check_resigns(cubeinfo * pci)
-{
-  float rEqBefore, rEqAfter;
-  const float max_cost = 0.05f;
-  const float max_gain = 1e-6f;
-  decisionData dd;
-  cubeinfo ci;
-  int resigned = 1;
-
-  if (pci == NULL)
-    {
-      GetMatchStateCubeInfo(&ci, &ms);
-      pci = &ci;
-    }
-
-  get_eq_before_resign(pci, &dd);
-  do
-    {
-      getResignEquities(dd.aarOutput[0], pci, resigned, &rEqBefore, &rEqAfter);
-      if (rEqBefore - rEqAfter > max_cost)
-        {
-          resigned=4;
-          break;
-        }
-      else if (rEqAfter - rEqBefore < max_gain )
-        break;
-    }
-  while (resigned++ < 3);
-  return resigned == 4 ? -1 : resigned;
+//API: INITIALIZE ENV (NET EVALUATOR AND EQUITIES TABLE)
+void initEnvironment() {
+  char *w1, *w2, *met;
+  w1 = BuildFilename("gnubg.weights");
+  w2 = BuildFilename("gnubg.wd");
+  met = BuildFilename("g11.xml");
+  EvalInitialise(w1, w2, 0, NULL);
+  InitMatchEquity(met);
+  init_rng();
 }
 
 
-//TODO: move to API
+//API: SET NET AI LEVEL
+void setAILevel(available_levels l) {
+  memcpy(&ec, &levels[l].ec, sizeof(evalcontext));
+  memcpy(&mf, &levels[l].mf, sizeof(movefilter)*16);
+}
+
+
+//API: EVALUATE WHETHER TO ACCEPT A UMAN RESIGN 
 int acceptResign() {
-  int *board = ms.anBoard;
+  ConstTanBoard board = msBoard();
   cubeinfo ci;
   GetMatchStateCubeInfo(&ci, &ms);
   
@@ -112,13 +102,11 @@ int acceptResign() {
     sprintf(buf, "RESIGN WITH VALUE %d NOT ACCEPTED!\n", ms.fResigned);
   }
   MYLOG(buf);
-
 }
 
 
-
-//TODO: move to API
-void acceptDouble() {
+//API: EVALUATE WHETHER TO ACCEPT A UMAN BOUBLING REQUEST 
+int acceptDouble() {
   decisionData dd;
   cubedecision cd;
   cubeinfo ci;
@@ -131,7 +119,7 @@ void acceptDouble() {
   GetMatchStateCubeInfo(&ci, &ms);
 
   /* Evaluate cube decision */
-  dd.pboard = ms.anBoard;
+  dd.pboard = msBoard();
   dd.pci = &ci;
   dd.pes = &es;
   if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, "Considering cube action...") != 0)
@@ -175,7 +163,7 @@ void acceptDouble() {
 }
 
 
-//VALUTA SE ARRENDERSI
+//API: EVALUATE WETHER TO RESIGN
 int askForResignation() {
   TanBoard anBoardMove;
   cubeinfo ci;
@@ -203,7 +191,7 @@ int askForResignation() {
 }
 
 
-//VALUTA SE CHIEDERE UN RADDOPPIO AL GIOCATORE UMANO
+//API: EVALUATE WETHER TO ASK FOR A DOUBLE
 int askForDoubling() {
   TanBoard anBoardMove;
   cubeinfo ci;
@@ -216,7 +204,6 @@ int askForDoubling() {
 
 
   /* Consider doubling */
-  //if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
   if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
   //if (WE HAVE ACCESS TO CUBE) {
     evalcontext ecDH;
@@ -243,8 +230,8 @@ int askForDoubling() {
       decisionData dd;
       cubedecision cd;
 
-      /* Consider cube action */
-      dd.pboard = ms.anBoard;
+      /* Consider cube action */ 
+      dd.pboard = msBoard();
       dd.pci = &ci;
       dd.pes = &es;
       if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, "Considering cube action...") != 0)
@@ -295,15 +282,14 @@ int askForDoubling() {
 }
 
 
-int evaluateBestMove(int dices[2], int move[8]) {
+//API: EVALUATE THE BEST MOVE
+void evaluateBestMove(int dices[2], int move[8]) {
   TanBoard anBoardMove;
   cubeinfo ci;
 
   GetMatchStateCubeInfo(&ci, &ms);
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
   FindBestMove(move, dices[0], dices[1], anBoardMove, &ci, &ec, mf);
-
-  return 0;
 }
 
 
@@ -324,7 +310,7 @@ void testResignation() {
   ms.nMatchTo = 7;
 
   MYLOG("TEST ACCETTAZIONE RESIGN...\n");
-  printBoard(ms.anBoard);
+  printBoard(msBoard());
   acceptResign();
   MYLOG("\n\n");
 }
@@ -348,11 +334,10 @@ void testDoubling() {
   ms.nMatchTo = 7;
 
   MYLOG("TEST ACCETTAZIONE DOUBLE...\n");
-  printBoard(ms.anBoard);
+  printBoard(msBoard());
   acceptDouble();
   MYLOG("\n\n");
 }
-
 
 
 void testPlayTurn() {
@@ -384,12 +369,12 @@ void testPlayTurn() {
   ms.nMatchTo = 7;
 
   MYLOG("TEST TURNO IA...\n");
-  printBoard(ms.anBoard);
+  printBoard(msBoard());
   askForResignation();
   askForDoubling();
   int dices[2] = {6, 3};
   int move[8];
-  //rollDice(dices);
+  rollDice(dices);
   printDices(dices);
   evaluateBestMove(dices, move);
   printMove(move);
@@ -397,27 +382,9 @@ void testPlayTurn() {
 }
 
 
-
-void initEnvironment() {
-  char *w1, *w2, *met;
-  w1 = BuildFilename("gnubg.weights");
-  w2 = BuildFilename("gnubg.wd");
-  met = BuildFilename("g11.xml");
-
-  EvalInitialise(w1, w2, 0, NULL);
-  InitMatchEquity(met);
-  init_rng();
-}
-
-void setAILevel(available_levels l) {
-  memcpy(&ec, &levels[l].ec, sizeof(evalcontext));
-  memcpy(&mf, &levels[l].mf, sizeof(movefilter)*16);
-}
-
-
 void testAll () {
   initEnvironment();
-  setAILevel(EXPERT);
+  setAILevel(GRANDMASTER);
   testResignation();
   testDoubling();
   testPlayTurn();

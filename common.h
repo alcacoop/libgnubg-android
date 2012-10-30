@@ -58,6 +58,7 @@ typedef void(*psighandler) (int);
    work around it there instead of using this */
 #if !HAVE_DECL_SIGNBIT
 /* copysign() caters for special IEEE 754 numbers */
+#undef signbit
 #define signbit(x) (copysign(1, (x)) < 0)
 #endif
 

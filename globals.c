@@ -3,15 +3,15 @@
 #include "backgammon.h"
 #include "rollout.h"
 
-#define TRUE 1
-#define FALSE 0
-#define EXIT_FAILURE -1
 
-extern int fOutputMWC = FALSE;
-extern int fShowProgress = FALSE;
-extern int fAutoSaveRollout = FALSE;
-extern int fAutoCrawford = FALSE;
-extern rngcontext *rngctxRollout = NULL;
+int fOutputMWC = FALSE;
+int fShowProgress = FALSE;
+int fAutoSaveRollout = FALSE;
+int fAutoCrawford = FALSE;
+rngcontext *rngctxRollout = NULL;
+
+evalcontext ec;
+movefilter mf[4][4];
 
 
 /* this is the "normal" movefilter*/
@@ -23,7 +23,7 @@ extern rngcontext *rngctxRollout = NULL;
   }
 
 
-extern rolloutcontext rcRollout =
+rolloutcontext rcRollout =
 { 
   {
     /* player 0/1 cube decision */
@@ -79,7 +79,8 @@ extern rolloutcontext rcRollout =
 };
 
 
-extern matchstate ms = {
+
+matchstate ms = {
     {
       {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
       {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0}
@@ -105,39 +106,7 @@ extern matchstate ms = {
 };
 
 
-//CONFIGURAZIONE SUPREMO
-//extern evalcontext ec;
-/*
- = {
-  .fCubeful = 1,
-  .nPlies = 3,
-  .fUsePrune = 1,
-  .fDeterministic = 1,
-  .rNoise = 0.000
-};
-*/
-//extern movefilter mf[4][4];
-/* = {
-  {0, 16, 0.32000},
-  {0, 0, 0.00000},
-  {0, 0, 0.00000},
-  {0, 0, 0.00000},
-  {0, 16, 0.32000},
-  {-1, 0, 0.00000},
-  {0, 0, 0.00000},
-  {0, 0, 0.00000},
-  {0, 16, 0.32000},
-  {-1, 0, 0.00000},
-  {0, 4, 0.08000},
-  {0, 0, 0.00000},
-  {0, 16, 0.32000},
-  {-1, 0, 0.00000},
-  {0, 4, 0.08000},
-  {-1, 0, 0.00000}
-};
-*/
-
-extern char* BuildFilename(char* str)
+char* BuildFilename(char* str)
 {
   char* buf;
   buf=(char*)calloc(255, sizeof(char));
@@ -146,3 +115,12 @@ extern char* BuildFilename(char* str)
   
   return buf;
 }
+
+ConstTanBoard msBoard(){return (ConstTanBoard)ms.anBoard;};
+
+#ifdef IS_ANDROID
+#include <android/log.h>
+void MYLOG(char* s) {__android_log_write(ANDROID_LOG_ERROR,"MYLOG", s);};
+#else
+void MYLOG(char* s) {printf("%s", s);}
+#endif
