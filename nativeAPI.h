@@ -46,5 +46,5 @@ extern int askForDoubling();
 extern void evaluateBestMove(int dices[2], int move[8]);
 
 //API: SET BOARD
-void setBoard(TanBoard *b);
+void setBoard(TanBoard b);
 #endif

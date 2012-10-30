@@ -86,12 +86,12 @@ matchstate ms = {
       {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0}
     }, /* anBoard */
     {0,0}, /* anDice */
-    0, /* fTurn */
+    0, /* fTurn: CHI DEVE PRENDERE LA DECISIONE ATTUALE*/
     0, /* fResigned */
     0, /* fResignationDeclined */
     FALSE, /* fDoubled */
     0, /* cGames */
-    -1, /* fMove */
+    -1, /* fMove: CHI HA I DADI IN MANO */
     -1, /* fCubeOwner */
     FALSE, /* fCrawford */
     FALSE, /* fPostCrawford */

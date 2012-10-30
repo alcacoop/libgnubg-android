@@ -126,7 +126,7 @@ int askForResignation() {
   float arResign[NUM_ROLLOUT_OUTPUTS];
 
   GetMatchStateCubeInfo(&ci, &ms);
-  memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
+  memcpy(anBoardMove, msBoard(), sizeof(TanBoard));
   SwapSides(anBoardMove);
 
   /* Consider resigning */
@@ -135,7 +135,8 @@ int askForResignation() {
   evalsetup esResign;
   esResign.et = EVAL_EVAL;
   esResign.ec = ecResign;
-  nResign = getResignation(arResign, (TanBoard*)anBoardMove, &ci, &esResign);
+  nResign = getResignation(arResign, anBoardMove, &ci, &esResign);
+
   if (nResign > 0) {
     return nResign;
   }
@@ -159,7 +160,7 @@ int askForDoubling() {
     if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
       evalcontext ecDH;
       float arOutput[NUM_ROLLOUT_OUTPUTS];
-      memcpy(&ecDH, &ec, sizeof ecDH);
+      memcpy(&ecDH, &ec, sizeof(ecDH));
       ecDH.fCubeful = FALSE;
       if (ecDH.nPlies) ecDH.nPlies--;
 
@@ -181,7 +182,7 @@ int askForDoubling() {
         cubedecision cd;
 
         /* Consider cube action */ 
-        dd.pboard = anBoardMove;
+        dd.pboard = (ConstTanBoard)anBoardMove;
         dd.pci = &ci;
         dd.pes = &es;
         if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, "Considering cube action...") != 0)
@@ -237,13 +238,9 @@ void evaluateBestMove(int dices[2], int move[8]) {
   GetMatchStateCubeInfo(&ci, &ms);
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
   SwapSides(anBoardMove);
-
-  printBoard(anBoardMove);
-  printf("\n\n");
   FindBestMove(move, dices[0], dices[1], anBoardMove, &ci, &ec, mf);
-  printBoard(anBoardMove);
 }
 
-void setBoard(TanBoard *b) {
-  memcpy(&(ms.anBoard), b, sizeof(TanBoard));
+void setBoard(TanBoard b) {
+  memcpy(ms.anBoard, b, sizeof(TanBoard));
 }
