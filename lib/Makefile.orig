@@ -17,7 +17,6 @@ OBJS = list.o \
 
 libs: $(OBJS) 
 	ar rcs libevent.a $(OBJS)
-	#$(CC) -shared -o libevent.so $(OBJS)
 
 clean:
 	rm -rf $(OBJS) libevent.a
