@@ -27,43 +27,38 @@ void setAILevel(available_levels l) {
 }
 
 
-//API: EVALUATE WHETHER TO ACCEPT A UMAN RESIGN 
-int acceptResign() {
+int acceptResign(unsigned int r) {
   ConstTanBoard board = msBoard();
   cubeinfo ci;
+  ms.fResigned = r;
   GetMatchStateCubeInfo(&ci, &ms);
   
   int resign;
-  if (ms.fResigned == -1) {
-    MYLOG("RESIGNED = -1\n");
-    resign = check_resigns(&ci);
-  }
-  else {
-    float rEqBefore, rEqAfter;
-    const float max_gain = 1e-6f;
-    decisionData dd;
-    
-    get_eq_before_resign(&ci, &dd);
-    getResignEquities(dd.aarOutput[0], &ci, ms.fResigned, &rEqBefore, &rEqAfter);
-    if (rEqAfter - rEqBefore < max_gain )
-      resign = ms.fResigned;
-    else
-      resign = -1;
-  }
+  float rEqBefore, rEqAfter;
+  const float max_gain = 1e-6f;
+  decisionData dd;
+  
+  get_eq_before_resign(&ci, &dd);
+  getResignEquities(dd.aarOutput[0], &ci, ms.fResigned, &rEqBefore, &rEqAfter);
+  if (rEqAfter - rEqBefore < max_gain )
+    resign = ms.fResigned;
 
   char buf[50];
   if (resign > 0) {
     ms.fResigned = resign;
-    sprintf(buf, "RESIGN WITH VALUE %d ACCEPTED!\n", ms.fResigned);
+    return resign;
   }
   else {
-    sprintf(buf, "RESIGN WITH VALUE %d NOT ACCEPTED!\n", ms.fResigned);
+    return 0;
   }
   MYLOG(buf);
 }
 
+void updateMSCubeInfo(int nCube, int fCubeOwner) {
+  ms.nCube = nCube;
+  ms.fCubeOwner = fCubeOwner;
+}
 
-//API: EVALUATE WHETHER TO ACCEPT A UMAN BOUBLING REQUEST 
 int acceptDouble() {
   decisionData dd;
   cubedecision cd;
@@ -96,7 +91,8 @@ int acceptDouble() {
     case NO_REDOUBLE_DEADCUBE:
     case OPTIONAL_DOUBLE_TAKE:
     case OPTIONAL_REDOUBLE_TAKE:
-      MYLOG("DOUBLE ACCEPTED!\n");
+      updateMSCubeInfo(ms.nCube * 2, 0); //accept double
+      return 1;
       break;
 
     case DOUBLE_PASS:
@@ -105,14 +101,17 @@ int acceptDouble() {
     case TOOGOODRE_PASS:
     case OPTIONAL_DOUBLE_PASS:
     case OPTIONAL_REDOUBLE_PASS:
-      MYLOG("DOUBLE NOT ACCEPTED!\n");
+      ms.anScore[1] = ms.nCube;
+      updateMSCubeInfo(1, -1); // reset cube values
+      return 0;
       break;
 
     case DOUBLE_BEAVER:
     case NODOUBLE_BEAVER:
     case NO_REDOUBLE_BEAVER:
     case OPTIONAL_DOUBLE_BEAVER:
-      MYLOG("DOUBLE ACCEPTED!\n");
+      updateMSCubeInfo(ms.nCube * 2, 0); //accept double
+      return 1;
       break;
 
     default:
@@ -121,15 +120,14 @@ int acceptDouble() {
 }
 
 
-//API: EVALUATE WHETHER TO RESIGN
 int askForResignation() {
   TanBoard anBoardMove;
   cubeinfo ci;
-  char buf[100];
   float arResign[NUM_ROLLOUT_OUTPUTS];
 
   GetMatchStateCubeInfo(&ci, &ms);
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
+  SwapSides(anBoardMove);
 
   /* Consider resigning */
   int nResign;
@@ -137,19 +135,14 @@ int askForResignation() {
   evalsetup esResign;
   esResign.et = EVAL_EVAL;
   esResign.ec = ecResign;
-  nResign = getResignation(arResign, ms.anBoard, &ci, &esResign);
+  nResign = getResignation(arResign, (TanBoard*)anBoardMove, &ci, &esResign);
   if (nResign > 0) {
-    sprintf(buf, "RESIGN %d!\n", nResign);
-    return 0;
-  } else {
-    sprintf(buf, "NOT RESIGN %d!\n", nResign);
+    return nResign;
   }
-  MYLOG(buf);
   return 0;
 }
 
 
-//API: EVALUATE WHETHER TO ASK FOR A DOUBLE
 int askForDoubling() {
   TanBoard anBoardMove;
   cubeinfo ci;
@@ -159,51 +152,49 @@ int askForDoubling() {
 
   GetMatchStateCubeInfo(&ci, &ms);
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
+  SwapSides(anBoardMove);
 
+  if ((ms.fCubeOwner == -1) || (ms.fCubeOwner == 0)) {
+    /* Consider doubling */
+    if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
+      evalcontext ecDH;
+      float arOutput[NUM_ROLLOUT_OUTPUTS];
+      memcpy(&ecDH, &ec, sizeof ecDH);
+      ecDH.fCubeful = FALSE;
+      if (ecDH.nPlies) ecDH.nPlies--;
 
-  /* Consider doubling */
-  if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
-  //if (WE HAVE ACCESS TO CUBE) {
-    evalcontext ecDH;
-    float arOutput[NUM_ROLLOUT_OUTPUTS];
-    memcpy(&ecDH, &ec, sizeof ecDH);
-    ecDH.fCubeful = FALSE;
-    if (ecDH.nPlies) ecDH.nPlies--;
+      /* Determine market window */
+      if (EvaluatePosition(NULL, (ConstTanBoard)anBoardMove, arOutput, &ci, &ecDH)) {
+        return -1; //ERROR
+      }
 
-    /* Determine market window */
-    if (EvaluatePosition(NULL, (ConstTanBoard)anBoardMove, arOutput, &ci, &ecDH)) {
-      MYLOG("EVALUATE POSITION ERROR");
-      return -1;
-    }
+      float f;
+      rDoublePoint = GetDoublePointDeadCube(arOutput, &ci, &f);
 
-    float f;
-    rDoublePoint = GetDoublePointDeadCube(arOutput, &ci, &f);
+      if (arOutput[0] >= f) {
+        /* We're in market window */
+        evalsetup es;
+        es.et = EVAL_EVAL;
+        es.ec = ec;
+        es.rc = rcRollout;
+        decisionData dd;
+        cubedecision cd;
 
-    if (arOutput[0] >= f) {
-      /* We're in market window */
-      evalsetup es;
-      es.et = EVAL_EVAL;
-      es.ec = ec;
-      es.rc = rcRollout;
-      decisionData dd;
-      cubedecision cd;
+        /* Consider cube action */ 
+        dd.pboard = anBoardMove;
+        dd.pci = &ci;
+        dd.pes = &es;
+        if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, "Considering cube action...") != 0)
+          return -1; // error
 
-      /* Consider cube action */ 
-      dd.pboard = msBoard();
-      dd.pci = &ci;
-      dd.pes = &es;
-      if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, "Considering cube action...") != 0)
-        return -1;
-
-      cd = FindCubeDecision(arDouble, dd.aarOutput, &ci);
-      switch (cd) {
+        cd = FindCubeDecision(arDouble, dd.aarOutput, &ci);
+        switch (cd) {
         case DOUBLE_TAKE:
         case REDOUBLE_TAKE:
         case DOUBLE_PASS:
         case REDOUBLE_PASS:
         case DOUBLE_BEAVER:
-          MYLOG("RICHIESTA DI RADDOPPIO!\n");
-          return 0;
+          return 1;
 
         case NODOUBLE_TAKE:
         case TOOGOOD_TAKE:
@@ -213,30 +204,28 @@ int askForDoubling() {
         case TOOGOODRE_PASS:
         case NODOUBLE_BEAVER:
         case NO_REDOUBLE_BEAVER:
-          MYLOG("MEGLIO NON RADDOPPIARE!\n");
-          break;
+          return 0;
 
         case OPTIONAL_DOUBLE_BEAVER:
         case OPTIONAL_DOUBLE_TAKE:
         case OPTIONAL_REDOUBLE_TAKE:
         case OPTIONAL_DOUBLE_PASS:
         case OPTIONAL_REDOUBLE_PASS:
-          if (ec.nPlies==0) { /* double if 0-ply */
-            MYLOG("RICHIESTA DI RADDOPPIO (0-ply)!\n");
+          if (ec.nPlies==0) /* double if 0-ply */
+            return 1;
+          else 
             return 0;
-          }
-          MYLOG("MEGLIO NON RADDOPPIARE (0-ply)!\n");
-          break;
-        default:
-          MYLOG("ASSERT FALSE!\n");
-          break;
-      }
-    } /* market window */
-    else {
-      MYLOG("NOT IN MARKET WINDOW\n");
-    }
-  } /* access to cube */
 
+        default:
+          return -1; // error
+        }
+      } /* market window */
+      else {
+        return 0;
+      }
+    } /* access to cube */
+  }
+  return 0; //IA can't play the cube
 }
 
 
@@ -247,5 +236,14 @@ void evaluateBestMove(int dices[2], int move[8]) {
 
   GetMatchStateCubeInfo(&ci, &ms);
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
+  SwapSides(anBoardMove);
+
+  printBoard(anBoardMove);
+  printf("\n\n");
   FindBestMove(move, dices[0], dices[1], anBoardMove, &ci, &ec, mf);
+  printBoard(anBoardMove);
+}
+
+void setBoard(TanBoard *b) {
+  memcpy(&(ms.anBoard), b, sizeof(TanBoard));
 }

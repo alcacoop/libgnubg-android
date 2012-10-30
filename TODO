@@ -15,3 +15,15 @@ gnubg.wd
 gnubg.weights
 gnubg_ts0.bd
 InitMatchEquity("/usr/share/gnubg/met/zadeh.xml");
+
+BOARD INFO:
+---------------
+ms.anBoard[0] è sempre la board del pc
+ms.anBoard[1] è sempre la board umana
+Infatti, ms.fMove, che rappresenta il giocatore che hai dadi in mano,
+   vale ad esempio 0 per indicare il pc.
+NOTA: acceptResign() e acceptDouble() sono coerenti con questa
+   convenzione.
+   askForResignation(), askForDoubling() e evaluateBestMove(), invece,
+   si aspettano una configurazione inversa, pertanto utilizzano al
+   loro interno una copia locale di ms.anBoard appositamente invertita.

@@ -44,7 +44,7 @@ void testResignation() {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
   };
   memcpy(ms.anBoard, b, sizeof(TanBoard));
-  ms.fResigned = 3;
+  //  ms.fResigned = 3;
   // fTurn = chi deve decidere (accettare double/resign: 0: umano; 1: pc)
   // fMove = chi deve lanciare i dadi (0: umano; 1: pc)
   ms.fMove = 1;
@@ -55,7 +55,9 @@ void testResignation() {
 
   MYLOG("TEST ACCETTAZIONE RESIGN...\n");
   printBoard(msBoard());
-  acceptResign();
+  acceptResign(1);
+  acceptResign(2);
+  acceptResign(3);
   MYLOG("\n\n");
 }
 
@@ -68,9 +70,7 @@ void testDoubling() {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
   };
   memcpy(ms.anBoard, b, sizeof(TanBoard));
-  ms.fDoubled = 1;
-  ms.nCube = 4;
-  ms.fCubeOwner = -1;
+  //  ms.fDoubled = 1;
   ms.fMove = 1;
   ms.fTurn = 0;
   ms.anScore[0] = 0;
@@ -79,13 +79,14 @@ void testDoubling() {
 
   MYLOG("TEST ACCETTAZIONE DOUBLE...\n");
   printBoard(msBoard());
-  acceptDouble();
+  printf("RITORNO: %d\n", acceptDouble());
   MYLOG("\n\n");
 }
 
 
 void testPlayTurn() {
-  unsigned int b[2][25] = 
+  TanBoard b = 
+  //  unsigned int b[2][25] = 
   {
     //MEGLIO NON RADDOPPIARE
     //{0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -100,22 +101,27 @@ void testPlayTurn() {
     //{0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} //PC
 
     //INIT GAME
-    {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
-    {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0} //PC
+    //{0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
+    //{0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0} //PC
+
+    //INIT GAME
+    {0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0} //PC
   };
-  memcpy(ms.anBoard, b, sizeof(TanBoard));
+  TanBoard c = BACKGAMMON_BOARD;
+  setBoard(&b);
   ms.nCube = 1;
-  ms.fCubeOwner = -1;
+  ms.fCubeOwner = 0;
   ms.fMove = 0;
   ms.fTurn = 0;
-  ms.anScore[0] = 0;
-  ms.anScore[1] = 0;
+  ms.anScore[0] = 4;
+  ms.anScore[1] = 6;
   ms.nMatchTo = 7;
+  ms.fCrawford = FALSE;
 
   MYLOG("TEST TURNO IA...\n");
-  printBoard(msBoard());
-  askForResignation();
-  askForDoubling();
+  printf("RESULT ASKDOUBLING: %d\n", askForDoubling());
+  printf("RESULT ASKRESIGNATION: %d\n", askForResignation());
   int dices[2] = {6, 3};
   int move[8];
   rollDice(dices);
@@ -128,9 +134,9 @@ void testPlayTurn() {
 
 void testAll () {
   initEnvironment();
-  setAILevel(GRANDMASTER);
-  testResignation();
-  testDoubling();
+  setAILevel(EXPERT);
+  // testResignation();
+  // testDoubling();
   testPlayTurn();
 }
 
