@@ -37,64 +37,65 @@ void printDices(int dices[2]) {
   MYLOG(buf);
 }
 
+
 void testResignation() {
-  unsigned int b[2][25] = 
+  TanBoard b = 
   {
-    {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //PC
+    {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
   };
-  memcpy(ms.anBoard, b, sizeof(TanBoard));
-  //  ms.fResigned = 3;
-  // fTurn = chi deve decidere (accettare double/resign: 0: umano; 1: pc)
-  // fMove = chi deve lanciare i dadi (0: umano; 1: pc)
+  setBoard(b);
   ms.fMove = 1;
   ms.fTurn = 0;
   ms.anScore[0] = 0;
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
-  MYLOG("TEST ACCETTAZIONE RESIGN...\n");
+  printf("\nTEST ACCETTAZIONE RESIGN...\n");
   printBoard(msBoard());
-  acceptResign(1);
-  acceptResign(2);
-  acceptResign(3);
-  MYLOG("\n\n");
+  printf("RESIGN 1: %s\n", acceptResign(1)?"OK":"NO");
+  printf("RESIGN 2: %s\n", acceptResign(2)?"OK":"NO");
+  printf("RESIGN 3: %s\n", acceptResign(3)?"OK":"NO");
 }
 
 
-
 void testDoubling() {
-  unsigned int b[2][25] = 
+  TanBoard b = 
   {
-    {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //PC
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
+    {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0}
   };
-  memcpy(ms.anBoard, b, sizeof(TanBoard));
-  //  ms.fDoubled = 1;
+
   ms.fMove = 1;
   ms.fTurn = 0;
   ms.anScore[0] = 0;
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
-  MYLOG("TEST ACCETTAZIONE DOUBLE...\n");
+  setBoard(b);
+  printf("\nTEST ACCETTAZIONE DOUBLE...\n");
   printBoard(msBoard());
-  printf("RITORNO: %d\n", acceptDouble());
-  MYLOG("\n\n");
+  printf("ACCETTAZIONE: %s\n", acceptDouble()?"OK":"NO");
+
+  ms.fMove = 1;
+  ms.fTurn = 0;
+  ms.fCubeOwner = 1;
+  SwapSides(ms.anBoard);
+  printBoard(msBoard());
+  printf("ACCETTAZIONE: %s\n\n", acceptDouble()?"OK":"NO");
 }
 
 
 void testPlayTurn() {
   TanBoard b = 
-  //  unsigned int b[2][25] = 
   {
     //MEGLIO NON RADDOPPIARE
     //{0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     //{0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
 
     //RICHIESTA DI RADDOPPIO SU 0 A 0
-    //{1, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0}, 
-    //{0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
+    {1, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0}, 
+    {0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
 
     //RACE GAME..
     //{0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
@@ -103,13 +104,8 @@ void testPlayTurn() {
     //INIT GAME
     //{0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
     //{0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0} //PC
-
-    //INIT GAME
-    {0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0} //PC
   };
-  TanBoard c = BACKGAMMON_BOARD;
-  setBoard(&b);
+  setBoard(b);
   ms.nCube = 1;
   ms.fCubeOwner = 0;
   ms.fMove = 0;
@@ -120,23 +116,24 @@ void testPlayTurn() {
   ms.fCrawford = FALSE;
 
   MYLOG("TEST TURNO IA...\n");
-  printf("RESULT ASKDOUBLING: %d\n", askForDoubling());
-  printf("RESULT ASKRESIGNATION: %d\n", askForResignation());
+  printBoard((ConstTanBoard)b);
+  printf("RESIGN: %d\n", askForResignation());
+  printf("DOUBLING: %s\n", askForDoubling()?"YES":"NO");
   int dices[2] = {6, 3};
   int move[8];
   rollDice(dices);
   printDices(dices);
   evaluateBestMove(dices, move);
   printMove(move);
-  MYLOG("\n\n");
+  MYLOG("\n");
 }
 
 
 void testAll () {
   initEnvironment();
-  setAILevel(EXPERT);
-  // testResignation();
-  // testDoubling();
+  setAILevel(GRANDMASTER);
+  testResignation();
+  testDoubling();
   testPlayTurn();
 }
 
