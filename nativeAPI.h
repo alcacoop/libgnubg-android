@@ -47,4 +47,20 @@ void evaluateBestMove(int dices[2], int move[8]);
 
 //API: SET BOARD
 void setBoard(TanBoard b);
+
+//API: SET MATCH SCORE
+//params: int AIScore = AI score
+//        int HumanSclore = HumanScore
+void setMatchScore(int AIScore, int HumanScore);
+
+//API: SET GAME TURN
+//params: int fTurn = decision turn (0=AI, 1=Human)
+//        int fMove = roll turn (0=AI, 1=Human)
+void setGameTurn(int fTurn, int fMove);
+
+
+//API: SET MATCHTO SCORE
+//params: int matchTo = ms.nMatchTo
+void setMatchTo(int matchTo);
+
 #endif

@@ -235,3 +235,20 @@ void evaluateBestMove(int dices[2], int move[8]) {
 void setBoard(TanBoard b) {
   memcpy(ms.anBoard, b, sizeof(TanBoard));
 }
+
+
+void setMatchScore(int AIScore, int HumanScore) {
+  ms.anScore[0] = AIScore;
+  ms.anScore[1] = HumanScore;
+}
+
+
+void setGameTurn(int fTurn, int fMove) {
+  ms.fTurn = fTurn;
+  ms.fMove = fMove;
+}
+
+
+void setMatchTo(int matchTo) {
+  ms.nMatchTo = matchTo;
+}
