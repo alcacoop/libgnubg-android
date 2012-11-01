@@ -10,6 +10,7 @@ int fAutoSaveRollout = FALSE;
 int fAutoCrawford = FALSE;
 rngcontext *rngctxRollout = NULL;
 
+
 evalcontext ec;
 movefilter mf[4][4];
 
@@ -79,14 +80,13 @@ rolloutcontext rcRollout =
 };
 
 
-
 matchstate ms = {
     {
       {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
       {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0}
     }, /* anBoard */
     {0,0}, /* anDice */
-    0, /* fTurn: CHI DEVE PRENDERE LA DECISIONE ATTUALE*/
+    -1, /* fTurn: CHI DEVE PRENDERE LA DECISIONE ATTUALE*/
     0, /* fResigned */
     0, /* fResignationDeclined */
     FALSE, /* fDoubled */
@@ -101,7 +101,7 @@ matchstate ms = {
     0, /* cBeavers */
     VARIATION_STANDARD, /*bgv */
     TRUE, /* fCubeUse */
-    TRUE, /* fJacoby */
+    FALSE, /* fJacoby */
     GAME_PLAYING
 };
 
@@ -115,6 +115,7 @@ char* BuildFilename(char* str)
   
   return buf;
 }
+
 
 ConstTanBoard msBoard(){return (ConstTanBoard)ms.anBoard;};
 

@@ -42,15 +42,6 @@ extern char* BuildFilename(char* str);
 extern void MYLOG(char*);
 
 
-/*
-#ifdef IS_ANDROID
-#include <android/log.h>
-#define MYLOG(msg) __android_log_write(ANDROID_LOG_ERROR,"MYLOG()",msg);
-#else
-#define MYLOG(msg) printf(msg)
-#endif
-*/
-
 extern matchstate ms;
 extern evalcontext ec;
 extern movefilter mf[4][4];
