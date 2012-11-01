@@ -7,30 +7,46 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-/*
- * Class:     com_example_testndk_gnubgAPI
- * Method:    RollDice
- * Signature: ([II)Ljava/lang/String;
- */
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_RollDice
-  (JNIEnv *, jclass, jintArray);
 
-/*
- * Class:     com_example_testndk_gnubgAPI
- * Method:    InitializeEnvironment
- * Signature: ()V
- */
+
 JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_InitializeEnvironment
   (JNIEnv *, jclass);
 
-/*
- * Class:     com_example_testndk_gnubgAPI
- * Method:    SetIALevel
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetIALevel
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetAILevel
   (JNIEnv *, jclass, jint);
 
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_RollDice
+  (JNIEnv *, jclass, jintArray);
+
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetBoard
+  (JNIEnv *, jclass, jintArray, jintArray);
+
+
+JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AcceptResign
+  (JNIEnv *, jclass, jint);
+
+
+JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AcceptDouble
+  (JNIEnv *, jclass);
+
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_UpdateMSCubeInfo
+  (JNIEnv *, jclass, jint, jint);
+
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_EvaluateBestMove
+  (JNIEnv *, jclass, jintArray, jintArray);
+
+
+JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AskForResignation
+  (JNIEnv *, jclass);
+
+
+JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AskForDoubling
+  (JNIEnv *, jclass);
 #ifdef __cplusplus
 }
 #endif
