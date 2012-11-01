@@ -39,6 +39,7 @@ void printDices(int dices[2]) {
 
 
 void testResignation() {
+  char buf[200];
   TanBoard b = 
   {
     {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -47,15 +48,20 @@ void testResignation() {
   setBoard(b);
   ms.fMove = 1;
   ms.fTurn = 0;
+  ms.nCube = -1;
+  ms.fCubeOwner = 1;
   ms.anScore[0] = 0;
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
-  printf("\nTEST ACCETTAZIONE RESIGN...\n");
+  MYLOG("\nTEST ACCETTAZIONE RESIGN...\n");
   printBoard(msBoard());
-  printf("RESIGN 1: %s\n", acceptResign(1)?"OK":"NO");
-  printf("RESIGN 2: %s\n", acceptResign(2)?"OK":"NO");
-  printf("RESIGN 3: %s\n", acceptResign(3)?"OK":"NO");
+  sprintf(buf, "RESIGN 1: %s\n", acceptResign(1)?"OK":"NO");
+  MYLOG(buf);
+  sprintf(buf, "RESIGN 2: %s\n", acceptResign(2)?"OK":"NO");
+  MYLOG(buf);
+  sprintf(buf, "RESIGN 3: %s\n", acceptResign(3)?"OK":"NO");
+  MYLOG(buf);
 }
 
 
@@ -66,6 +72,7 @@ void testDoubling() {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0}
   };
 
+  char buf[200];
   ms.fMove = 1;
   ms.fTurn = 0;
   ms.anScore[0] = 0;
@@ -73,16 +80,18 @@ void testDoubling() {
   ms.nMatchTo = 7;
 
   setBoard(b);
-  printf("\nTEST ACCETTAZIONE DOUBLE...\n");
+  MYLOG("\nTEST ACCETTAZIONE DOUBLE...\n");
   printBoard(msBoard());
-  printf("ACCETTAZIONE: %s\n", acceptDouble()?"OK":"NO");
+  sprintf(buf, "ACCETTAZIONE: %s\n", acceptDouble()?"OK":"NO");
+  MYLOG(buf);
 
   ms.fMove = 1;
   ms.fTurn = 0;
   ms.fCubeOwner = 1;
   SwapSides(ms.anBoard);
   printBoard(msBoard());
-  printf("ACCETTAZIONE: %s\n\n", acceptDouble()?"OK":"NO");
+  sprintf(buf, "ACCETTAZIONE: %s\n\n", acceptDouble()?"OK":"NO");
+  MYLOG(buf);
 }
 
 
@@ -101,6 +110,9 @@ void testPlayTurn() {
     //{0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
     //{0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} //PC
   };
+  
+  char buf[200];
+
   setBoard(b);
   ms.nCube = 1;
   ms.fCubeOwner = 0;
@@ -113,8 +125,10 @@ void testPlayTurn() {
 
   MYLOG("TEST TURNO IA...\n");
   printBoard((ConstTanBoard)b);
-  printf("RESIGN: %d\n", askForResignation());
-  printf("DOUBLING: %s\n", askForDoubling()?"YES":"NO");
+  sprintf(buf, "RESIGN: %d\n", askForResignation());
+  MYLOG(buf);
+  sprintf(buf, "DOUBLING: %s\n", askForDoubling()?"YES":"NO");
+  MYLOG(buf);
   int dices[2] = {6, 3};
   int move[8];
   rollDice(dices);
@@ -127,7 +141,7 @@ void testPlayTurn() {
 
 void testAll () {
   initEnvironment();
-  setAILevel(GRANDMASTER);
+  setAILevel(SUPREMO);
   testResignation();
   testDoubling();
   testPlayTurn();
