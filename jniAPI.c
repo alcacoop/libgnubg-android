@@ -17,7 +17,6 @@ JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_InitializeEnvironment
   (JNIEnv *env, jclass class)
 {
   initEnvironment();
-  MYLOG("EVALUATOR INITIALIZED");
 }
 
 
@@ -25,7 +24,6 @@ JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetAILevel
   (JNIEnv * env, jclass class, jint level)
 {
   setAILevel(level);
-  MYLOG("AI LEVEL SETTED");
 }
 
 
@@ -39,7 +37,6 @@ JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetBoard
   memcpy(b[0], b1, sizeof(int)*25);
   memcpy(b[1], b2, sizeof(int)*25);
   setBoard((ConstTanBoard)b);
-  printBoard(msBoard());
 
   (*env)->ReleaseIntArrayElements(env, _b1, b1, 0);
   (*env)->ReleaseIntArrayElements(env, _b2, b2, 0);
@@ -49,12 +46,6 @@ JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetBoard
 JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AcceptResign
   (JNIEnv * env, jclass class, jint r)
 {
-  ms.fMove = 1;
-  ms.fTurn = 0;
-  ms.anScore[0] = 0;
-  ms.anScore[1] = 0;
-  ms.nMatchTo = 7;
-  
   return acceptResign(r);
 }
 
@@ -62,12 +53,6 @@ JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AcceptResign
 JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AcceptDouble
   (JNIEnv *env, jclass class)
 {
-  ms.fMove = 1;
-  ms.fTurn = 0;
-  ms.anScore[0] = 0;
-  ms.anScore[1] = 0;
-  ms.nMatchTo = 7;
-
   return acceptDouble();
 }
 
@@ -76,9 +61,6 @@ JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_UpdateMSCubeInfo
   (JNIEnv *env, jclass class, jint nCube, jint fCubeOwner)
 {
   updateMSCubeInfo(nCube, fCubeOwner);
-  char buf[20];
-  sprintf(buf, "N: %d - O: %d", ms.nCube, ms.fCubeOwner);
-  MYLOG(buf);
 }
 
 
@@ -96,8 +78,6 @@ JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_EvaluateBestMove
 JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AskForResignation
   (JNIEnv *env, jclass class)
 {
-  ms.fMove = 0;
-  ms.fTurn = 0;
   return askForResignation();
 }
 
@@ -105,7 +85,34 @@ JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AskForResignation
 JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AskForDoubling
   (JNIEnv *env, jclass class)
 {
-  ms.fMove = 0;
-  ms.fTurn = 0;
   return askForDoubling();
+}
+
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetMatchScore
+  (JNIEnv *env, jclass class, jint AIScore, jint HumanScore) 
+{
+  setMatchScore(AIScore, HumanScore);
+}
+
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetGameTurn
+  (JNIEnv *env, jclass class, jint fTurn, jint fMove)
+{
+  setGameTurn(fTurn, fMove);
+}
+
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetMatchTo
+  (JNIEnv *env, jclass class, jint nMatchTo)
+{
+  setMatchTo(nMatchTo); 
+}
+
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_TestAll
+  (JNIEnv *env, jclass class)
+{
+  testAll();
+  testAll();
 }

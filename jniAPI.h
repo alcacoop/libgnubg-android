@@ -47,6 +47,25 @@ JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AskForResignation
 
 JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AskForDoubling
   (JNIEnv *, jclass);
+
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetMatchScore
+  (JNIEnv *, jclass, jint, jint);
+
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetGameTurn
+  (JNIEnv *, jclass, jint, jint);
+
+
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetMatchTo
+  (JNIEnv *, jclass, jint);
+
+
+//ONLY FOR TEST PURPOSE
+JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_TestAll
+  (JNIEnv *, jclass);
+
+
 #ifdef __cplusplus
 }
 #endif
