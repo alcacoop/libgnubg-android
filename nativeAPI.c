@@ -1,6 +1,5 @@
 #include "nativeAPI.h"
 
-//API: ROLL DICES WITH MERSENNE TWISTER ALGORITHM
 void rollDice(int dices[2]) {
   rng _rng = RNG_MERSENNE;
   //rng _rng = RNG_ISAAC;
@@ -8,7 +7,6 @@ void rollDice(int dices[2]) {
 }
 
 
-//API: INITIALIZE ENV (NET EVALUATOR AND EQUITIES TABLE)
 void initEnvironment() {
   char *w1, *w2, *met;
   w1 = BuildFilename("gnubg.weights");
@@ -20,20 +18,19 @@ void initEnvironment() {
 }
 
 
-//API: SET NET AI LEVEL
 void setAILevel(available_levels l) {
   memcpy(&ec, &levels[l].ec, sizeof(evalcontext));
   memcpy(&mf, &levels[l].mf, sizeof(movefilter)*16);
 }
 
 
-int acceptResign(unsigned int r) {
+int acceptResign(int r) {
   ConstTanBoard board = msBoard();
   cubeinfo ci;
   ms.fResigned = r;
   GetMatchStateCubeInfo(&ci, &ms);
   
-  int resign;
+  int resign = 0;
   float rEqBefore, rEqAfter;
   const float max_gain = 1e-6f;
   decisionData dd;
@@ -43,21 +40,15 @@ int acceptResign(unsigned int r) {
   if (rEqAfter - rEqBefore < max_gain )
     resign = ms.fResigned;
 
-  char buf[50];
-  if (resign > 0) {
-    ms.fResigned = resign;
-    return resign;
-  }
-  else {
-    return 0;
-  }
-  MYLOG(buf);
+  return resign;
 }
+
 
 void updateMSCubeInfo(int nCube, int fCubeOwner) {
   ms.nCube = nCube;
   ms.fCubeOwner = fCubeOwner;
 }
+
 
 int acceptDouble() {
   decisionData dd;
@@ -230,7 +221,6 @@ int askForDoubling() {
 }
 
 
-//API: EVALUATE THE BEST MOVE
 void evaluateBestMove(int dices[2], int move[8]) {
   TanBoard anBoardMove;
   cubeinfo ci;
@@ -240,6 +230,7 @@ void evaluateBestMove(int dices[2], int move[8]) {
   SwapSides(anBoardMove);
   FindBestMove(move, dices[0], dices[1], anBoardMove, &ci, &ec, mf);
 }
+
 
 void setBoard(TanBoard b) {
   memcpy(ms.anBoard, b, sizeof(TanBoard));
