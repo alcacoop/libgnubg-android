@@ -3,11 +3,9 @@ include $(CLEAR_VARS)
 LOCAL_PATH := $(call my-dir)  
 LOCAL_PATH :=/home/dmt/Progetti/Android/workspace/TestNDK/jni/
 GLIB_TOP := $(LOCAL_PATH)/glib/
-APP_ABI='armeabi x86'
 
 include $(call all-subdir-makefiles)
 
-#include $(LOCAL_PATH)/gnubg-lib/Android.mk
 include $(GLIB_TOP)glib/Android.mk
 include $(GLIB_TOP)gthread/Android.mk
 
