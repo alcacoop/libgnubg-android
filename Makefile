@@ -43,3 +43,5 @@ src: $(OBJS)
 clean: 
 	rm -rf $(OBJS) test
 
+jar:
+	make -f Makefile.jar
