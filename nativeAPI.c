@@ -9,7 +9,7 @@ void rollDice(int dices[2]) {
 }
 
 
-void initEnvironment(char* path) {
+void initEnvironment(const char* path) {
   size_t len = strlen(path);
   DATA_DIR = (char*)calloc(len, sizeof(char));
   sprintf(DATA_DIR, "%s", path);
@@ -238,7 +238,7 @@ void evaluateBestMove(int dices[2], int move[8]) {
 }
 
 
-void setBoard(TanBoard b) {
+void setBoard(ConstTanBoard b) {
   memcpy(ms.anBoard, b, sizeof(TanBoard));
 }
 

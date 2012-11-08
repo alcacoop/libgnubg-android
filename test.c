@@ -40,12 +40,12 @@ void printDices(int dices[2]) {
 
 void testResignation() {
   char buf[200];
-  TanBoard b = 
+  int b[2][25] = 
   {
     {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15}
   };
-  setBoard(b);
+  setBoard((ConstTanBoard)b);
   ms.fMove = 1;
   ms.fTurn = 0;
   ms.nCube = -1;
@@ -66,7 +66,7 @@ void testResignation() {
 
 
 void testDoubling() {
-  TanBoard b = 
+  int b[2][25] = 
   {
     {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0}
@@ -79,7 +79,7 @@ void testDoubling() {
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
-  setBoard(b);
+  setBoard((ConstTanBoard)b);
   MYLOG("\nTEST ACCETTAZIONE DOUBLE...\n");
   printBoard(msBoard());
   sprintf(buf, "ACCETTAZIONE: %s\n", acceptDouble()?"OK":"NO");
@@ -96,7 +96,7 @@ void testDoubling() {
 
 
 void testPlayTurn() {
-  TanBoard b = 
+  int b[2][25] = 
   {
     //MEGLIO NON RADDOPPIARE
     //{0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -113,7 +113,7 @@ void testPlayTurn() {
   
   char buf[200];
 
-  setBoard(b);
+  setBoard((ConstTanBoard)b);
   ms.nCube = 1;
   ms.fCubeOwner = 0;
   ms.fMove = 0;

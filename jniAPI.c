@@ -115,6 +115,8 @@ JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetMatchTo
 JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_TestAll
   (JNIEnv *env, jclass class)
 {
-  testAll();
-  testAll();
+  setAILevel(SUPREMO);
+  testResignation();
+  testDoubling();
+  testPlayTurn();
 }

@@ -10,7 +10,7 @@
 void rollDice(int dices[2]);
 
 //API: INITIALIZE ENV (NET EVALUATOR AND EQUITIES TABLE)
-void initEnvironment(char*);
+void initEnvironment(const char*);
 
 //API: SET NET AI LEVEL
 void setAILevel(available_levels l);
@@ -46,7 +46,7 @@ int askForDoubling();
 void evaluateBestMove(int dices[2], int move[8]);
 
 //API: SET BOARD
-void setBoard(TanBoard b);
+void setBoard(ConstTanBoard b);
 
 //API: SET MATCH SCORE
 //params: int AIScore = AI score

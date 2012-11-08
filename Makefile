@@ -1,7 +1,7 @@
 CC=gcc
 
-CFLAGS=-DIS_LIBRARY -DHAVE_CONFIG_H -g -O2 -DLOCALEDIR=\"/usr/share/locale\" -pthread -DAC_DATADIR=\"/usr/share\" -DAC_PKGDATADIR=\"/usr/share/gnubg\" -DAC_DOCDIR=\"/usr/share/doc/gnubg/\" -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -Ilib
-INCLUDES=-I. -I./lib
+CFLAGS=-DIS_LIBRARY -DHAVE_CONFIG_H -g -O2 -DLOCALEDIR=\"/usr/share/locale\" -pthread -DAC_DATADIR=\"/usr/share\" -DAC_PKGDATADIR=\"/usr/share/gnubg\" -DAC_DOCDIR=\"/usr/share/doc/gnubg/\" -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -Ilib -fPIC
+INCLUDES=-I. -I./lib -I/usr/lib/jvm/java-6-openjdk-amd64/include/
 
 
 OBJS= \
@@ -27,13 +27,14 @@ OBJS= \
     mec.o \
     positionid.o \
     rollout.o \
+		jniAPI.o \
     test.o
 
 
-LDFLAGS=-L./lib lib/libevent.a -lglib-2.0 -lm 
+LDFLAGS=-L./lib -lm -fPIC
 
 all: src
-	$(CC) -o test $(OBJS) $(LDFLAGS)
+	$(CC) -o test $(OBJS) $(LDFLAGS) -lglib-2.0
 
 %.o : %.c
 	$(CC) $(INCLUDES) $(CFLAGS) -o $@ -c $<
@@ -41,7 +42,9 @@ all: src
 src: $(OBJS) 
 
 clean: 
-	rm -rf $(OBJS) test
+	rm -rf $(OBJS) test libgnubg64.so
 
-jar:
-	make -f Makefile.jar
+jar: src
+	$(CC)  -shared -o libgnubg64.so $(OBJS) glib-static/libpcre.a glib-static/libglib.a glib-static/libcharset.a $(LDFLAGS)
+	jar cvf /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-desktop/libs/gnubg.jar libgnubg64.so
+
