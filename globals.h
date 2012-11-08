@@ -31,11 +31,9 @@
   {{0, 0, 0, 0, 0, 4, 0, 3, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0}, \
       {0, 0, 0, 0, 0, 4, 0, 3, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0}}
 
-#ifdef IS_ANDROID
-#define DATA_DIR  "/sdcard/gnubg/"
-#else
-#define DATA_DIR  "./"
-#endif
+
+extern char* DATA_DIR;
+
 
 #undef BuildFilename
 extern char* BuildFilename(char* str);

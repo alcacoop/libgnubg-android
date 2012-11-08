@@ -140,7 +140,7 @@ void testPlayTurn() {
 
 
 void testAll () {
-  initEnvironment();
+  initEnvironment("./");
   setAILevel(SUPREMO);
   testResignation();
   testDoubling();

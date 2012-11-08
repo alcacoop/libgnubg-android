@@ -4,7 +4,7 @@
 
 
 
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_RollDice
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_RollDice
   (JNIEnv * env, jclass class, jintArray dices) 
 {
   jint *ds = (*env)->GetIntArrayElements(env, dices, 0);
@@ -13,21 +13,23 @@ JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_RollDice
 }
 
 
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_InitializeEnvironment
-  (JNIEnv *env, jclass class)
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_InitializeEnvironment
+  (JNIEnv *env, jclass class, jstring str)
 {
-  initEnvironment();
+  const char* s = (*env)->GetStringUTFChars(env, str, 0);
+  initEnvironment(s);
+  (*env)->ReleaseStringUTFChars(env, str, s);
 }
 
 
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetAILevel
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetAILevel
   (JNIEnv * env, jclass class, jint level)
 {
   setAILevel(level);
 }
 
 
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetBoard
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetBoard
   (JNIEnv * env, jclass class, jintArray _b1, jintArray _b2) 
 {
   jint *b1 = (*env)->GetIntArrayElements(env, _b1, 0);
@@ -43,28 +45,28 @@ JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetBoard
 }
 
 
-JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AcceptResign
+JNIEXPORT jint JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_AcceptResign
   (JNIEnv * env, jclass class, jint r)
 {
   return acceptResign(r);
 }
 
 
-JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AcceptDouble
+JNIEXPORT jint JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_AcceptDouble
   (JNIEnv *env, jclass class)
 {
   return acceptDouble();
 }
 
 
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_UpdateMSCubeInfo
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_UpdateMSCubeInfo
   (JNIEnv *env, jclass class, jint nCube, jint fCubeOwner)
 {
   updateMSCubeInfo(nCube, fCubeOwner);
 }
 
 
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_EvaluateBestMove
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_EvaluateBestMove
   (JNIEnv * env, jclass class, jintArray dices, jintArray move)
 {
   jint *ds = (*env)->GetIntArrayElements(env, dices, 0);
@@ -75,42 +77,42 @@ JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_EvaluateBestMove
 }
 
 
-JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AskForResignation
+JNIEXPORT jint JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_AskForResignation
   (JNIEnv *env, jclass class)
 {
   return askForResignation();
 }
 
 
-JNIEXPORT jint JNICALL Java_com_example_testndk_gnubgAPI_AskForDoubling
+JNIEXPORT jint JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_AskForDoubling
   (JNIEnv *env, jclass class)
 {
   return askForDoubling();
 }
 
 
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetMatchScore
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetMatchScore
   (JNIEnv *env, jclass class, jint AIScore, jint HumanScore) 
 {
   setMatchScore(AIScore, HumanScore);
 }
 
 
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetGameTurn
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetGameTurn
   (JNIEnv *env, jclass class, jint fTurn, jint fMove)
 {
   setGameTurn(fTurn, fMove);
 }
 
 
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_SetMatchTo
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetMatchTo
   (JNIEnv *env, jclass class, jint nMatchTo)
 {
   setMatchTo(nMatchTo); 
 }
 
 
-JNIEXPORT void JNICALL Java_com_example_testndk_gnubgAPI_TestAll
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_TestAll
   (JNIEnv *env, jclass class)
 {
   testAll();

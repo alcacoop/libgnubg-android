@@ -10,7 +10,7 @@
 void rollDice(int dices[2]);
 
 //API: INITIALIZE ENV (NET EVALUATOR AND EQUITIES TABLE)
-void initEnvironment();
+void initEnvironment(char*);
 
 //API: SET NET AI LEVEL
 void setAILevel(available_levels l);

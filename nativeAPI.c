@@ -1,5 +1,7 @@
 #include "nativeAPI.h"
 
+char* DATA_DIR;
+
 void rollDice(int dices[2]) {
   rng _rng = RNG_MERSENNE;
   //rng _rng = RNG_ISAAC;
@@ -7,7 +9,11 @@ void rollDice(int dices[2]) {
 }
 
 
-void initEnvironment() {
+void initEnvironment(char* path) {
+  size_t len = strlen(path);
+  DATA_DIR = (char*)calloc(len, sizeof(char));
+  sprintf(DATA_DIR, "%s", path);
+
   char *w1, *w2, *met;
   w1 = BuildFilename("gnubg.weights");
   w2 = BuildFilename("gnubg.wd");
