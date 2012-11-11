@@ -231,6 +231,10 @@ void evaluateBestMove(int dices[2], int move[8]) {
   TanBoard anBoardMove;
   cubeinfo ci;
 
+  char buf[255];
+  sprintf(buf, "EC NPLIES: %d\n",ec.nPlies);
+  MYLOG(buf);
+
   GetMatchStateCubeInfo(&ci, &ms);
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
   SwapSides(anBoardMove);
@@ -257,4 +261,22 @@ void setGameTurn(int fTurn, int fMove) {
 
 void setMatchTo(int matchTo) {
   ms.nMatchTo = matchTo;
+}
+
+
+void generateMoves(ConstTanBoard b, int d1, int d2, int* nMoves, int singleMove[8]) {
+  movelist ml;
+  int i=0;
+
+  GenerateMoves(&ml, b, d1, d2, 0);
+
+  for (i=0;i<8;i++)
+    singleMove[i] = -1;
+  
+  *nMoves = ml.cMoves;
+  if (*nMoves==1) {
+    move m = ml.amMoves[0];
+    for (i=0;i<8;i++)
+      singleMove[i] = m.anMove[i];
+  }
 }

@@ -112,6 +112,30 @@ JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetMatchTo
 }
 
 
+JNIEXPORT jint JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_GenerateMoves
+  (JNIEnv *env, jclass class, jintArray _b1, jintArray _b2, jint d1, jint d2, jintArray _mv) 
+{
+  jint *b1 = (*env)->GetIntArrayElements(env, _b1, 0);
+  jint *b2 = (*env)->GetIntArrayElements(env, _b2, 0);
+  jint *mv = (*env)->GetIntArrayElements(env, _mv, 0);
+
+  int b[2][25];
+  memcpy(b[0], b1, sizeof(int)*25);
+  memcpy(b[1], b2, sizeof(int)*25);
+
+  int ret;
+  generateMoves((ConstTanBoard)b, d1, d2, &ret, mv);
+
+  (*env)->ReleaseIntArrayElements(env, _b1, b1, 0);
+  (*env)->ReleaseIntArrayElements(env, _b2, b2, 0);
+  (*env)->ReleaseIntArrayElements(env, _mv, mv, 0);
+  
+  return ret;
+}
+
+
+
+
 JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_TestAll
   (JNIEnv *env, jclass class)
 {

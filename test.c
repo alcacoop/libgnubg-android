@@ -138,13 +138,45 @@ void testPlayTurn() {
   MYLOG("\n");
 }
 
+void testGenerateMoves() {
+  int b[2][25] = 
+  {
+    {0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 3, 0, 2, 0, 2, 2, 0, 4, 0, 0, 0, 0, 0, 0},
+    {5, 5, 3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0} //PC
+  };
+  
+  char buf[200];
+  movelist ml;
+
+  MYLOG("TEST GENERATE MOVES...\n");
+  printBoard((ConstTanBoard)b);
+  int dices[2] = {5, 3};
+  //int dices[2] = {6,6};
+  printDices(dices);
+  GenerateMoves(&ml, (ConstTanBoard)b, dices[0], dices[1], 0);
+  
+  int i;
+  for (i=0; i<ml.cMoves; i++) {
+    move m = ml.amMoves[i];
+    printMove(m.anMove);
+  }
+
+  int ret;
+  int lm[8];
+  generateMoves((ConstTanBoard)b, dices[0], dices[1], &ret, lm);
+  printf("NMOVES: %d\n", ret);
+  printMove(lm);
+
+}
+
 
 void testAll () {
   initEnvironment("./");
-  setAILevel(SUPREMO);
+  setAILevel(GRANDMASTER);
   testResignation();
   testDoubling();
   testPlayTurn();
+  testGenerateMoves();
 }
 
 
