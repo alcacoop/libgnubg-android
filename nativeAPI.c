@@ -230,6 +230,7 @@ int askForDoubling() {
 void evaluateBestMove(int dices[2], int move[8]) {
   TanBoard anBoardMove;
   cubeinfo ci;
+  int i = 0;
 
   char buf[255];
   sprintf(buf, "EC NPLIES: %d\n",ec.nPlies);
@@ -264,19 +265,31 @@ void setMatchTo(int matchTo) {
 }
 
 
-void generateMoves(ConstTanBoard b, int d1, int d2, int* nMoves, int singleMove[8]) {
+int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
   movelist ml;
   int i=0;
+  int j=0;
 
   GenerateMoves(&ml, b, d1, d2, 0);
+  int nMoves = ml.cMoves;
+  printf("i_LENGTH: %d\n", ml.cMoves);
 
-  for (i=0;i<8;i++)
-    singleMove[i] = -1;
+
+  if (nMoves==0) return NULL;
+
+  int** moves = (int **)malloc(nMoves * sizeof(int *));
+  for(i = 0; i < nMoves; i++)
+    moves[i] = (int *)malloc(8 * sizeof(int));
   
-  *nMoves = ml.cMoves;
-  if (*nMoves==1) {
-    move m = ml.amMoves[0];
-    for (i=0;i<8;i++)
-      singleMove[i] = m.anMove[i];
+  *l = nMoves;
+
+
+  for (i=0;i<nMoves;i++) {
+    move m = ml.amMoves[i];
+    for (j=0;j<8;j++)
+      moves[i][j] = m.anMove[j];
   }
+
+  return moves;
+
 }

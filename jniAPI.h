@@ -61,8 +61,8 @@ JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetMatchTo
   (JNIEnv *, jclass, jint);
 
 
-JNIEXPORT jint JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_GenerateMoves
-  (JNIEnv *, jclass, jintArray, jintArray, jint, jint, jintArray);
+JNIEXPORT jobjectArray JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_GenerateMoves
+  (JNIEnv *, jclass, jintArray, jintArray, jint, jint);
 
 
 //ONLY FOR TEST PURPOSE

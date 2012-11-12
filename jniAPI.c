@@ -112,25 +112,41 @@ JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetMatchTo
 }
 
 
-JNIEXPORT jint JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_GenerateMoves
-  (JNIEnv *env, jclass class, jintArray _b1, jintArray _b2, jint d1, jint d2, jintArray _mv) 
+JNIEXPORT jobjectArray JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_GenerateMoves
+  (JNIEnv *env, jclass class, jintArray _b1, jintArray _b2, jint d1, jint d2) 
 {
   jint *b1 = (*env)->GetIntArrayElements(env, _b1, 0);
   jint *b2 = (*env)->GetIntArrayElements(env, _b2, 0);
-  jint *mv = (*env)->GetIntArrayElements(env, _mv, 0);
+
+  //jint *mv = (*env)->GetIntArrayElements(env, _mv, 0);
 
   int b[2][25];
   memcpy(b[0], b1, sizeof(int)*25);
   memcpy(b[1], b2, sizeof(int)*25);
 
-  int ret;
-  generateMoves((ConstTanBoard)b, d1, d2, &ret, mv);
+  int nMoves;
+  int** moves = generateMoves((ConstTanBoard)b, d1, d2, &nMoves);
+
+  int i = 0;
+  jclass c = (*env)->FindClass(env, "[I");
+  jobjectArray rows = (*env)->NewObjectArray(env, nMoves, c , NULL);
+
+
+  for (i=0; i<nMoves; i++) {
+    jintArray row = (*env)->NewIntArray(env, 8);
+    (*env)->SetIntArrayRegion(env, row, 0, 8, (jint *)moves[i]);
+    (*env)->SetObjectArrayElement(env, rows, i, row);
+  }
 
   (*env)->ReleaseIntArrayElements(env, _b1, b1, 0);
   (*env)->ReleaseIntArrayElements(env, _b2, b2, 0);
-  (*env)->ReleaseIntArrayElements(env, _mv, mv, 0);
+
+  for (i=0;i<nMoves;i++) {
+    free(moves[i]);
+  }
+  free(moves);
   
-  return ret;
+  return rows;
 }
 
 

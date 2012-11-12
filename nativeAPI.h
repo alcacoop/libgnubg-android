@@ -66,6 +66,6 @@ void setMatchTo(int matchTo);
 
 //API: GENERATE ALL AVAILABLE MOVES
 //params: int matchTo = ms.nMatchTo
-void generateMoves(ConstTanBoard b, int d1, int d2, int* nMoves, int singleMove[8]); 
+int** generateMoves(ConstTanBoard, int, int, int*); 
 
 #endif
