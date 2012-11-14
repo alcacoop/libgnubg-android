@@ -141,8 +141,8 @@ void testPlayTurn() {
 void testGenerateMoves() {
   int b[2][25] = 
   {
-    //{0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0},
-    //{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0} //PC
+    //{0,0,0,0,0,0,0,0,0,2,0,0,2,0,0,0,0,0,2,0,0,0,2,0,0},
+    //{0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0} //MOSSA OBBLIGATA
     {1, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0}, 
     {0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
   };
@@ -152,44 +152,27 @@ void testGenerateMoves() {
 
   MYLOG("TEST GENERATE MOVES...\n");
   printBoard((ConstTanBoard)b);
-  int dices[2] = {3, 3};
-  //int dices[2] = {5,3};
+  //int dices[2] = {5, 3};
+  int dices[2] = {3, 2};
   printDices(dices);
   
-  GenerateMoves(&ml, (ConstTanBoard)b, dices[0], dices[1], 0);
-  printf("ORIG LENGTH: %d\n", ml.cMoves);
-  
-  int i;
-  for (i=0; i<ml.cMoves; i++) {
-    move m = ml.amMoves[i];
-    printMove(m.anMove);
-  }
-
-
   int** moves; 
   int nMoves;
-  int j=0;
+
   moves = generateMoves((ConstTanBoard)b, dices[0], dices[1], &nMoves);
-  printf("LENGTH: %d\n", nMoves);
-
-
-  for (i=0;i<nMoves; i++) {
-    for (j=0;j<8;j++) {
-      printf("%d ", moves[i][j]);
-    }
-    printf("\n");
-  }
-
+  int i=0;
+  for (i=0;i<nMoves;i++)
+    printMove(moves[i]);
 
 }
 
 
 void testAll () {
   initEnvironment("./");
-  setAILevel(GRANDMASTER);
-  testResignation();
-  testDoubling();
-  testPlayTurn();
+  //setAILevel(GRANDMASTER);
+  //testResignation();
+  //testDoubling();
+  //testPlayTurn();
   testGenerateMoves();
 }
 

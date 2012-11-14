@@ -1,6 +1,7 @@
 #include "jniAPI.h"
 #include "globals.h"
 #include "nativeAPI.h"
+#include <stdlib.h>
 
 
 
@@ -126,6 +127,11 @@ JNIEXPORT jobjectArray JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_Gen
 
   int nMoves;
   int** moves = generateMoves((ConstTanBoard)b, d1, d2, &nMoves);
+  if (nMoves==0) {
+    (*env)->ReleaseIntArrayElements(env, _b1, b1, 0);
+    (*env)->ReleaseIntArrayElements(env, _b2, b2, 0);
+    return NULL;
+  }
 
   int i = 0;
   jclass c = (*env)->FindClass(env, "[I");

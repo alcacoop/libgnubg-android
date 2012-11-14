@@ -271,25 +271,29 @@ int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
   int j=0;
 
   GenerateMoves(&ml, b, d1, d2, 0);
-  int nMoves = ml.cMoves;
-  printf("i_LENGTH: %d\n", ml.cMoves);
+  if (ml.cMoves==0) {
+    *l = 0;
+    return NULL;
+  }
 
-
-  if (nMoves==0) return NULL;
-
-  int** moves = (int **)malloc(nMoves * sizeof(int *));
-  for(i = 0; i < nMoves; i++)
+  int** moves = (int **)malloc(2*ml.cMoves * sizeof(int *));
+  for(i = 0; i < 2*ml.cMoves; i++)
     moves[i] = (int *)malloc(8 * sizeof(int));
   
-  *l = nMoves;
-
-
-  for (i=0;i<nMoves;i++) {
+  for (i=0;i<ml.cMoves;i++) {
     move m = ml.amMoves[i];
     for (j=0;j<8;j++)
       moves[i][j] = m.anMove[j];
   }
 
+  GenerateMoves(&ml, b, d2, d1, 0);
+  for (i=0;i<ml.cMoves;i++) {
+    move m = ml.amMoves[i];
+    for (j=0;j<8;j++)
+      moves[ml.cMoves+i][j] = m.anMove[j];
+  }
+
+  *l = 2*ml.cMoves;
   return moves;
 
 }
