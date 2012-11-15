@@ -118,10 +118,8 @@ JNIEXPORT jobjectArray JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_Gen
 {
   jint *b1 = (*env)->GetIntArrayElements(env, _b1, 0);
   jint *b2 = (*env)->GetIntArrayElements(env, _b2, 0);
-
-  //jint *mv = (*env)->GetIntArrayElements(env, _mv, 0);
-
   int b[2][25];
+
   memcpy(b[0], b1, sizeof(int)*25);
   memcpy(b[1], b2, sizeof(int)*25);
 
@@ -136,7 +134,6 @@ JNIEXPORT jobjectArray JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_Gen
   int i = 0;
   jclass c = (*env)->FindClass(env, "[I");
   jobjectArray rows = (*env)->NewObjectArray(env, nMoves, c , NULL);
-
 
   for (i=0; i<nMoves; i++) {
     jintArray row = (*env)->NewIntArray(env, 8);

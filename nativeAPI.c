@@ -269,6 +269,7 @@ int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
   movelist ml;
   int i=0;
   int j=0;
+  int pattern[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
   GenerateMoves(&ml, b, d1, d2, 0);
   if (ml.cMoves==0) {
@@ -276,24 +277,21 @@ int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
     return NULL;
   }
 
-  int** moves = (int **)malloc(2*ml.cMoves * sizeof(int *));
-  for(i = 0; i < 2*ml.cMoves; i++)
+  int** moves = (int **)malloc(ml.cMoves * sizeof(int *));
+  for(i = 0; i < ml.cMoves; i++) {
     moves[i] = (int *)malloc(8 * sizeof(int));
+    memcpy(moves[i], pattern, 8*sizeof(int));
+  }
   
   for (i=0;i<ml.cMoves;i++) {
     move m = ml.amMoves[i];
-    for (j=0;j<8;j++)
-      moves[i][j] = m.anMove[j];
+    for (j=0;j<4;j++) {
+      if (m.anMove[2*j]==-1) break;
+      moves[i][2*j] = m.anMove[2*j];
+      moves[i][2*j+1] = m.anMove[2*j+1];
+    }
   }
 
-  GenerateMoves(&ml, b, d2, d1, 0);
-  for (i=0;i<ml.cMoves;i++) {
-    move m = ml.amMoves[i];
-    for (j=0;j<8;j++)
-      moves[ml.cMoves+i][j] = m.anMove[j];
-  }
-
-  *l = 2*ml.cMoves;
+  *l = ml.cMoves;
   return moves;
-
 }

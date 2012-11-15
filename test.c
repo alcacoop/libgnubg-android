@@ -141,19 +141,13 @@ void testPlayTurn() {
 void testGenerateMoves() {
   int b[2][25] = 
   {
-    //{0,0,0,0,0,0,0,0,0,2,0,0,2,0,0,0,0,0,2,0,0,0,2,0,0},
-    //{0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0} //MOSSA OBBLIGATA
     {1, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0}, 
     {0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
   };
   
-  char buf[200];
-  movelist ml;
-
   MYLOG("TEST GENERATE MOVES...\n");
   printBoard((ConstTanBoard)b);
-  //int dices[2] = {5, 3};
-  int dices[2] = {3, 2};
+  int dices[2] = {2, 3};
   printDices(dices);
   
   int** moves; 
@@ -161,15 +155,17 @@ void testGenerateMoves() {
 
   moves = generateMoves((ConstTanBoard)b, dices[0], dices[1], &nMoves);
   int i=0;
-  for (i=0;i<nMoves;i++)
+  for (i=0;i<nMoves;i++) {
     printMove(moves[i]);
+  }
+  printf("MOVES: %d\n", nMoves);
 
 }
 
 
 void testAll () {
   initEnvironment("./");
-  //setAILevel(GRANDMASTER);
+  setAILevel(GRANDMASTER);
   //testResignation();
   //testDoubling();
   //testPlayTurn();
