@@ -1,6 +1,7 @@
 #include "nativeAPI.h"
 
 char* DATA_DIR;
+int currentAILevel;
 
 void rollDice(int dices[2]) {
   rng _rng = RNG_MERSENNE;
@@ -25,6 +26,7 @@ void initEnvironment(const char* path) {
 
 
 void setAILevel(available_levels l) {
+  currentAILevel = l;
   memcpy(&ec, &levels[l].ec, sizeof(evalcontext));
   memcpy(&mf, &levels[l].mf, sizeof(movefilter)*16);
 }
@@ -156,8 +158,12 @@ int askForDoubling() {
     /* Consider doubling */
     if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
       evalcontext ecDH;
+      if (currentAILevel<7)
+        memcpy(&ecDH, &ec, sizeof(ecDH));
+      else
+        memcpy(&ecDH, &levels[6].ec, sizeof(evalcontext));
+
       float arOutput[NUM_ROLLOUT_OUTPUTS];
-      memcpy(&ecDH, &ec, sizeof(ecDH));
       ecDH.fCubeful = FALSE;
       if (ecDH.nPlies) ecDH.nPlies--;
 
@@ -173,7 +179,7 @@ int askForDoubling() {
         /* We're in market window */
         evalsetup es;
         es.et = EVAL_EVAL;
-        es.ec = ec;
+        es.ec = ecDH;
         es.rc = rcRollout;
         decisionData dd;
         cubedecision cd;
@@ -232,14 +238,13 @@ void evaluateBestMove(int dices[2], int move[8]) {
   cubeinfo ci;
   int i = 0;
 
-  char buf[255];
-  sprintf(buf, "EC NPLIES: %d\n",ec.nPlies);
-  MYLOG(buf);
-
   GetMatchStateCubeInfo(&ci, &ms);
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
   SwapSides(anBoardMove);
   FindBestMove(move, dices[0], dices[1], anBoardMove, &ci, &ec, mf);
+  char buf[255];
+  sprintf(buf, "NPLIES: %d\n", ec.nPlies);
+  MYLOG(buf);
 }
 
 
@@ -266,6 +271,9 @@ void setMatchTo(int matchTo) {
 
 
 int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
+  int f = 2;
+  if (d1==d2) f=1;
+
   movelist ml;
   int i=0;
   int j=0;
@@ -277,13 +285,11 @@ int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
     return NULL;
   }
 
-  int** moves = (int **)malloc(ml.cMoves * sizeof(int *));
+  int** moves = (int **)malloc(f * ml.cMoves * sizeof(int *));
+
   for(i = 0; i < ml.cMoves; i++) {
     moves[i] = (int *)malloc(8 * sizeof(int));
     memcpy(moves[i], pattern, 8*sizeof(int));
-  }
-  
-  for (i=0;i<ml.cMoves;i++) {
     move m = ml.amMoves[i];
     for (j=0;j<4;j++) {
       if (m.anMove[2*j]==-1) break;
@@ -292,6 +298,23 @@ int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
     }
   }
 
-  *l = ml.cMoves;
+
+
+  if (f == 2) {
+    GenerateMoves(&ml, b, d2, d1, 0);
+
+    for(i = ml.cMoves; i <  2*ml.cMoves; i++) {
+      moves[i] = (int *)malloc(8 * sizeof(int));
+      memcpy(moves[i], pattern, 8*sizeof(int));
+      move m = ml.amMoves[i-ml.cMoves];
+      for (j=0;j<4;j++) {
+        if (m.anMove[2*j]==-1) break;
+        moves[i][2*j] = m.anMove[2*j];
+        moves[i][2*j+1] = m.anMove[2*j+1];
+      }
+    }
+  }
+
+  *l = f * ml.cMoves;
   return moves;
 }

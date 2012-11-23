@@ -1,5 +1,8 @@
 #include "levels.h"
-
+/*
+ * LEVELS: 
+ *   BEGINNER, CASUAL, INTERMEDIATE, ADVANCED, EXPERT, WORLDCLASS, SUPREMO, GRANDMASTER
+ */
 
 level levels[] = {
   //BEGINNER

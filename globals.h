@@ -49,6 +49,7 @@ extern int fShowProgress;
 extern int fAutoSaveRollout;
 extern int fAutoCrawford;
 extern rngcontext *rngctxRollout;
+extern int currentAILevel;
 
 extern ConstTanBoard msBoard();
 

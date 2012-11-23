@@ -3,43 +3,35 @@
 //UTILS: PRINT A BOARD
 void printBoard(ConstTanBoard board) {
   int i, j;
-  char buf[200];
-  sprintf(buf, "");
   for(i = 0; i<2; i++) {
     for(j=0; j<25; j++) {
-      sprintf(buf+strlen(buf), " %d ", board[i][j]);
+      printf(" %d ", board[i][j]);
     }
-    sprintf(buf+strlen(buf), "\n");
+    printf("\n");
   }
-  MYLOG(buf);
 }
 
 
 //UTILS: PRINT A MOVE
 void printMove(int move[8]) {
   int i=0;
-  char buf[200];
-  sprintf(buf, "MOVE: ");
-  sprintf(buf+strlen(buf), "%d/%d ", move[0], move[1]);
-  sprintf(buf+strlen(buf), "%d/%d ", move[2], move[3]);
-  sprintf(buf+strlen(buf), " | %d/%d ", move[4], move[5]);
-  sprintf(buf+strlen(buf), "%d/%d", move[6], move[7]);
-  sprintf(buf+strlen(buf), "\n");
-  MYLOG(buf);
+  printf("MOVE: ");
+  printf("%d/%d ", move[0], move[1]);
+  printf("%d/%d ", move[2], move[3]);
+  printf(" | %d/%d ", move[4], move[5]);
+  printf("%d/%d", move[6], move[7]);
+  printf("\n");
 }
 
 
 //UTILS: PRINT A COUPLE OF DICES
 void printDices(int dices[2]) {
   int i=0;
-  char buf[200];
-  sprintf(buf, "DICES: %d %d\n", dices[0], dices[1]);
-  MYLOG(buf);
+  printf("DICES: %d %d\n", dices[0], dices[1]);
 }
 
 
 void testResignation() {
-  char buf[200];
   int b[2][25] = 
   {
     {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -54,14 +46,12 @@ void testResignation() {
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
-  MYLOG("\nTEST ACCETTAZIONE RESIGN...\n");
+  printf("\n\nTEST ACCETTAZIONE RESIGN...\n");
   printBoard(msBoard());
-  sprintf(buf, "RESIGN 1: %s\n", acceptResign(1)?"OK":"NO");
-  MYLOG(buf);
-  sprintf(buf, "RESIGN 2: %s\n", acceptResign(2)?"OK":"NO");
-  MYLOG(buf);
-  sprintf(buf, "RESIGN 3: %s\n", acceptResign(3)?"OK":"NO");
-  MYLOG(buf);
+  printf("RESIGN 1: %s\n", acceptResign(1)?"OK":"NO");
+  printf("RESIGN 2: %s\n", acceptResign(2)?"OK":"NO");
+  printf("RESIGN 3: %s\n", acceptResign(3)?"OK":"NO");
+  printf("AIlevel: %d\n\n", currentAILevel);
 }
 
 
@@ -72,7 +62,6 @@ void testDoubling() {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0}
   };
 
-  char buf[200];
   ms.fMove = 1;
   ms.fTurn = 0;
   ms.anScore[0] = 0;
@@ -80,18 +69,17 @@ void testDoubling() {
   ms.nMatchTo = 7;
 
   setBoard((ConstTanBoard)b);
-  MYLOG("\nTEST ACCETTAZIONE DOUBLE...\n");
+  printf("\n\nTEST ACCETTAZIONE DOUBLE...\n");
   printBoard(msBoard());
-  sprintf(buf, "ACCETTAZIONE: %s\n", acceptDouble()?"OK":"NO");
-  MYLOG(buf);
+  printf("ACCETTAZIONE: %s\n", acceptDouble()?"OK":"NO");
 
   ms.fMove = 1;
   ms.fTurn = 0;
   ms.fCubeOwner = 1;
   SwapSides(ms.anBoard);
   printBoard(msBoard());
-  sprintf(buf, "ACCETTAZIONE: %s\n\n", acceptDouble()?"OK":"NO");
-  MYLOG(buf);
+  printf("ACCETTAZIONE: %s\n", acceptDouble()?"OK":"NO");
+  printf("AIlevel: %d\n\n", currentAILevel);
 }
 
 
@@ -103,16 +91,14 @@ void testPlayTurn() {
     //{0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
 
     //RICHIESTA DI RADDOPPIO SU 0 A 0
-    {1, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0}, 
-    {0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
+    //{1, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0}, 
+    //{0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
 
     //RACE GAME..
-    //{0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
-    //{0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} //PC
+    {0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
+    {0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} //PC
   };
   
-  char buf[200];
-
   setBoard((ConstTanBoard)b);
   ms.nCube = 1;
   ms.fCubeOwner = 0;
@@ -123,31 +109,30 @@ void testPlayTurn() {
   ms.nMatchTo = 7;
   ms.fCrawford = FALSE;
 
-  MYLOG("TEST TURNO IA...\n");
+  printf("\n\nTEST TURNO IA...\n");
   printBoard((ConstTanBoard)b);
-  sprintf(buf, "RESIGN: %d\n", askForResignation());
-  MYLOG(buf);
-  sprintf(buf, "DOUBLING: %s\n", askForDoubling()?"YES":"NO");
-  MYLOG(buf);
+  printf("RESIGN: %d\n", askForResignation());
+  printf("DOUBLING: %s\n", askForDoubling()?"YES":"NO");
   int dices[2] = {6, 3};
   int move[8];
   rollDice(dices);
   printDices(dices);
   evaluateBestMove(dices, move);
   printMove(move);
-  MYLOG("\n");
+  printf("AIlevel: %d\n\n", currentAILevel);
 }
 
 void testGenerateMoves() {
-  int b[2][25] = 
+  int _b[2][25] =   
   {
     {1, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0}, 
     {0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
   };
   
-  MYLOG("TEST GENERATE MOVES...\n");
+  ConstTanBoard b=ms.anBoard;
+  printf("\n\nTEST GENERATE MOVES...\n");
   printBoard((ConstTanBoard)b);
-  int dices[2] = {2, 3};
+  int dices[2] = {4, 6};
   printDices(dices);
   
   int** moves; 
@@ -159,17 +144,17 @@ void testGenerateMoves() {
     printMove(moves[i]);
   }
   printf("MOVES: %d\n", nMoves);
-
+  printf("AIlevel: %d\n\n", currentAILevel);
 }
 
 
 void testAll () {
   initEnvironment("./");
   setAILevel(GRANDMASTER);
-  //testResignation();
-  //testDoubling();
-  //testPlayTurn();
-  testGenerateMoves();
+  testResignation();
+  testDoubling();
+  testPlayTurn();
+  //testGenerateMoves();
 }
 
 
