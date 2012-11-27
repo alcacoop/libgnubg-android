@@ -95,27 +95,30 @@ void testPlayTurn() {
     //{0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
 
     //RACE GAME..
-    {0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
-    {0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} //PC
+    //{0, 0, 0, 0, 2, 5, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0}, 
+    //{0, 0, 0, 2, 0, 4, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0} //PC
+    
+    {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},//BLACK (HUMAN) BGV 
+    {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0}//WHITE (PC)
   };
   
   setBoard((ConstTanBoard)b);
   ms.nCube = 1;
-  ms.fCubeOwner = 0;
-  ms.fMove = 0;
-  ms.fTurn = 0;
-  ms.anScore[0] = 4;
-  ms.anScore[1] = 6;
-  ms.nMatchTo = 7;
+  ms.fCubeOwner = 1;
+  ms.fMove = 1;
+  ms.fTurn = 1;
+  ms.anScore[0] = 0;
+  ms.anScore[1] = 0;
+  ms.nMatchTo = 1;
   ms.fCrawford = FALSE;
 
   printf("\n\nTEST TURNO IA...\n");
   printBoard((ConstTanBoard)b);
-  printf("RESIGN: %d\n", askForResignation());
-  printf("DOUBLING: %s\n", askForDoubling()?"YES":"NO");
-  int dices[2] = {6, 3};
+  //printf("RESIGN: %d\n", askForResignation());
+  //printf("DOUBLING: %s\n", askForDoubling()?"YES":"NO");
+  int dices[2] = {6, 4};
   int move[8];
-  rollDice(dices);
+  //rollDice(dices);
   printDices(dices);
   evaluateBestMove(dices, move);
   printMove(move);
@@ -150,10 +153,31 @@ void testGenerateMoves() {
 
 void testAll () {
   initEnvironment("./");
+  setAILevel(BEGINNER);
   setAILevel(GRANDMASTER);
-  testResignation();
-  testDoubling();
-  testPlayTurn();
+
+  int i;
+  
+  for (i=0; i<10;i++) {
+    setAILevel(GRANDMASTER);
+    testPlayTurn();
+    setAILevel(SUPREMO);
+    testPlayTurn();
+  }
+
+  /*
+  setAILevel(BEGINNER);
+  setAILevel(CASUAL);
+  setAILevel(INTERMEDIATE);
+  setAILevel(ADVANCED);
+  setAILevel(EXPERT);
+  setAILevel(WORLDCLASS);
+  setAILevel(SUPREMO);
+  setAILevel(GRANDMASTER);
+  */
+
+  //testResignation();
+  //testDoubling();
   //testGenerateMoves();
 }
 

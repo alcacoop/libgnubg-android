@@ -158,10 +158,10 @@ int askForDoubling() {
     /* Consider doubling */
     if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
       evalcontext ecDH;
-      if (currentAILevel<7)
+      if (currentAILevel<5)
         memcpy(&ecDH, &ec, sizeof(ecDH));
       else
-        memcpy(&ecDH, &levels[6].ec, sizeof(evalcontext));
+        memcpy(&ecDH, &levels[5].ec, sizeof(evalcontext));
 
       float arOutput[NUM_ROLLOUT_OUTPUTS];
       ecDH.fCubeful = FALSE;
@@ -236,15 +236,11 @@ int askForDoubling() {
 void evaluateBestMove(int dices[2], int move[8]) {
   TanBoard anBoardMove;
   cubeinfo ci;
-  int i = 0;
 
   GetMatchStateCubeInfo(&ci, &ms);
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
   SwapSides(anBoardMove);
   FindBestMove(move, dices[0], dices[1], anBoardMove, &ci, &ec, mf);
-  char buf[255];
-  sprintf(buf, "NPLIES: %d\n", ec.nPlies);
-  MYLOG(buf);
 }
 
 
