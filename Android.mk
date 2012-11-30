@@ -2,7 +2,8 @@ include $(CLEAR_VARS)
 
 LOCAL_PATH := $(call my-dir)  
 LOCAL_PATH :=/home/dmt/Progetti/Android/workspace/TestNDK/jni/
-GLIB_TOP := $(LOCAL_PATH)/glib/
+GLIB_TOP   := $(LOCAL_PATH)/glib/
+
 
 include $(call all-subdir-makefiles)
 
@@ -38,6 +39,7 @@ LOCAL_SRC_FILES := \
     test.c
 
 
+LOCAL_CFLAGS=-ffast-math -O3 -funroll-loops
 LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -llog
 LOCAL_MODULE := libgnubg
 LOCAL_MODULE_FILENAME := libgnubg
