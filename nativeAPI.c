@@ -316,3 +316,19 @@ int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
   *l = f * ml.cMoves;
   return moves;
 }
+
+void setGameVariant(int type) {
+  ms.bgv = type;
+}
+
+void setCubeUse(int fCubeUse) {
+  ms.fCubeUse = fCubeUse;
+}
+
+void setCrawford(int fCrawford) {
+  ms.fCrawford = fCrawford;
+}
+
+void setPostCrawford(int fPostCrawford) {
+  ms.fPostCrawford = fPostCrawford;
+}

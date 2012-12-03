@@ -69,6 +69,17 @@ JNIEXPORT jobjectArray JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_Gen
 JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_TestAll
   (JNIEnv *, jclass);
 
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetGameVariant
+(JNIEnv *, jclass, jint);
+
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetCubeUse
+(JNIEnv *, jclass, jint);
+
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetCrawford
+(JNIEnv *, jclass, jint);
+
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetPostCrawford
+(JNIEnv *, jclass, jint);
 
 #ifdef __cplusplus
 }

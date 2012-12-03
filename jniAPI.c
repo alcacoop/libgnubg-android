@@ -163,3 +163,27 @@ JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_TestAll
   testDoubling();
   testPlayTurn();
 }
+
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetGameVariant
+  (JNIEnv *env, jclass class, jint type)
+{
+  setGameVariant(type); 
+}
+
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetCubeUse
+  (JNIEnv *env, jclass class, jint cubeUse)
+{
+  setCubeUse(cubeUse); 
+}
+
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetCrawford
+  (JNIEnv *env, jclass class, jint fCrawford)
+{
+  setCrawford(fCrawford); 
+}
+
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetPostCrawford
+  (JNIEnv *env, jclass class, jint fPostCrawford)
+{
+  setPostCrawford(fPostCrawford); 
+}

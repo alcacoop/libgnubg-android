@@ -68,4 +68,16 @@ void setMatchTo(int matchTo);
 //params: int matchTo = ms.nMatchTo
 int** generateMoves(ConstTanBoard, int, int, int*); 
 
+//API: SET GAME VARIANT (I.E. BACKGAMMON OR NACKGAMMON)
+//params: match type
+void setGameVariant(int type);
+
+//API: SET IF WE USE CUBE OR NOT IN THE MATCH
+void setCubeUse(int fCubeUse);
+
+//API: SET IF WE USE THE CRAWFORD RULE
+void setCrawford(int fCrawford);
+
+void setPostCrawford(int fPostCrawford);
+
 #endif
