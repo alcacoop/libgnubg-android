@@ -114,7 +114,9 @@ int acceptDouble() {
       break;
 
     default:
-      g_assert(FALSE);
+      printf("CD: %d", cd);
+      //g_assert(FALSE);
+      return 0;
   } 
 }
 
