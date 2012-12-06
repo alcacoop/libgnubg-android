@@ -94,7 +94,7 @@ matchstate ms = {
     -1, /* fMove: CHI HA I DADI IN MANO */
     -1, /* fCubeOwner */
     FALSE, /* fCrawford */
-    FALSE, /* fPostCrawford */
+    TRUE, /* fPostCrawford */
     7, /* nMatchTo */
     { 0, 0 }, /* anScore */
     1, /* nCube */
