@@ -27,6 +27,7 @@ void initEnvironment(const char* path) {
 
 void setAILevel(available_levels l) {
   currentAILevel = l;
+  printf("LEVEL: %d", l);
   memcpy(&ec, &levels[l].ec, sizeof(evalcontext));
   memcpy(&mf, &levels[l].mf, sizeof(movefilter)*16);
 }
@@ -160,10 +161,10 @@ int askForDoubling() {
     /* Consider doubling */
     if (ms.fCubeUse && ms.nCube < MAX_CUBE && GetDPEq(NULL, NULL, &ci)) {
       evalcontext ecDH;
-      if (currentAILevel<5)
+      if (currentAILevel<4)
         memcpy(&ecDH, &ec, sizeof(ecDH));
       else
-        memcpy(&ecDH, &levels[5].ec, sizeof(evalcontext));
+        memcpy(&ecDH, &levels[4].ec, sizeof(evalcontext));
 
       float arOutput[NUM_ROLLOUT_OUTPUTS];
       ecDH.fCubeful = FALSE;
