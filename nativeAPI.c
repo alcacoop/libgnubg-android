@@ -156,6 +156,7 @@ int askForDoubling() {
   char buf[100];
 
   GetMatchStateCubeInfo(&ci, &ms);
+  ci.fCrawford = FALSE;
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
   SwapSides(anBoardMove);
 
