@@ -71,6 +71,8 @@ int acceptDouble() {
 
   GetMatchStateCubeInfo(&ci, &ms);
 
+  ci.fCrawford = FALSE;
+
   /* Evaluate cube decision */
   dd.pboard = msBoard();
   dd.pci = &ci;
