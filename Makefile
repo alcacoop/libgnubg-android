@@ -1,3 +1,35 @@
+ ##################################################################
+ #                     GNU BACKGAMMON MOBILE                      #
+ ##################################################################
+ #                                                                #
+ #  Authors: Domenico Martella - Davide Saurino                   #
+ #  E-mail: info@alcacoop.it                                      #
+ #  Date:   19/12/2012                                            #
+ #                                                                #
+ ##################################################################
+ #                                                                #
+ #  Copyright (C) 2012   Alca Societa' Cooperativa                #
+ #                                                                #
+ #  This file is part of GNU BACKGAMMON MOBILE.                   #
+ #  GNU BACKGAMMON MOBILE is free software: you can redistribute  # 
+ #  it and/or modify it under the terms of the GNU General        #
+ #  Public License as published by the Free Software Foundation,  #
+ #  either version 3 of the License, or (at your option)          #
+ #  any later version.                                            #
+ #                                                                #
+ #  GNU BACKGAMMON MOBILE is distributed in the hope that it      #
+ #  will be useful, but WITHOUT ANY WARRANTY; without even the    #
+ #  implied warranty of MERCHANTABILITY or FITNESS FOR A          #
+ #  PARTICULAR PURPOSE.  See the GNU General Public License       #
+ #  for more details.                                             #
+ #                                                                #
+ #  You should have received a copy of the GNU General            #
+ #  Public License v3 along with this program.                    #
+ #  If not, see <http://http://www.gnu.org/licenses/>             #
+ #                                                                #
+ ##################################################################
+
+
 CC=gcc
 
 CFLAGS=-DIS_LIBRARY -DHAVE_CONFIG_H -g -O2 -DLOCALEDIR=\"/usr/share/locale\" -pthread -DAC_DATADIR=\"/usr/share\" -DAC_PKGDATADIR=\"/usr/share/gnubg\" -DAC_DOCDIR=\"/usr/share/doc/gnubg/\" -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -Ilib -fPIC
