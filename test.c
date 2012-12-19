@@ -56,30 +56,33 @@ void testResignation() {
 
 
 void testDoubling() {
+  printf("\n\nTEST ACCETTAZIONE DOUBLE...\n");
   int b[2][25] = 
   {
-    {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0}
+    {2, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},//ALL BEARED OFF 
+    {0, 3, 2, 4, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0},//ALL BEARED OFF
+    //{2, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    //{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0}
   };
 
-  ms.fMove = 1;
-  ms.fTurn = 0;
   ms.anScore[0] = 0;
   ms.anScore[1] = 0;
   ms.nMatchTo = 7;
 
+
+  ms.fMove = 0;
+  ms.fTurn = 1;
+  ms.fCubeOwner = -1;
   setBoard((ConstTanBoard)b);
-  printf("\n\nTEST ACCETTAZIONE DOUBLE...\n");
   printBoard(msBoard());
-  printf("ACCETTAZIONE: %s\n", acceptDouble()?"OK":"NO");
+  printf("ACCETTAZIONE: %s\n\n", acceptDouble()?"OK":"NO");
 
   ms.fMove = 1;
   ms.fTurn = 0;
-  ms.fCubeOwner = 1;
+  ms.fCubeOwner = -1;
   SwapSides(ms.anBoard);
   printBoard(msBoard());
   printf("ACCETTAZIONE: %s\n", acceptDouble()?"OK":"NO");
-  printf("AIlevel: %d\n\n", currentAILevel);
 }
 
 
@@ -153,31 +156,13 @@ void testGenerateMoves() {
 
 void testAll () {
   initEnvironment("./");
-  setAILevel(BEGINNER);
-  setAILevel(GRANDMASTER);
 
-  int i;
-  
-  for (i=0; i<10;i++) {
-    setAILevel(GRANDMASTER);
-    testPlayTurn();
-    setAILevel(SUPREMO);
-    testPlayTurn();
-  }
-
-  /*
-  setAILevel(BEGINNER);
-  setAILevel(CASUAL);
-  setAILevel(INTERMEDIATE);
-  setAILevel(ADVANCED);
-  setAILevel(EXPERT);
-  setAILevel(WORLDCLASS);
   setAILevel(SUPREMO);
-  setAILevel(GRANDMASTER);
-  */
 
+  //setAILevel(GRANDMASTER);
+  //testPlayTurn();
   //testResignation();
-  //testDoubling();
+  testDoubling();
   //testGenerateMoves();
 }
 

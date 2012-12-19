@@ -11,7 +11,8 @@ extern void ProcessEvents(void)
 
 extern void get_eq_before_resign(cubeinfo *pci, decisionData *pdd)
 {
-  const evalcontext ecResign = { FALSE, 2, FALSE, TRUE, 0.0 };
+  //const evalcontext ecResign = { FALSE, 2, FALSE, TRUE, 0.0 };
+  const evalcontext ecResign = { FALSE, 0, TRUE, TRUE, 0.0 };
 
   pdd->pboard = (ConstTanBoard)ms.anBoard;
   pdd->pci = pci;
