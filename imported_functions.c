@@ -46,28 +46,29 @@ extern void ProcessEvents(void)
 extern void get_eq_before_resign(cubeinfo *pci, decisionData *pdd)
 {
   //const evalcontext ecResign = { FALSE, 2, FALSE, TRUE, 0.0 };
-  const evalcontext ecResign = { FALSE, 0, TRUE, TRUE, 0.0 };
+  const evalcontext ecResign = { FALSE, 1, TRUE, TRUE, 0.0 };
 
   pdd->pboard = (ConstTanBoard)ms.anBoard;
   pdd->pci = pci;
   pdd->pec = &ecResign;
+  RunAsyncProcess((AsyncFun) asyncMoveDecisionE, pdd, "Considering resignation...");
 
-  if (ms.anDice[0] > 0) {
-    float t;
-    /* Opponent has rolled the dice and then resigned. We want to find out if the resignation is OK after
-       the roll */
-    RunAsyncProcess((AsyncFun) asyncEvalRoll, pdd, "Considering resignation...");
-    /* Swap the equities as evaluation is for other player */
-    pdd->aarOutput[0][OUTPUT_WIN] = 1 - pdd->aarOutput[0][OUTPUT_WIN];
-    t = pdd->aarOutput[0][OUTPUT_WINGAMMON];
-    pdd->aarOutput[0][OUTPUT_WINGAMMON] = pdd->aarOutput[0][OUTPUT_LOSEGAMMON];
-    pdd->aarOutput[0][OUTPUT_LOSEGAMMON] = t;
-    t = pdd->aarOutput[0][OUTPUT_WINBACKGAMMON];
-    pdd->aarOutput[0][OUTPUT_WINBACKGAMMON] = pdd->aarOutput[0][OUTPUT_LOSEBACKGAMMON];
-    pdd->aarOutput[0][OUTPUT_LOSEBACKGAMMON] = t;
-  } else {
-    RunAsyncProcess((AsyncFun) asyncMoveDecisionE, pdd, "Considering resignation...");
-  }
+  //if (ms.anDice[0] > 0) {
+  //  float t;
+  //  /* Opponent has rolled the dice and then resigned. We want to find out if the resignation is OK after
+  //     the roll */
+  //  RunAsyncProcess((AsyncFun) asyncEvalRoll, pdd, "Considering resignation...");
+  //  /* Swap the equities as evaluation is for other player */
+  //  pdd->aarOutput[0][OUTPUT_WIN] = 1 - pdd->aarOutput[0][OUTPUT_WIN];
+  //  t = pdd->aarOutput[0][OUTPUT_WINGAMMON];
+  //  pdd->aarOutput[0][OUTPUT_WINGAMMON] = pdd->aarOutput[0][OUTPUT_LOSEGAMMON];
+  //  pdd->aarOutput[0][OUTPUT_LOSEGAMMON] = t;
+  //  t = pdd->aarOutput[0][OUTPUT_WINBACKGAMMON];
+  //  pdd->aarOutput[0][OUTPUT_WINBACKGAMMON] = pdd->aarOutput[0][OUTPUT_LOSEBACKGAMMON];
+  //  pdd->aarOutput[0][OUTPUT_LOSEBACKGAMMON] = t;
+  //} else {
+  //  RunAsyncProcess((AsyncFun) asyncMoveDecisionE, pdd, "Considering resignation...");
+  //}
 }
 
 extern void EvaluateRoll ( float ar[ NUM_ROLLOUT_OUTPUTS ], int nDie1, int nDie2, const TanBoard anBoard, 
