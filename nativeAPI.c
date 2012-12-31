@@ -61,7 +61,6 @@ void initEnvironment(const char* path) {
 
 void setAILevel(available_levels l) {
   currentAILevel = l;
-  printf("LEVEL: %d", l);
   memcpy(&ec, &levels[l].ec, sizeof(evalcontext));
   memcpy(&mf, &levels[l].mf, sizeof(movefilter)*16);
 }
@@ -111,8 +110,7 @@ int acceptDouble() {
   dd.pboard = msBoard();
   dd.pci = &ci;
   dd.pes = &es;
-  if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, "Considering cube action...") != 0)
-    return -1;
+  asyncCubeDecision(&dd);
   cd = FindCubeDecision(arDouble, dd.aarOutput, &ci);
 
   /* normal double by opponent */
@@ -127,7 +125,10 @@ int acceptDouble() {
     case NO_REDOUBLE_DEADCUBE:
     case OPTIONAL_DOUBLE_TAKE:
     case OPTIONAL_REDOUBLE_TAKE:
-      updateMSCubeInfo(ms.nCube * 2, 0); //accept double
+    case DOUBLE_BEAVER:
+    case NODOUBLE_BEAVER:
+    case NO_REDOUBLE_BEAVER:
+    case OPTIONAL_DOUBLE_BEAVER:
       return 1;
       break;
 
@@ -137,21 +138,10 @@ int acceptDouble() {
     case TOOGOODRE_PASS:
     case OPTIONAL_DOUBLE_PASS:
     case OPTIONAL_REDOUBLE_PASS:
-      ms.anScore[1] = ms.nCube;
-      updateMSCubeInfo(1, -1); // reset cube values
       return 0;
       break;
 
-    case DOUBLE_BEAVER:
-    case NODOUBLE_BEAVER:
-    case NO_REDOUBLE_BEAVER:
-    case OPTIONAL_DOUBLE_BEAVER:
-      updateMSCubeInfo(ms.nCube * 2, 0); //accept double
-      return 1;
-      break;
-
     default:
-      printf("CD: %d", cd);
       //g_assert(FALSE);
       return 0;
   } 
@@ -228,9 +218,7 @@ int askForDoubling() {
         dd.pboard = (ConstTanBoard)anBoardMove;
         dd.pci = &ci;
         dd.pes = &es;
-        if (RunAsyncProcess((AsyncFun)asyncCubeDecision, &dd, "Considering cube action...") != 0)
-          return -1; // error
-
+        asyncCubeDecision(&dd);
         cd = FindCubeDecision(arDouble, dd.aarOutput, &ci);
         switch (cd) {
         case DOUBLE_TAKE:
