@@ -33,7 +33,7 @@
 include $(CLEAR_VARS)  
 
 LOCAL_PATH := $(call my-dir)  
-LOCAL_PATH :=/home/dmt/Progetti/Android/workspace/TestNDK/jni/
+LOCAL_PATH := /home/dmt/Progetti/gnubg-android/
 GLIB_TOP   := $(LOCAL_PATH)/glib/
 
 
@@ -43,7 +43,7 @@ include $(GLIB_TOP)glib/Android.mk
 include $(GLIB_TOP)gthread/Android.mk
 
 
-LOCAL_PATH :=/home/dmt/Progetti/Android/workspace/TestNDK/jni/
+LOCAL_PATH := /home/dmt/Progetti/gnubg-android/
 LOCAL_SRC_FILES := \
     lib/list.c \
     lib/neuralnet.c \
@@ -71,8 +71,9 @@ LOCAL_SRC_FILES := \
     test.c
 
 
-LOCAL_CFLAGS=-ffast-math -O3 -funroll-loops
-LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -llog
+LOCAL_CFLAGS := -ffast-math -O3 -funroll-loops
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/lib $(SYSROOT)/usr/lib 
+LOCAL_LDLIBS := -llog
 LOCAL_MODULE := libgnubg
 LOCAL_MODULE_FILENAME := libgnubg
 
@@ -102,6 +103,7 @@ GLIB_SHARED_LIBRARIES := \
 	libgthread-2.0 \
 	libglib-2.0
 
-include $(BUILD_SHARED_LIBRARY)  
+include $(BUILD_SHARED_LIBRARY) 
 
-
+include $(shell cp -rf libs/armeabi/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi/)  
+include $(shell cp -rf libs/armeabi/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-android/libs/armeabi/)  
