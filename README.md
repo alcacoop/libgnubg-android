@@ -10,3 +10,7 @@ As this is just a port of move logic, we'd like to complete it with analisys and
 # LICENSE
 
 GnuBackgammon for Android is released under a GPLv3 license, please look at LICENSE file.
+
+# NOTE
+
+To compile project set NDK_PROJECT_PATH environment var to Backgammon-Mobile dir
