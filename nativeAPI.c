@@ -101,17 +101,26 @@ int acceptDouble() {
   es.et = EVAL_EVAL;
   es.ec = ec;
   es.rc = rcRollout;
-
   GetMatchStateCubeInfo(&ci, &ms);
-
   ci.fCrawford = FALSE;
 
   /* Evaluate cube decision */
-  dd.pboard = msBoard();
+  dd.pboard = ms.anBoard;
   dd.pci = &ci;
   dd.pes = &es;
   asyncCubeDecision(&dd);
   cd = FindCubeDecision(arDouble, dd.aarOutput, &ci);
+
+  /*
+  printf("CD: %d\n");
+  int i, j;
+  for(i = 0; i<2; i++) {
+    for(j=0; j<25; j++) {
+      printf(" %d ", dd.pboard[i][j]);
+    }
+    printf("\n");
+  }
+  */
 
   /* normal double by opponent */
   switch (cd) {

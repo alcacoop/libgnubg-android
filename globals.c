@@ -41,7 +41,7 @@
 int fOutputMWC = FALSE;
 int fShowProgress = FALSE;
 int fAutoSaveRollout = FALSE;
-int fAutoCrawford = FALSE;
+int fAutoCrawford = TRUE;
 rngcontext *rngctxRollout = NULL;
 
 
@@ -116,8 +116,8 @@ rolloutcontext rcRollout =
 
 matchstate ms = {
     {
-      {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0},
-      {0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0}
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
     }, /* anBoard */
     {0,0}, /* anDice */
     -1, /* fTurn: CHI DEVE PRENDERE LA DECISIONE ATTUALE*/
@@ -128,15 +128,16 @@ matchstate ms = {
     -1, /* fMove: CHI HA I DADI IN MANO */
     -1, /* fCubeOwner */
     FALSE, /* fCrawford */
-    TRUE, /* fPostCrawford */
-    7, /* nMatchTo */
+    FALSE, /* fPostCrawford */
+    0, /* nMatchTo */
     { 0, 0 }, /* anScore */
     1, /* nCube */
     0, /* cBeavers */
     VARIATION_STANDARD, /*bgv */
     TRUE, /* fCubeUse */
     FALSE, /* fJacoby */
-    GAME_PLAYING
+    //GAME_PLAYING
+    GAME_NONE
 };
 
 
