@@ -168,14 +168,18 @@ int askForResignation() {
 
   /* Consider resigning */
   int nResign;
-  evalcontext ecResign = {FALSE, 0, FALSE, TRUE, 0.0};
+  evalcontext ecResign = {1, 1, 1, 1, 0.0};//FIRST EVALUATION TO NPLIES=1
   evalsetup esResign;
   esResign.et = EVAL_EVAL;
   esResign.ec = ecResign;
   nResign = getResignation(arResign, anBoardMove, &ci, &esResign);
 
   if (nResign > 0) {
-    return nResign;
+    evalcontext ecResign = {1, 2, 0, 1, 0.0};//SECOND EVALUATION TO NPLIES=2
+    evalsetup esResign;
+    esResign.et = EVAL_EVAL;
+    esResign.ec = ecResign;
+    return getResignation(arResign, anBoardMove, &ci, &esResign);
   }
   return 0;
 }
