@@ -80,3 +80,13 @@ jar: src
 	$(CC)  -shared -o libgnubg64.so $(OBJS) glib-static/libpcre.a glib-static/libglib.a glib-static/libcharset.a $(LDFLAGS)
 	jar cvf /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-desktop/libs/gnubg.jar libgnubg64.so
 
+ndk:
+	ndk-build
+	cp -rf libs/armeabi/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi/  
+	cp -rf libs/armeabi/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-android/libs/armeabi/  
+	
+	cp -rf libs/armeabi-v7a/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi-v7a/  
+	cp -rf libs/armeabi-v7a/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-android/libs/armeabi-v7a/  
+	
+	cp -rf libs/x86/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/x86/
+	cp -rf libs/x86/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-android/libs/x86/
