@@ -1,6 +1,6 @@
 # libgnubg-android
 
-libgnubg-android is an Android port of [GNU Backgammon (gnubg)](www.gnubg.org/) AI,
+libgnubg-android is an Android port of [GNU Backgammon (gnubg)](http://www.gnubg.org/) AI,
 used in [GnuBackgammon Mobile](http://github.com/alcacoop/libgnubg-android).
 
 # TODO
