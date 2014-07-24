@@ -786,14 +786,6 @@ extern int RollDice(unsigned int anDice[2], rng *prng, rngcontext *rngctx)
 		rngctx->c += 2;
 		break;
 
-	case RNG_RANDOM_DOT_ORG:
-#if HAVE_SOCKETS
-
-		anDice[0] = getDiceRandomDotOrg();
-		anDice[1] = getDiceRandomDotOrg();
-#endif				/* !HAVE_SOCKETS */
-		break;
-
 	case RNG_FILE:
 
 		anDice[0] = ReadDiceFile(rngctx);
