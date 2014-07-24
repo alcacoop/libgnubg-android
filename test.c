@@ -169,7 +169,7 @@ void testGenerateMoves() {
     {0, 2, 2, 3, 0, 3, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
   };
   
-  ConstTanBoard b=ms.anBoard;
+  ConstTanBoard b=(ConstTanBoard)ms.anBoard;
   printf("\n\nTEST GENERATE MOVES...\n");
   printBoard((ConstTanBoard)b);
   int dices[2] = {4, 6};
@@ -193,11 +193,11 @@ void testAll () {
 
   setAILevel(SUPREMO);
 
-  //setAILevel(GRANDMASTER);
-  //testPlayTurn();
-  //testResignation();
+  setAILevel(GRANDMASTER);
+  testPlayTurn();
+  testResignation();
   testDoubling();
-  //testGenerateMoves();
+  testGenerateMoves();
 }
 
 

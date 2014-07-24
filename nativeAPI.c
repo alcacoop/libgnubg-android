@@ -105,7 +105,7 @@ int acceptDouble() {
   ci.fCrawford = FALSE;
 
   /* Evaluate cube decision */
-  dd.pboard = ms.anBoard;
+  dd.pboard = (ConstTanBoard)ms.anBoard;
   dd.pci = &ci;
   dd.pes = &es;
   asyncCubeDecision(&dd);
