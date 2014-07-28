@@ -32,6 +32,8 @@
 
 include $(CLEAR_VARS)  
 
+NDK_PROJECT_PATH := ${CMAKE_CURRENT_SOURCE_DIR}
+
 LOCAL_PATH := $(call my-dir)  
 LOCAL_PATH := /home/dmt/Progetti/gnubg-android/
 GLIB_TOP   := $(LOCAL_PATH)/glib/
@@ -106,10 +108,5 @@ GLIB_SHARED_LIBRARIES := \
 include $(BUILD_SHARED_LIBRARY) 
 
 include $(shell cp -rf libs/armeabi/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi/)  
-include $(shell cp -rf libs/armeabi/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-android/libs/armeabi/)  
-
 include $(shell cp -rf libs/armeabi-v7a/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi-v7a/)  
-include $(shell cp -rf libs/armeabi-v7a/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-android/libs/armeabi-v7a/)  
-
 include $(shell cp -rf libs/x86/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/x86/)  
-include $(shell cp -rf libs/x86/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-android/libs/x86/)  

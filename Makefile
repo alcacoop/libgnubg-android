@@ -30,6 +30,7 @@
  ##################################################################
 
 
+NDK_PROJECT_PATH=${pwd}
 CC=gcc
 
 CFLAGS=-DIS_LIBRARY -DHAVE_CONFIG_H -g -O2 -DLOCALEDIR=\"/usr/share/locale\" -pthread -DAC_DATADIR=\"/usr/share\" -DAC_PKGDATADIR=\"/usr/share/gnubg\" -DAC_DOCDIR=\"/usr/share/doc/gnubg/\" -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -Ilib -fPIC
@@ -83,10 +84,5 @@ jar: src
 ndk:
 	ndk-build
 	cp -rf libs/armeabi/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi/  
-	cp -rf libs/armeabi/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-android/libs/armeabi/  
-	
 	cp -rf libs/armeabi-v7a/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi-v7a/  
-	cp -rf libs/armeabi-v7a/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-android/libs/armeabi-v7a/  
-	
 	cp -rf libs/x86/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/x86/
-	cp -rf libs/x86/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-android/libs/x86/
