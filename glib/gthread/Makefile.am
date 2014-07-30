@@ -1,21 +1,14 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/Makefile.decl
 
-SUBDIRS = . tests
-DIST_SUBDIRS = tests
-
 AM_CPPFLAGS = 				\
 	$(glib_INCLUDES) 		\
 	-DG_LOG_DOMAIN=\"GThread\" 	\
 	@GTHREAD_COMPILE_IMPL_DEFINES@ 	\
-	@GLIB_DEBUG_FLAGS@ 		\
-	-DG_DISABLE_DEPRECATED
+	@GLIB_DEBUG_FLAGS@
 
 EXTRA_DIST +=				\
 		makefile.msc.in		\
-		gthread-posix.c		\
-		gthread-win32.c		\
-		gthread-none.c		\
 		gthread.def		\
 		gthread.rc.in
 
@@ -67,6 +60,7 @@ gthread_win32_res = gthread-win32-res.o
 gthread_win32_res_ldflag = -Wl,$(gthread_win32_res)
 endif
 
+libgthread_2_0_la_CFLAGS = $(AM_CFLAGS) $(GLIB_HIDDEN_VISIBILITY_CFLAGS)
 libgthread_2_0_la_SOURCES = gthread-impl.c
 libgthread_2_0_la_LDFLAGS = $(GLIB_LINK_FLAGS) \
 	$(gthread_win32_res_ldflag) \

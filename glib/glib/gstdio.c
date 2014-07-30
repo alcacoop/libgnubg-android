@@ -40,6 +40,7 @@
 #include <sys/utime.h>
 #else
 #include <utime.h>
+#include <errno.h>
 #endif
 
 #include "gstdio.h"
@@ -209,7 +210,11 @@ g_open (const gchar *filename,
   errno = save_errno;
   return retval;
 #else
-  return open (filename, flags, mode);
+  int fd;
+  do
+    fd = open (filename, flags, mode);
+  while (G_UNLIKELY (fd == -1 && errno == EINTR));
+  return fd;
 #endif
 }
 
@@ -737,14 +742,14 @@ g_fopen (const gchar *filename,
  * @filename: a pathname in the GLib file name encoding (UTF-8 on Windows)
  * @mode: a string describing the mode in which the file should be 
  *   opened
- * @stream: an existing stream which will be reused, or %NULL
+ * @stream: (allow-none): an existing stream which will be reused, or %NULL
  *
  * A wrapper for the POSIX freopen() function. The freopen() function
  * opens a file and associates it with an existing stream.
  * 
  * See your C library manual for more details about freopen().
  *
- * Returns: A <type>FILE</type> pointer if the file was successfully
+ * Returns: A <literal>FILE</literal> pointer if the file was successfully
  *    opened, or %NULL if an error occurred.
  * 
  * Since: 2.6
@@ -830,3 +835,46 @@ g_utime (const gchar    *filename,
   return utime (filename, utb);
 #endif
 }
+
+/**
+ * g_close:
+ * @fd: A file descriptor
+ * @error: a #GError
+ *
+ * This wraps the close() call; in case of error, %errno will be
+ * preserved, but the error will also be stored as a #GError in @error.
+ *
+ * Besides using #GError, there is another major reason to prefer this
+ * function over the call provided by the system; on Unix, it will
+ * attempt to correctly handle %EINTR, which has platform-specific
+ * semantics.
+ */
+gboolean
+g_close (gint       fd,
+         GError   **error)
+{
+  int res;
+  res = close (fd);
+  /* Just ignore EINTR for now; a retry loop is the wrong thing to do
+   * on Linux at least.  Anyone who wants to add a conditional check
+   * for e.g. HP-UX is welcome to do so later...
+   *
+   * http://lkml.indiana.edu/hypermail/linux/kernel/0509.1/0877.html
+   * https://bugzilla.gnome.org/show_bug.cgi?id=682819
+   * http://utcc.utoronto.ca/~cks/space/blog/unix/CloseEINTR
+   * https://sites.google.com/site/michaelsafyan/software-engineering/checkforeintrwheninvokingclosethinkagain
+   */
+  if (G_UNLIKELY (res == -1 && errno == EINTR))
+    return TRUE;
+  else if (res == -1)
+    {
+      int errsv = errno;
+      g_set_error_literal (error, G_FILE_ERROR,
+                           g_file_error_from_errno (errsv),
+                           g_strerror (errsv));
+      errno = errsv;
+      return FALSE;
+    }
+  return TRUE;
+}
+

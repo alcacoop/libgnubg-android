@@ -22,7 +22,7 @@
 
 #include <glib.h>
 
-//#include <libintl.h>
+#include <libintl.h>
 #include <string.h>
 
 #define  _(String) gettext (String)

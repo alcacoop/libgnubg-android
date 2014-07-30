@@ -42,6 +42,7 @@
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
+#include <glib/gstdio.h>
 
 #include "giochannel.h"
 
@@ -454,7 +455,10 @@ g_io_channel_new_file (const gchar *filename,
     MODE_R = 1 << 0,
     MODE_W = 1 << 1,
     MODE_A = 1 << 2,
-    MODE_PLUS = 1 << 3
+    MODE_PLUS = 1 << 3,
+    MODE_R_PLUS = MODE_R | MODE_PLUS,
+    MODE_W_PLUS = MODE_W | MODE_PLUS,
+    MODE_A_PLUS = MODE_A | MODE_PLUS
   } mode_num;
   struct stat buffer;
 
@@ -505,22 +509,24 @@ g_io_channel_new_file (const gchar *filename,
       case MODE_A:
         flags = O_WRONLY | O_APPEND | O_CREAT;
         break;
-      case MODE_R | MODE_PLUS:
+      case MODE_R_PLUS:
         flags = O_RDWR;
         break;
-      case MODE_W | MODE_PLUS:
+      case MODE_W_PLUS:
         flags = O_RDWR | O_TRUNC | O_CREAT;
         break;
-      case MODE_A | MODE_PLUS:
+      case MODE_A_PLUS:
         flags = O_RDWR | O_APPEND | O_CREAT;
         break;
+      case MODE_PLUS:
       default:
         g_assert_not_reached ();
         flags = 0;
     }
 
   create_mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-  fid = open (filename, flags, create_mode);
+
+  fid = g_open (filename, flags, create_mode);
   if (fid == -1)
     {
       int err = errno;
@@ -556,12 +562,13 @@ g_io_channel_new_file (const gchar *filename,
         channel->is_readable = FALSE;
         channel->is_writeable = TRUE;
         break;
-      case MODE_R | MODE_PLUS:
-      case MODE_W | MODE_PLUS:
-      case MODE_A | MODE_PLUS:
+      case MODE_R_PLUS:
+      case MODE_W_PLUS:
+      case MODE_A_PLUS:
         channel->is_readable = TRUE;
         channel->is_writeable = TRUE;
         break;
+      case MODE_PLUS:
       default:
         g_assert_not_reached ();
     }
@@ -577,7 +584,6 @@ g_io_channel_new_file (const gchar *filename,
 /**
  * g_io_channel_unix_new:
  * @fd: a file descriptor.
- * @Returns: a new #GIOChannel.
  *
  * Creates a new #GIOChannel given a file descriptor. On UNIX systems
  * this works for plain files, pipes, and sockets.
@@ -599,6 +605,8 @@ g_io_channel_new_file (const gchar *filename,
  * in case the argument you pass to this function happens to be both a
  * valid file descriptor and socket. If that happens a warning is
  * issued, and GLib assumes that it is the file descriptor you mean.
+ *
+ * Returns: a new #GIOChannel.
  **/
 GIOChannel *
 g_io_channel_unix_new (gint fd)
@@ -632,12 +640,13 @@ g_io_channel_unix_new (gint fd)
 /**
  * g_io_channel_unix_get_fd:
  * @channel: a #GIOChannel, created with g_io_channel_unix_new().
- * @Returns: the file descriptor of the #GIOChannel.
  *
  * Returns the file descriptor of the #GIOChannel.
  *
  * On Windows this function returns the file descriptor or socket of
  * the #GIOChannel.
+ *
+ * Returns: the file descriptor of the #GIOChannel.
  **/
 gint
 g_io_channel_unix_get_fd (GIOChannel *channel)

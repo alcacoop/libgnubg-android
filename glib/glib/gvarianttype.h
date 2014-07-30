@@ -20,12 +20,12 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#if defined(G_DISABLE_SINGLE_INCLUDES) && !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
-#error "Only <glib.h> can be included directly."
-#endif
-
 #ifndef __G_VARIANT_TYPE_H__
 #define __G_VARIANT_TYPE_H__
+
+#if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
+#error "Only <glib.h> can be included directly."
+#endif
 
 #include <glib/gmessages.h>
 #include <glib/gtypes.h>
@@ -38,7 +38,7 @@ G_BEGIN_DECLS
  * A type in the GVariant type system.
  *
  * Two types may not be compared by value; use g_variant_type_equal() or
- * g_variant_type_is_subtype().  May be copied using
+ * g_variant_type_is_subtype_of().  May be copied using
  * g_variant_type_copy() and freed using g_variant_type_free().
  **/
 typedef struct _GVariantType GVariantType;
@@ -126,12 +126,12 @@ typedef struct _GVariantType GVariantType;
 /**
  * G_VARIANT_TYPE_OBJECT_PATH:
  *
- * The type of a DBus object reference.  These are strings of a
+ * The type of a D-Bus object reference.  These are strings of a
  * specific format used to identify objects at a given destination on
  * the bus.
  *
- * If you are not interacting with DBus, then there is no reason to make
- * use of this type.  If you are, then the DBus specification contains a
+ * If you are not interacting with D-Bus, then there is no reason to make
+ * use of this type.  If you are, then the D-Bus specification contains a
  * precise description of valid object paths.
  **/
 #define G_VARIANT_TYPE_OBJECT_PATH          ((const GVariantType *) "o")
@@ -139,11 +139,11 @@ typedef struct _GVariantType GVariantType;
 /**
  * G_VARIANT_TYPE_SIGNATURE:
  *
- * The type of a DBus type signature.  These are strings of a specific
- * format used as type signatures for DBus methods and messages.
+ * The type of a D-Bus type signature.  These are strings of a specific
+ * format used as type signatures for D-Bus methods and messages.
  *
- * If you are not interacting with DBus, then there is no reason to make
- * use of this type.  If you are, then the DBus specification contains a
+ * If you are not interacting with D-Bus, then there is no reason to make
+ * use of this type.  If you are, then the D-Bus specification contains a
  * precise description of valid signature strings.
  **/
 #define G_VARIANT_TYPE_SIGNATURE            ((const GVariantType *) "g")
@@ -161,9 +161,9 @@ typedef struct _GVariantType GVariantType;
  *
  * The type of a 32bit signed integer value, that by convention, is used
  * as an index into an array of file descriptors that are sent alongside
- * a DBus message.
+ * a D-Bus message.
  *
- * If you are not interacting with DBus, then there is no reason to make
+ * If you are not interacting with D-Bus, then there is no reason to make
  * use of this type.
  **/
 #define G_VARIANT_TYPE_HANDLE               ((const GVariantType *) "h")
@@ -239,6 +239,13 @@ typedef struct _GVariantType GVariantType;
 #define G_VARIANT_TYPE_STRING_ARRAY         ((const GVariantType *) "as")
 
 /**
+ * G_VARIANT_TYPE_OBJECT_PATH_ARRAY:
+ *
+ * The type of an array of object paths.
+ **/
+#define G_VARIANT_TYPE_OBJECT_PATH_ARRAY    ((const GVariantType *) "ao")
+
+/**
  * G_VARIANT_TYPE_BYTESTRING:
  *
  * The type of an array of bytes.  This type is commonly used to pass
@@ -255,6 +262,16 @@ typedef struct _GVariantType GVariantType;
  **/
 #define G_VARIANT_TYPE_BYTESTRING_ARRAY     ((const GVariantType *) "aay")
 
+/**
+ * G_VARIANT_TYPE_VARDICT:
+ *
+ * The type of a dictionary mapping strings to variants (the ubiquitous
+ * "a{sv}" type).
+ *
+ * Since: 2.30
+ **/
+#define G_VARIANT_TYPE_VARDICT              ((const GVariantType *) "a{sv}")
+
 
 /**
  * G_VARIANT_TYPE:
@@ -265,7 +282,8 @@ typedef struct _GVariantType GVariantType;
  * to ensure that @string is a valid GVariant type string.
  *
  * It is always a programmer error to use this macro with an invalid
- * type string.
+ * type string. If in doubt, use g_variant_type_string_is_valid() to
+ * check if the string is valid.
  *
  * Since 2.24
  **/
@@ -276,57 +294,87 @@ typedef struct _GVariantType GVariantType;
 #endif
 
 /* type string checking */
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_string_is_valid          (const gchar         *type_string);
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_string_scan              (const gchar         *string,
                                                                          const gchar         *limit,
                                                                          const gchar        **endptr);
 
 /* create/destroy */
+GLIB_AVAILABLE_IN_ALL
 void                            g_variant_type_free                     (GVariantType        *type);
+GLIB_AVAILABLE_IN_ALL
 GVariantType *                  g_variant_type_copy                     (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 GVariantType *                  g_variant_type_new                      (const gchar         *type_string);
 
 /* getters */
+GLIB_AVAILABLE_IN_ALL
 gsize                           g_variant_type_get_string_length        (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 const gchar *                   g_variant_type_peek_string              (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 gchar *                         g_variant_type_dup_string               (const GVariantType  *type);
 
 /* classification */
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_is_definite              (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_is_container             (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_is_basic                 (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_is_maybe                 (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_is_array                 (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_is_tuple                 (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_is_dict_entry            (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_is_variant               (const GVariantType  *type);
 
 /* for hash tables */
+GLIB_AVAILABLE_IN_ALL
 guint                           g_variant_type_hash                     (gconstpointer        type);
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_equal                    (gconstpointer        type1,
                                                                          gconstpointer        type2);
 
 /* subtypes */
+GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_type_is_subtype_of            (const GVariantType  *type,
                                                                          const GVariantType  *supertype);
 
 /* type iterator interface */
+GLIB_AVAILABLE_IN_ALL
 const GVariantType *            g_variant_type_element                  (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 const GVariantType *            g_variant_type_first                    (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 const GVariantType *            g_variant_type_next                     (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 gsize                           g_variant_type_n_items                  (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 const GVariantType *            g_variant_type_key                      (const GVariantType  *type);
+GLIB_AVAILABLE_IN_ALL
 const GVariantType *            g_variant_type_value                    (const GVariantType  *type);
 
 /* constructors */
+GLIB_AVAILABLE_IN_ALL
 GVariantType *                  g_variant_type_new_array                (const GVariantType  *element);
+GLIB_AVAILABLE_IN_ALL
 GVariantType *                  g_variant_type_new_maybe                (const GVariantType  *element);
+GLIB_AVAILABLE_IN_ALL
 GVariantType *                  g_variant_type_new_tuple                (const GVariantType * const *items,
                                                                          gint                 length);
+GLIB_AVAILABLE_IN_ALL
 GVariantType *                  g_variant_type_new_dict_entry           (const GVariantType  *key,
                                                                          const GVariantType  *value);
 
 /*< private >*/
+GLIB_AVAILABLE_IN_ALL
 const GVariantType *            g_variant_type_checked_                 (const gchar *);
 
 G_END_DECLS

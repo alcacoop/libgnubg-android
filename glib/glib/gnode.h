@@ -24,12 +24,12 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(G_DISABLE_SINGLE_INCLUDES) && !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
-#error "Only <glib.h> can be included directly."
-#endif
-
 #ifndef __G_NODE_H__
 #define __G_NODE_H__
+
+#if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
+#error "Only <glib.h> can be included directly."
+#endif
 
 #include <glib/gmem.h>
 
@@ -112,30 +112,44 @@ struct _GNode
  */
 #define	 G_NODE_IS_LEAF(node)	(((GNode*) (node))->children == NULL)
 
+GLIB_AVAILABLE_IN_ALL
 GNode*	 g_node_new		(gpointer	   data);
+GLIB_AVAILABLE_IN_ALL
 void	 g_node_destroy		(GNode		  *root);
+GLIB_AVAILABLE_IN_ALL
 void	 g_node_unlink		(GNode		  *node);
+GLIB_AVAILABLE_IN_ALL
 GNode*   g_node_copy_deep       (GNode            *node,
 				 GCopyFunc         copy_func,
 				 gpointer          data);
+GLIB_AVAILABLE_IN_ALL
 GNode*   g_node_copy            (GNode            *node);
+GLIB_AVAILABLE_IN_ALL
 GNode*	 g_node_insert		(GNode		  *parent,
 				 gint		   position,
 				 GNode		  *node);
+GLIB_AVAILABLE_IN_ALL
 GNode*	 g_node_insert_before	(GNode		  *parent,
 				 GNode		  *sibling,
 				 GNode		  *node);
+GLIB_AVAILABLE_IN_ALL
 GNode*   g_node_insert_after    (GNode            *parent,
 				 GNode            *sibling,
 				 GNode            *node); 
+GLIB_AVAILABLE_IN_ALL
 GNode*	 g_node_prepend		(GNode		  *parent,
 				 GNode		  *node);
+GLIB_AVAILABLE_IN_ALL
 guint	 g_node_n_nodes		(GNode		  *root,
 				 GTraverseFlags	   flags);
+GLIB_AVAILABLE_IN_ALL
 GNode*	 g_node_get_root	(GNode		  *node);
+GLIB_AVAILABLE_IN_ALL
 gboolean g_node_is_ancestor	(GNode		  *node,
 				 GNode		  *descendant);
+GLIB_AVAILABLE_IN_ALL
 guint	 g_node_depth		(GNode		  *node);
+GLIB_AVAILABLE_IN_ALL
 GNode*	 g_node_find		(GNode		  *root,
 				 GTraverseType	   order,
 				 GTraverseFlags	   flags,
@@ -168,6 +182,19 @@ GNode*	 g_node_find		(GNode		  *root,
 #define	g_node_insert_data(parent, position, data)		\
      g_node_insert ((parent), (position), g_node_new (data))
 
+/**
+ * g_node_insert_data_after:
+ * @parent: the #GNode to place the new #GNode under
+ * @sibling: the sibling #GNode to place the new #GNode after
+ * @data: the data for the new #GNode
+ *
+ * Inserts a new #GNode after the given sibling.
+ *
+ * Returns: the new #GNode
+ */
+
+#define	g_node_insert_data_after(parent, sibling, data)	\
+     g_node_insert_after ((parent), (sibling), g_node_new (data))
 /**
  * g_node_insert_data_before:
  * @parent: the #GNode to place the new #GNode under
@@ -210,6 +237,7 @@ GNode*	 g_node_find		(GNode		  *root,
  * this function is just a high level interface to
  * low level traversal functions, optimized for speed.
  */
+GLIB_AVAILABLE_IN_ALL
 void	 g_node_traverse	(GNode		  *root,
 				 GTraverseType	   order,
 				 GTraverseFlags	   flags,
@@ -222,26 +250,37 @@ void	 g_node_traverse	(GNode		  *root,
  * adding `guint height' to struct _GNode, but then again, this is not very
  * often needed, and would make g_node_insert() more time consuming.
  */
+GLIB_AVAILABLE_IN_ALL
 guint	 g_node_max_height	 (GNode *root);
 
+GLIB_AVAILABLE_IN_ALL
 void	 g_node_children_foreach (GNode		  *node,
 				  GTraverseFlags   flags,
 				  GNodeForeachFunc func,
 				  gpointer	   data);
+GLIB_AVAILABLE_IN_ALL
 void	 g_node_reverse_children (GNode		  *node);
+GLIB_AVAILABLE_IN_ALL
 guint	 g_node_n_children	 (GNode		  *node);
+GLIB_AVAILABLE_IN_ALL
 GNode*	 g_node_nth_child	 (GNode		  *node,
 				  guint		   n);
+GLIB_AVAILABLE_IN_ALL
 GNode*	 g_node_last_child	 (GNode		  *node);
+GLIB_AVAILABLE_IN_ALL
 GNode*	 g_node_find_child	 (GNode		  *node,
 				  GTraverseFlags   flags,
 				  gpointer	   data);
+GLIB_AVAILABLE_IN_ALL
 gint	 g_node_child_position	 (GNode		  *node,
 				  GNode		  *child);
+GLIB_AVAILABLE_IN_ALL
 gint	 g_node_child_index	 (GNode		  *node,
 				  gpointer	   data);
 
+GLIB_AVAILABLE_IN_ALL
 GNode*	 g_node_first_sibling	 (GNode		  *node);
+GLIB_AVAILABLE_IN_ALL
 GNode*	 g_node_last_sibling	 (GNode		  *node);
 
 /**
@@ -279,11 +318,6 @@ GNode*	 g_node_last_sibling	 (GNode		  *node);
  */
 #define	 g_node_first_child(node)	((node) ? \
 					 ((GNode*) (node))->children : NULL)
-
-#ifndef G_DISABLE_DEPRECATED
-void     g_node_push_allocator  (gpointer          dummy);
-void     g_node_pop_allocator   (void);
-#endif
 
 G_END_DECLS
 

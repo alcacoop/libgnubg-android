@@ -1,29 +1,39 @@
 LOCAL_PATH:= $(call my-dir)
-
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES :=			\
-	gthread-impl.c
+LOCAL_SRC_FILES:= \
+    gthread-impl.c
 
-LOCAL_MODULE := libgthread-2.0
+LOCAL_STATIC_LIBRARIES := \
+	libglib-2.0
 
-LOCAL_C_INCLUDES :=			\
-	$(LOCAL_PATH)			\
-	$(GLIB_TOP)/android-internal	\
-	$(GLIB_C_INCLUDES)
+LOCAL_MODULE:= libgthread-2.0
 
-LOCAL_CFLAGS :=				\
-	-DHAVE_CONFIG_H			\
-    -DG_LOG_DOMAIN=\"GThread\"		\
-    -D_POSIX4_DRAFT_SOURCE		\
-    -D_POSIX4A_DRAFT10_SOURCE		\
-    -U_OSF_SOURCE			\
-    -DG_DISABLE_DEPRECATED 
+LOCAL_C_INCLUDES := 		\
+	$(LOCAL_PATH)		\
+	$(GLIB_TOP)		\
+	$(GLIB_TOP)/glib/android	\
+	$(GLIB_TOP)/glib/android-config	\
+	$(GLIB_TOP)/glib
 
-ifeq ($(GLIB_BUILD_STATIC),true)
+LOCAL_CFLAGS := \
+    -DG_LOG_DOMAIN=\"GThread\"      \
+    -D_POSIX4_DRAFT_SOURCE          \
+    -D_POSIX4A_DRAFT10_SOURCE       \
+    -U_OSF_SOURCE                   \
+    -DG_DISABLE_DEPRECATED  \
+    -DGLIB_COMPILATION=1
+
 include $(BUILD_STATIC_LIBRARY)
-else
-LOCAL_SHARED_LIBRARIES := libglib-2.0
 
+#
+# DUMY
+#
+
+LOCAL_PATH:= $(call my-dir)
+include $(CLEAR_VARS)
+LOCAL_MODULE:= libgthread-2.0-shared
+LOCAL_STATIC_LIBRARIES := \
+	libgthread-2.0
 include $(BUILD_SHARED_LIBRARY)
-endif
+

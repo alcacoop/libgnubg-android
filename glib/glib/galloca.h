@@ -24,22 +24,22 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(G_DISABLE_SINGLE_INCLUDES) && !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
-#error "Only <glib.h> can be included directly."
-#endif
-
 #ifndef __G_ALLOCA_H__
 #define __G_ALLOCA_H__
 
+#if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
+#error "Only <glib.h> can be included directly."
+#endif
+
 #include <glib/gtypes.h>
 
-#if defined (GLIB_HAVE_ALLOCA_H)
-/* a native and working alloca.h is there */ 
-# include <alloca.h>
-#elif defined (__GNUC__)
+#ifdef  __GNUC__
 /* GCC does the right thing */
 # undef alloca
 # define alloca(size)   __builtin_alloca (size)
+#elif defined (GLIB_HAVE_ALLOCA_H)
+/* a native and working alloca.h is there */ 
+# include <alloca.h>
 #else /* !__GNUC__ && !GLIB_HAVE_ALLOCA_H */
 # if defined(_MSC_VER) || defined(__DMC__)
 #  include <malloc.h>

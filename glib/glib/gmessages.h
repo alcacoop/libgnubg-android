@@ -24,12 +24,12 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if defined(G_DISABLE_SINGLE_INCLUDES) && !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
-#error "Only <glib.h> can be included directly."
-#endif
-
 #ifndef __G_MESSAGES_H__
 #define __G_MESSAGES_H__
+
+#if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
+#error "Only <glib.h> can be included directly."
+#endif
 
 #include <stdarg.h>
 #include <glib/gtypes.h>
@@ -45,8 +45,9 @@ G_BEGIN_DECLS
 
 /* calculate a string size, guaranteed to fit format + args.
  */
+GLIB_AVAILABLE_IN_ALL
 gsize	g_printf_string_upper_bound (const gchar* format,
-				     va_list	  args);
+				     va_list	  args) G_GNUC_PRINTF(1, 0);
 
 /* Log level shift offset for user defined
  * log levels (0-7 are used by GLib).
@@ -82,52 +83,61 @@ typedef void            (*GLogFunc)             (const gchar   *log_domain,
 
 /* Logging mechanism
  */
+GLIB_AVAILABLE_IN_ALL
 guint           g_log_set_handler       (const gchar    *log_domain,
                                          GLogLevelFlags  log_levels,
                                          GLogFunc        log_func,
                                          gpointer        user_data);
+GLIB_AVAILABLE_IN_ALL
 void            g_log_remove_handler    (const gchar    *log_domain,
                                          guint           handler_id);
+GLIB_AVAILABLE_IN_ALL
 void            g_log_default_handler   (const gchar    *log_domain,
                                          GLogLevelFlags  log_level,
                                          const gchar    *message,
                                          gpointer        unused_data);
+GLIB_AVAILABLE_IN_ALL
 GLogFunc        g_log_set_default_handler (GLogFunc      log_func,
 					   gpointer      user_data);
+GLIB_AVAILABLE_IN_ALL
 void            g_log                   (const gchar    *log_domain,
                                          GLogLevelFlags  log_level,
                                          const gchar    *format,
                                          ...) G_GNUC_PRINTF (3, 4);
+GLIB_AVAILABLE_IN_ALL
 void            g_logv                  (const gchar    *log_domain,
                                          GLogLevelFlags  log_level,
                                          const gchar    *format,
-                                         va_list         args);
+                                         va_list         args) G_GNUC_PRINTF(3, 0);
+GLIB_AVAILABLE_IN_ALL
 GLogLevelFlags  g_log_set_fatal_mask    (const gchar    *log_domain,
                                          GLogLevelFlags  fatal_mask);
+GLIB_AVAILABLE_IN_ALL
 GLogLevelFlags  g_log_set_always_fatal  (GLogLevelFlags  fatal_mask);
 
 /* internal */
-G_GNUC_INTERNAL void	_g_log_fallback_handler	(const gchar   *log_domain,
+void	_g_log_fallback_handler	(const gchar   *log_domain,
 						 GLogLevelFlags log_level,
 						 const gchar   *message,
 						 gpointer       unused_data);
 
 /* Internal functions, used to implement the following macros */
+GLIB_AVAILABLE_IN_ALL
 void g_return_if_fail_warning (const char *log_domain,
 			       const char *pretty_function,
 			       const char *expression);
+GLIB_AVAILABLE_IN_ALL
 void g_warn_message           (const char     *domain,
                                const char     *file,
                                int             line,
                                const char     *func,
                                const char     *warnexpr);
-#ifndef G_DISABLE_DEPRECATED
+GLIB_DEPRECATED
 void g_assert_warning         (const char *log_domain,
 			       const char *file,
 			       const int   line,
 		               const char *pretty_function,
 		               const char *expression) G_GNUC_NORETURN;
-#endif /* !G_DISABLE_DEPRECATED */
 
 
 #ifndef G_LOG_DOMAIN
@@ -226,31 +236,97 @@ g_debug (const gchar *format,
 }
 #endif  /* !__GNUC__ */
 
+/**
+ * GPrintFunc:
+ * @string: the message to output
+ *
+ * Specifies the type of the print handler functions.
+ * These are called with the complete formatted string to output.
+ */
 typedef void    (*GPrintFunc)           (const gchar    *string);
+GLIB_AVAILABLE_IN_ALL
 void            g_print                 (const gchar    *format,
                                          ...) G_GNUC_PRINTF (1, 2);
+GLIB_AVAILABLE_IN_ALL
 GPrintFunc      g_set_print_handler     (GPrintFunc      func);
+GLIB_AVAILABLE_IN_ALL
 void            g_printerr              (const gchar    *format,
                                          ...) G_GNUC_PRINTF (1, 2);
+GLIB_AVAILABLE_IN_ALL
 GPrintFunc      g_set_printerr_handler  (GPrintFunc      func);
 
-
-/* Provide macros for graceful error handling.
- * The "return" macros will return from the current function.
- * Two different definitions are given for the macros in
- * order to support gcc's __PRETTY_FUNCTION__ capability.
+/**
+ * g_warn_if_reached:
+ *
+ * Logs a critical warning.
+ *
+ * Since: 2.16
  */
+#define g_warn_if_reached() \
+  do { \
+    g_warn_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, NULL); \
+  } while (0)
 
-#define g_warn_if_reached()     do { g_warn_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, NULL); } while (0)
-#define g_warn_if_fail(expr)    do { if G_LIKELY (expr) ; else \
-                                       g_warn_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, #expr); } while (0)
+/**
+ * g_warn_if_fail:
+ * @expr: the expression to check
+ *
+ * Logs a warning if the expression is not true.
+ *
+ * Since: 2.16
+ */
+#define g_warn_if_fail(expr) \
+  do { \
+    if G_LIKELY (expr) ; \
+    else g_warn_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, #expr); \
+  } while (0)
 
 #ifdef G_DISABLE_CHECKS
 
-#define g_return_if_fail(expr)			G_STMT_START{ (void)0; }G_STMT_END
-#define g_return_val_if_fail(expr,val)		G_STMT_START{ (void)0; }G_STMT_END
-#define g_return_if_reached()			G_STMT_START{ return; }G_STMT_END
-#define g_return_val_if_reached(val)		G_STMT_START{ return (val); }G_STMT_END
+/**
+ * g_return_if_fail:
+ * @expr: the expression to check
+ *
+ * Verifies that the expression evaluates to %TRUE.  If the expression
+ * evaluates to %FALSE, a critical message is logged and the current
+ * function returns.  This can only be used in functions which do not
+ * return a value.
+ *
+ * If G_DISABLE_CHECKS is defined then the check is not performed.  You
+ * should therefore not depend on any side effects of @expr.
+ */
+#define g_return_if_fail(expr) G_STMT_START{ (void)0; }G_STMT_END
+
+/**
+ * g_return_val_if_fail:
+ * @expr: the expression to check
+ * @val: the value to return from the current function
+ *       if the expression is not true
+ *
+ * Verifies that the expression evaluates to %TRUE.  If the expression
+ * evaluates to %FALSE, a critical message is logged and @val is
+ * returned from the current function.
+ *
+ * If G_DISABLE_CHECKS is defined then the check is not performed.  You
+ * should therefore not depend on any side effects of @expr.
+ */
+#define g_return_val_if_fail(expr,val) G_STMT_START{ (void)0; }G_STMT_END
+
+/**
+ * g_return_if_reached:
+ *
+ * Logs a critical message and returns from the current function.
+ * This can only be used in functions which do not return a value.
+ */
+#define g_return_if_reached() G_STMT_START{ return; }G_STMT_END
+
+/**
+ * g_return_val_if_reached:
+ * @val: the value to return from the current function
+ *
+ * Logs a critical message and returns @val.
+ */
+#define g_return_val_if_reached(val) G_STMT_START{ return (val); }G_STMT_END
 
 #else /* !G_DISABLE_CHECKS */
 
