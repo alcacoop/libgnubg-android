@@ -1,4 +1,5 @@
-/* This program is free software; you can redistribute it and/or modify
+/*
+ * This program is free software; you can redistribute it and/or modify
  * it under the terms of version 3 or later of the GNU General Public License as
  * published by the Free Software Foundation.
  *
@@ -10,19 +11,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * $Id: common.h,v 1.27 2013/06/16 02:16:10 mdpetch Exp $
  */
 
 /*! \file common.h
-    \brief Odd definitions
-*/
+ * \brief Odd definitions
+ */
 
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#ifndef COMMON_H
+#define COMMON_H
 #include <math.h>
 
 #if !_GNU_SOURCE && !defined (__attribute__)
 /*! \brief GNU C specific attributes, e.g. unused
-// */
+ * // */
 #define __attribute__(X)
 #endif
 
@@ -47,20 +50,12 @@ typedef struct sigaction psighandler;
 #elif HAVE_SIGVEC
 typedef struct sigvec psighandler;
 #else
-typedef void(*psighandler) (int);
+typedef void (*psighandler) (int);
 #endif
 
 /* abs returns unsigned int by definition */
 #define Abs(a) ((unsigned int)abs(a))
 
-/* signbit() is used only in a somewhat performance sensitive place
-   in lib/sigmoid.h. If HAVE_DECL_SIGNBIT is false, maybe we should
-   work around it there instead of using this */
-#if !HAVE_DECL_SIGNBIT
-/* copysign() caters for special IEEE 754 numbers */
-#undef signbit
-#define signbit(x) (copysign(1, (x)) < 0)
-#endif
 
 /* Do we need to use g_utf8_casefold() for utf8 anywhere? */
 #define StrCaseCmp(s1, s2) g_ascii_strcasecmp(s1, s2)
@@ -69,13 +64,13 @@ typedef void(*psighandler) (int);
 #define strcasecmp strcasecmp_error_use_StrCaseCmp
 #define strncasecmp strncasecmp_error_use_StrNCaseCmp
 
-/* Macro to mark paramaters that aren't used in the function */	
+/* Macro to mark paramaters that aren't used in the function */
 #ifdef UNUSED
 #elif defined(__GNUC__)
-# define UNUSED(x) UNUSED_ ## x __attribute__((unused))
+#define UNUSED(x) UNUSED_ ## x __attribute__((unused))
 #elif defined(_lint)
-# define UNUSED(x) /*lint -e{715, 818}*/ _unused_##x
+#define UNUSED(x) /*lint -e{715, 818}*/ _unused_##x
 #else
-# define UNUSED(x) _unused_##x
+#define UNUSED(x) _unused_##x
 #endif
 #endif

@@ -16,26 +16,33 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: util.h,v 1.11 2009/08/03 22:00:44 c_anthon Exp $
+ * $Id: util.h,v 1.15 2013/07/11 19:16:07 mdpetch Exp $
  */
 
-#ifndef _UTIL_H_
-#define _UTIL_H_
+#ifndef UTIL_H
+#define UTIL_H
 
-#include "stdio.h"
+#include <glib.h>
+#include <stdio.h>
 
+extern char *prefsdir;
 extern char *datadir;
 extern char *pkg_datadir;
 extern char *docdir;
-extern char *getDataDir( void );
-extern char *getPkgDataDir( void );
-extern char *getDocDir( void );
+extern char *getDataDir(void);
+extern char *getPkgDataDir(void);
+extern char *getDocDir(void);
 
 #define BuildFilename(file) g_build_filename(getPkgDataDir(), file, NULL)
 #define BuildFilename2(file1, file2) g_build_filename(getPkgDataDir(), file1, file2, NULL)
 
-extern void PrintSystemError(const char* message);
-extern void PrintError(const char* message);
+extern void PrintSystemError(const char *message);
+extern void PrintError(const char *message);
 extern FILE *GetTemporaryFile(const char *nameTemplate, char **retName);
+
+#if defined(WIN32)
+extern int TEMP_g_mkstemp(char *tmpl);
+extern int TEMP_g_file_open_tmp(const char *tmpl, char **name_used, GError **pError);
+#endif
 
 #endif

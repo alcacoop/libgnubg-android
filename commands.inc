@@ -1,4 +1,4 @@
-/* $Id: commands.inc,v 1.34 2012/01/03 21:43:00 plm Exp $ */
+/* $Id: commands.inc,v 1.35 2012/10/15 21:10:11 plm Exp $ */
 
 /* All the commands are in this file */
 
@@ -210,10 +210,6 @@ command cER = {
     { "gammonline", CommandExportPositionGammOnLine,
       N_("Save the current position in .html format "
          "(special for GammOnLine)"), 
-      szFILENAME, &cFilename },
-    { "backgammonbase2clipboard", CommandExportPositionBGbase2Clipboard,
-      N_("Save the current position in html img tag fragment to clipboard"
-         "(special for BackgammonBase)"), 
       szFILENAME, &cFilename },
     { "gol2clipboard", CommandExportPositionGOL2Clipboard,
       N_("Copy the current position in .html format to clipboard"
@@ -1403,8 +1399,8 @@ command cER = {
     { "exit", CommandQuit, N_("Leave GNU Backgammon"), NULL, NULL },
     { "export", NULL, N_("Write data for use by other programs"), 
       NULL, acExport },
-    /*{ "external", CommandExternal, N_("Make moves for an external controller"),
-      szFILENAME, &cFilename },*/
+    { "external", CommandExternal, N_("Make moves for an external controller"),
+      szFILENAME, &cFilename },
     { "first", NULL, N_("Goto first move or game"),
       NULL, acFirst },
     { "help", CommandHelp, N_("Describe commands"), szOPTCOMMAND, NULL },

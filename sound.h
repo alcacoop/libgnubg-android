@@ -16,37 +16,37 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: sound.h,v 1.21 2008/05/14 08:20:28 c_anthon Exp $
+ * $Id: sound.h,v 1.23 2013/06/16 02:16:21 mdpetch Exp $
  */
 
-#ifndef _SOUND_H_
-#define _SOUND_H_
+#ifndef SOUND_H
+#define SOUND_H
 
 
 typedef enum _gnubgsound {
-	/* start & exit of gnubg */
-	SOUND_START = 0,
-	SOUND_EXIT,
-	/* commands */
-	SOUND_AGREE,
-	SOUND_DOUBLE,
-	SOUND_DROP,
-	SOUND_CHEQUER,
-	SOUND_MOVE,
-	SOUND_REDOUBLE,
-	SOUND_RESIGN,
-	SOUND_ROLL,
-	SOUND_TAKE,
-	/* events */
-	SOUND_HUMAN_DANCE,
-	SOUND_HUMAN_WIN_GAME,
-	SOUND_HUMAN_WIN_MATCH,
-	SOUND_BOT_DANCE,
-	SOUND_BOT_WIN_GAME,
-	SOUND_BOT_WIN_MATCH,
-	SOUND_ANALYSIS_FINISHED,
-	/* number of sounds */
-	NUM_SOUNDS
+    /* start & exit of gnubg */
+    SOUND_START = 0,
+    SOUND_EXIT,
+    /* commands */
+    SOUND_AGREE,
+    SOUND_DOUBLE,
+    SOUND_DROP,
+    SOUND_CHEQUER,
+    SOUND_MOVE,
+    SOUND_REDOUBLE,
+    SOUND_RESIGN,
+    SOUND_ROLL,
+    SOUND_TAKE,
+    /* events */
+    SOUND_HUMAN_DANCE,
+    SOUND_HUMAN_WIN_GAME,
+    SOUND_HUMAN_WIN_MATCH,
+    SOUND_BOT_DANCE,
+    SOUND_BOT_WIN_GAME,
+    SOUND_BOT_WIN_MATCH,
+    SOUND_ANALYSIS_FINISHED,
+    /* number of sounds */
+    NUM_SOUNDS
 } gnubgsound;
 
 extern const char *sound_description[NUM_SOUNDS];

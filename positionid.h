@@ -16,32 +16,30 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: positionid.h,v 1.34 2011/09/02 13:33:28 mdpetch Exp $
+ * $Id: positionid.h,v 1.36 2013/06/16 02:16:19 mdpetch Exp $
  */
 
-#ifndef _POSITIONID_H_
-#define _POSITIONID_H_
+#ifndef POSITIONID_H
+#define POSITIONID_H
 
 #include "gnubg-types.h"
 
 #define L_POSITIONID 14
 
-extern void PositionKey( const TanBoard anBoard, positionkey* pkey );
-extern char *PositionID( const TanBoard anBoard );
-extern char *PositionIDFromKey( const positionkey* pkey );
+extern void PositionKey(const TanBoard anBoard, positionkey * pkey);
+extern char *PositionID(const TanBoard anBoard);
+extern char *PositionIDFromKey(const positionkey * pkey);
 
-extern 
-unsigned int PositionBearoff( const unsigned int anBoard[],
-                              unsigned int nPoints,
-                              unsigned int nChequers );
+extern
+unsigned int PositionBearoff(const unsigned int anBoard[], unsigned int nPoints, unsigned int nChequers);
 
-extern void PositionFromKey(TanBoard anBoard, const positionkey* pkey);
+extern void PositionFromKey(TanBoard anBoard, const positionkey * pkey);
 
 /* Return 1 for success, 0 for invalid id */
-extern int PositionFromID( TanBoard anBoard, const char* szID );
+extern int PositionFromID(TanBoard anBoard, const char *szID);
 
 extern void PositionFromBearoff(unsigned int anBoard[], unsigned int usID,
-		    unsigned int nPoints, unsigned int nChequers );
+                                unsigned int nPoints, unsigned int nChequers);
 
 extern unsigned short PositionIndex(unsigned int g, const unsigned int anBoard[6]);
 
@@ -49,19 +47,18 @@ extern unsigned short PositionIndex(unsigned int g, const unsigned int anBoard[6
 
 #define CopyKey(ks, kd) kd.data[0]=ks.data[0],kd.data[1]=ks.data[1],kd.data[2]=ks.data[2],kd.data[3]=ks.data[3],kd.data[4]=ks.data[4],kd.data[5]=ks.data[5],kd.data[6]=ks.data[6]
 
-extern int EqualBoards( const TanBoard anBoard0, const TanBoard anBoard1 );
+extern int EqualBoards(const TanBoard anBoard0, const TanBoard anBoard1);
 
 /* Return 1 for valid position, 0 for not */
-extern int CheckPosition( const TanBoard anBoard );
+extern int CheckPosition(const TanBoard anBoard);
 
-extern void ClosestLegalPosition( TanBoard anBoard );
+extern void ClosestLegalPosition(TanBoard anBoard);
 
-extern unsigned int Combination ( const unsigned int n, const unsigned int r );
+extern unsigned int Combination(const unsigned int n, const unsigned int r);
 
-extern unsigned char Base64( const unsigned char ch );
+extern unsigned char Base64(const unsigned char ch);
 
-extern void oldPositionFromKey(TanBoard anBoard, const oldpositionkey* pkey);
-extern void oldPositionKey(const TanBoard anBoard, oldpositionkey* pkey);
+extern void oldPositionFromKey(TanBoard anBoard, const oldpositionkey * pkey);
+extern void oldPositionKey(const TanBoard anBoard, oldpositionkey * pkey);
 
 #endif
-

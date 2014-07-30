@@ -15,29 +15,33 @@
  * list.c
  *
  * by Gary Wong, 1996
- * $Id: list.c,v 1.12 2007/12/18 21:48:07 Superfly_Jon Exp $
+ * $Id: list.c,v 1.13 2013/06/16 02:16:24 mdpetch Exp $
  */
 
 /* No configuration used in this file
-#include "config.h" */
+ * #include "config.h" */
 #include "list.h"
 #include <stddef.h>
 #include <stdlib.h>
 
-int ListCreate( listOLD *pl ) {
-    
+int
+ListCreate(listOLD * pl)
+{
+
     pl->plPrev = pl->plNext = pl;
     pl->p = NULL;
 
     return 0;
 }
 
-listOLD *ListInsert( listOLD *pl, void *p ) {
+listOLD *
+ListInsert(listOLD * pl, void *p)
+{
 
     listOLD *plNew;
 
-    if ( (plNew = (listOLD*)malloc( sizeof( *plNew ))) == NULL )
-		return NULL;
+    if ((plNew = (listOLD *) malloc(sizeof(*plNew))) == NULL)
+        return NULL;
 
     plNew->p = p;
 
@@ -50,19 +54,22 @@ listOLD *ListInsert( listOLD *pl, void *p ) {
     return plNew;
 }
 
-void ListDelete( listOLD *pl ) {
+void
+ListDelete(listOLD * pl)
+{
 
     pl->plPrev->plNext = pl->plNext;
     pl->plNext->plPrev = pl->plPrev;
 
-    free( pl );
+    free(pl);
 }
 
-void ListDeleteAll( const listOLD *pl ) {
+void
+ListDeleteAll(const listOLD * pl)
+{
 
-	while( pl->plNext->p )
-	{
-		free(pl->plNext->p);
-		ListDelete( pl->plNext );
-	}
+    while (pl->plNext->p) {
+        free(pl->plNext->p);
+        ListDelete(pl->plNext);
+    }
 }

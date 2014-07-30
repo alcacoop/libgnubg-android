@@ -16,11 +16,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: gtklocdefs.h,v 1.6 2011/10/31 11:23:42 c_anthon Exp $
+ * $Id: gtklocdefs.h,v 1.8 2013/06/16 02:16:15 mdpetch Exp $
  */
 
-#ifndef _GTKLOCDEFS_H_
-#define _GTKLOCDEFS_H_
+#ifndef GTKLOCDEFS_H
+#define GTKLOCDEFS_H
 
 #include "config.h"
 
@@ -38,7 +38,7 @@
 #endif
 
 #if ! GTK_CHECK_VERSION(2,22,0)
-extern gint gdk_visual_get_depth (GdkVisual *visual);
+extern gint gdk_visual_get_depth(GdkVisual * visual);
 #endif
 
 #if ! GTK_CHECK_VERSION(2,20,0)
@@ -77,20 +77,20 @@ extern gint gdk_visual_get_depth (GdkVisual *visual);
 	};
 
 
-extern void gtk_widget_get_allocation (GtkWidget *widget, GtkAllocation *allocation);
-extern void gtk_widget_set_allocation (GtkWidget *widget, const GtkAllocation *allocation);
-extern void gtk_cell_renderer_get_alignment (GtkCellRenderer *cell, gfloat *xalign, gfloat *yalign);
-extern void gtk_cell_renderer_set_padding (GtkCellRenderer *cell, gint xpad, gint ypad);
+extern void gtk_widget_get_allocation(GtkWidget * widget, GtkAllocation * allocation);
+extern void gtk_widget_set_allocation(GtkWidget * widget, const GtkAllocation * allocation);
+extern void gtk_cell_renderer_get_alignment(GtkCellRenderer * cell, gfloat * xalign, gfloat * yalign);
+extern void gtk_cell_renderer_set_padding(GtkCellRenderer * cell, gint xpad, gint ypad);
 #endif
 
 #if ! GTK_CHECK_VERSION(2,14,0)
 
-extern GtkWidget *gtk_dialog_get_action_area (GtkDialog *dialog);
-extern GtkWidget *gtk_dialog_get_content_area (GtkDialog *dialog);
-extern GdkWindow *gtk_widget_get_window (GtkWidget *widget);
-extern gdouble gtk_adjustment_get_upper (GtkAdjustment *adjustment);
-extern void gtk_adjustment_set_upper (GtkAdjustment *adjustment, gdouble upper);
-guchar *gtk_selection_data_get_data(GtkSelectionData *data);
+extern GtkWidget *gtk_dialog_get_action_area(GtkDialog * dialog);
+extern GtkWidget *gtk_dialog_get_content_area(GtkDialog * dialog);
+extern GdkWindow *gtk_widget_get_window(GtkWidget * widget);
+extern gdouble gtk_adjustment_get_upper(GtkAdjustment * adjustment);
+extern void gtk_adjustment_set_upper(GtkAdjustment * adjustment, gdouble upper);
+guchar *gtk_selection_data_get_data(GtkSelectionData * data);
 
 #endif
 
@@ -99,8 +99,8 @@ extern GtkTooltips *ptt;
 #define gtk_widget_set_tooltip_text(pw,text) gtk_tooltips_set_tip(ptt, (pw), (text), NULL)
 #endif
 
-extern GtkWidget *get_statusbar_label (GtkStatusbar *statusbar);
-extern void toolbar_set_orientation (GtkToolbar *toolbar, GtkOrientation orientation);
+extern GtkWidget *get_statusbar_label(GtkStatusbar * statusbar);
+extern void toolbar_set_orientation(GtkToolbar * toolbar, GtkOrientation orientation);
 
 #ifdef GTK_DISABLE_DEPRECATED
 #define USE_GTKUIMANAGER 1

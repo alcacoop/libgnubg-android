@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: drawboard.c,v 1.61 2012/05/18 10:00:49 gflohr Exp $
+ * $Id: drawboard.c,v 1.62 2013/06/16 02:16:10 mdpetch Exp $
  */
 
 #include "config.h"
@@ -33,7 +33,7 @@
 #include "positionid.h"
 #include "matchequity.h"
 
-int fClockwise = FALSE; /* Player 1 moves clockwise */
+int fClockwise = FALSE;         /* Player 1 moves clockwise */
 
 /*
  *  GNU Backgammon  Position ID: 0123456789ABCD 
@@ -54,88 +54,85 @@ int fClockwise = FALSE; /* Player 1 moves clockwise */
  *
  */
 
-static char *DrawBoardStd( char *sz, const TanBoard anBoard, int fRoll,
-                           char *asz[], char *szMatchID, 
-                           int nChequers ) {
+static char *
+DrawBoardStd(char *sz, const TanBoard anBoard, int fRoll, char *asz[], char *szMatchID, int nChequers)
+{
 
     char *pch = sz, *pchIn;
     unsigned int x, y;
-	unsigned int cOffO = nChequers, cOffX = nChequers;
-	TanBoard an;
-    static char achX[ 17 ] = "     X6789ABCDEF",
-        achO[ 17 ] = "     O6789ABCDEF";
+    unsigned int cOffO = nChequers, cOffX = nChequers;
+    TanBoard an;
+    static char achX[17] = "     X6789ABCDEF", achO[17] = "     O6789ABCDEF";
 
-    for( x = 0; x < 25; x++ ) {
-        cOffO -= anBoard[ 0 ][ x ];
-        cOffX -= anBoard[ 1 ][ x ];
+    for (x = 0; x < 25; x++) {
+        cOffO -= anBoard[0][x];
+        cOffX -= anBoard[1][x];
     }
-    
-	pch += sprintf(pch, " %-15s %s: ", _("GNU Backgammon"), _("Position ID"));
 
-    if( fRoll )
-        strcpy( pch, PositionID( (ConstTanBoard)anBoard ) );
+    pch += sprintf(pch, " %-15s %s: ", _("GNU Backgammon"), _("Position ID"));
+
+    if (fRoll)
+        strcpy(pch, PositionID((ConstTanBoard) anBoard));
     else {
-        for( x = 0; x < 25; x++ ) {
-            an[ 0 ][ x ] = anBoard[ 1 ][ x ];
-            an[ 1 ][ x ] = anBoard[ 0 ][ x ];
+        for (x = 0; x < 25; x++) {
+            an[0][x] = anBoard[1][x];
+            an[1][x] = anBoard[0][x];
         }
-        
-        strcpy( pch, PositionID( (ConstTanBoard)an ) );
+
+        strcpy(pch, PositionID((ConstTanBoard) an));
     }
-    
+
     pch += 14;
     *pch++ = '\n';
 
     /* match id */
 
-    if ( szMatchID && *szMatchID ) {
-      pch += sprintf(pch, "                 %s   : %s\n", _("Match ID"), szMatchID);
+    if (szMatchID && *szMatchID) {
+        pch += sprintf(pch, "                 %s   : %s\n", _("Match ID"), szMatchID);
     }
-            
-    strcpy( pch, fRoll ? " +13-14-15-16-17-18------19-20-21-22-23-24-+     " :
-            " +12-11-10--9--8--7-------6--5--4--3--2--1-+     " );
+
+    strcpy(pch, fRoll ? " +13-14-15-16-17-18------19-20-21-22-23-24-+     " :
+           " +12-11-10--9--8--7-------6--5--4--3--2--1-+     ");
     pch += 49;
 
-    if( asz[ 0 ] )
-        for( pchIn = asz[ 0 ]; *pchIn; pchIn++ )
+    if (asz[0])
+        for (pchIn = asz[0]; *pchIn; pchIn++)
             *pch++ = *pchIn;
 
     *pch++ = '\n';
-    
-    for( y = 0; y < 4; y++ ) {
+
+    for (y = 0; y < 4; y++) {
         *pch++ = ' ';
         *pch++ = '|';
 
-        for( x = 12; x < 18; x++ ) {
+        for (x = 12; x < 18; x++) {
             *pch++ = ' ';
-            *pch++ = anBoard[ 1 ][ x ] > y ? 'X' :
-                anBoard[ 0 ][ 23 - x ] > y ? 'O' : ' ';
-            *pch++ = ' ';
-        }
-
-        *pch++ = '|';
-        *pch++ = ' ';
-        *pch++ = anBoard[ 0 ][ 24 ] > y ? 'O' : ' ';
-        *pch++ = ' ';
-        *pch++ = '|';
-        
-        for( ; x < 24; x++ ) {
-            *pch++ = ' ';
-            *pch++ = anBoard[ 1 ][ x ] > y ? 'X' :
-                anBoard[ 0 ][ 23 - x ] > y ? 'O' : ' ';
+            *pch++ = anBoard[1][x] > y ? 'X' : anBoard[0][23 - x] > y ? 'O' : ' ';
             *pch++ = ' ';
         }
 
         *pch++ = '|';
         *pch++ = ' ';
+        *pch++ = anBoard[0][24] > y ? 'O' : ' ';
+        *pch++ = ' ';
+        *pch++ = '|';
 
-        for( x = 0; x < 3; x++ )
-            *pch++ = ( cOffO > 5 * x + y ) ? 'O' : ' ';
+        for (; x < 24; x++) {
+            *pch++ = ' ';
+            *pch++ = anBoard[1][x] > y ? 'X' : anBoard[0][23 - x] > y ? 'O' : ' ';
+            *pch++ = ' ';
+        }
+
+        *pch++ = '|';
+        *pch++ = ' ';
+
+        for (x = 0; x < 3; x++)
+            *pch++ = (cOffO > 5 * x + y) ? 'O' : ' ';
 
         *pch++ = ' ';
-        
-        if( y < 2 && asz[ y + 1 ] )
-            for( pchIn = asz[ y + 1 ]; *pchIn; pchIn++ )
+
+        if (y < 2 && asz[y + 1])
+            for (pchIn = asz[y + 1]; *pchIn; pchIn++)
                 *pch++ = *pchIn;
         *pch++ = '\n';
     }
@@ -143,41 +140,39 @@ static char *DrawBoardStd( char *sz, const TanBoard anBoard, int fRoll,
     *pch++ = ' ';
     *pch++ = '|';
 
-    for( x = 12; x < 18; x++ ) {
+    for (x = 12; x < 18; x++) {
         *pch++ = ' ';
-        *pch++ = anBoard[ 1 ][ x ] ? achX[ anBoard[ 1 ][ x ] ] :
-                achO[ anBoard[ 0 ][ 23 - x ] ];
-        *pch++ = ' ';
-    }
-
-    *pch++ = '|';
-    *pch++ = ' ';
-    *pch++ = achO[ anBoard[ 0 ][ 24 ] ];
-    *pch++ = ' ';
-    *pch++ = '|';
-        
-    for( ; x < 24; x++ ) {
-        *pch++ = ' ';
-        *pch++ = anBoard[ 1 ][ x ] ? achX[ anBoard[ 1 ][ x ] ] :
-                achO[ anBoard[ 0 ][ 23 - x ] ];
+        *pch++ = anBoard[1][x] ? achX[anBoard[1][x]] : achO[anBoard[0][23 - x]];
         *pch++ = ' ';
     }
 
     *pch++ = '|';
+    *pch++ = ' ';
+    *pch++ = achO[anBoard[0][24]];
+    *pch++ = ' ';
+    *pch++ = '|';
+
+    for (; x < 24; x++) {
+        *pch++ = ' ';
+        *pch++ = anBoard[1][x] ? achX[anBoard[1][x]] : achO[anBoard[0][23 - x]];
+        *pch++ = ' ';
+    }
+
+    *pch++ = '|';
 
     *pch++ = ' ';
-        
-    for( x = 0; x < 3; x++ )
-        *pch++ = ( cOffO > 5 * x + 4 ) ? 'O' : ' ';
+
+    for (x = 0; x < 3; x++)
+        *pch++ = (cOffO > 5 * x + 4) ? 'O' : ' ';
 
     *pch++ = '\n';
-    
+
     *pch++ = fRoll ? 'v' : '^';
-    strcpy( pch, "|                  |BAR|                  |     " );
-    pch = strchr ( pch, 0 );
-    
-    if( asz[ 3 ] )
-        for( pchIn = asz[ 3 ]; *pchIn; pchIn++ )
+    strcpy(pch, "|                  |BAR|                  |     ");
+    pch = strchr(pch, 0);
+
+    if (asz[3])
+        for (pchIn = asz[3]; *pchIn; pchIn++)
             *pch++ = *pchIn;
 
     *pch++ = '\n';
@@ -185,82 +180,78 @@ static char *DrawBoardStd( char *sz, const TanBoard anBoard, int fRoll,
     *pch++ = ' ';
     *pch++ = '|';
 
-    for( x = 11; x > 5; x-- ) {
+    for (x = 11; x > 5; x--) {
         *pch++ = ' ';
-        *pch++ = anBoard[ 1 ][ x ] ? achX[ anBoard[ 1 ][ x ] ] :
-                achO[ anBoard[ 0 ][ 23 - x ] ];
-        *pch++ = ' ';
-    }
-
-    *pch++ = '|';
-    *pch++ = ' ';
-    *pch++ = achX[ anBoard[ 1 ][ 24 ] ];
-    *pch++ = ' ';
-    *pch++ = '|';
-        
-    for( ; x < UINT_MAX; x-- ) {
-        *pch++ = ' ';
-        *pch++ = anBoard[ 1 ][ x ] ? achX[ anBoard[ 1 ][ x ] ] :
-                achO[ anBoard[ 0 ][ 23 - x ] ];
+        *pch++ = anBoard[1][x] ? achX[anBoard[1][x]] : achO[anBoard[0][23 - x]];
         *pch++ = ' ';
     }
 
     *pch++ = '|';
+    *pch++ = ' ';
+    *pch++ = achX[anBoard[1][24]];
+    *pch++ = ' ';
+    *pch++ = '|';
+
+    for (; x < UINT_MAX; x--) {
+        *pch++ = ' ';
+        *pch++ = anBoard[1][x] ? achX[anBoard[1][x]] : achO[anBoard[0][23 - x]];
+        *pch++ = ' ';
+    }
+
+    *pch++ = '|';
 
     *pch++ = ' ';
-        
-    for( x = 0; x < 3; x++ )
-        *pch++ = ( cOffX > 5 * x + 4 ) ? 'X' : ' ';
+
+    for (x = 0; x < 3; x++)
+        *pch++ = (cOffX > 5 * x + 4) ? 'X' : ' ';
 
     *pch++ = '\n';
-    
-    for( y = 3; y < UINT_MAX; y-- ) {
+
+    for (y = 3; y < UINT_MAX; y--) {
         *pch++ = ' ';
         *pch++ = '|';
 
-        for( x = 11; x > 5; x-- ) {
+        for (x = 11; x > 5; x--) {
             *pch++ = ' ';
-            *pch++ = anBoard[ 1 ][ x ] > y ? 'X' :
-                anBoard[ 0 ][ 23 - x ] > y ? 'O' : ' ';
+            *pch++ = anBoard[1][x] > y ? 'X' : anBoard[0][23 - x] > y ? 'O' : ' ';
+            *pch++ = ' ';
+        }
+
+        *pch++ = '|';
+        *pch++ = ' ';
+        *pch++ = anBoard[1][24] > y ? 'X' : ' ';
+        *pch++ = ' ';
+        *pch++ = '|';
+
+        for (; x < UINT_MAX; x--) {
+            *pch++ = ' ';
+            *pch++ = anBoard[1][x] > y ? 'X' : anBoard[0][23 - x] > y ? 'O' : ' ';
             *pch++ = ' ';
         }
 
         *pch++ = '|';
         *pch++ = ' ';
-        *pch++ = anBoard[ 1 ][ 24 ] > y ? 'X' : ' ';
-        *pch++ = ' ';
-        *pch++ = '|';
-        
-        for( ; x < UINT_MAX; x-- ) {
-            *pch++ = ' ';
-            *pch++ = anBoard[ 1 ][ x ] > y ? 'X' :
-                anBoard[ 0 ][ 23 - x ] > y ? 'O' : ' ';
-            *pch++ = ' ';
-        }
-        
-        *pch++ = '|';
-        *pch++ = ' ';
 
-        for( x = 0; x < 3; x++ )
-            *pch++ = ( cOffX > 5 * x + y ) ? 'X' : ' ';
+        for (x = 0; x < 3; x++)
+            *pch++ = (cOffX > 5 * x + y) ? 'X' : ' ';
 
         *pch++ = ' ';
-        
-        if( y < 2 && asz[ 5 - y ] )
-            for( pchIn = asz[ 5 - y ]; *pchIn; pchIn++ )
+
+        if (y < 2 && asz[5 - y])
+            for (pchIn = asz[5 - y]; *pchIn; pchIn++)
                 *pch++ = *pchIn;
-        
+
         *pch++ = '\n';
     }
 
-    strcpy( pch, fRoll ? " +12-11-10--9--8--7-------6--5--4--3--2--1-+     " :
-            " +13-14-15-16-17-18------19-20-21-22-23-24-+     " );
+    strcpy(pch, fRoll ? " +12-11-10--9--8--7-------6--5--4--3--2--1-+     " :
+           " +13-14-15-16-17-18------19-20-21-22-23-24-+     ");
     pch += 49;
 
-    if( asz[ 6 ] )
-        for( pchIn = asz[ 6 ]; *pchIn; pchIn++ )
+    if (asz[6])
+        for (pchIn = asz[6]; *pchIn; pchIn++)
             *pch++ = *pchIn;
-    
+
     *pch++ = '\n';
     *pch = 0;
 
@@ -287,114 +278,109 @@ static char *DrawBoardStd( char *sz, const TanBoard anBoard, int fRoll,
  *
  */
 
-static char *DrawBoardCls( char *sz, const TanBoard anBoard, int fRoll,
-                           char *asz[], char *szMatchID,
-                           int nChequers) {
+static char *
+DrawBoardCls(char *sz, const TanBoard anBoard, int fRoll, char *asz[], char *szMatchID, int nChequers)
+{
 
     char *pch = sz, *pchIn;
     unsigned int x, y, cOffO = nChequers, cOffX = nChequers;
-	TanBoard an;
-    static char achX[ 17 ] = "     X6789ABCDEF",
-        achO[ 17 ] = "     O6789ABCDEF";
+    TanBoard an;
+    static char achX[17] = "     X6789ABCDEF", achO[17] = "     O6789ABCDEF";
 
-    for( x = 0; x < 25; x++ ) {
-        cOffO -= anBoard[ 0 ][ x ];
-        cOffX -= anBoard[ 1 ][ x ];
+    for (x = 0; x < 25; x++) {
+        cOffO -= anBoard[0][x];
+        cOffX -= anBoard[1][x];
     }
-    
-	pch += sprintf(pch, "%18s  %s: ", _("GNU Backgammon"), _("Position ID"));
 
-    if( fRoll )
-        strcpy( pch, PositionID( (ConstTanBoard)anBoard ) );
+    pch += sprintf(pch, "%18s  %s: ", _("GNU Backgammon"), _("Position ID"));
+
+    if (fRoll)
+        strcpy(pch, PositionID((ConstTanBoard) anBoard));
     else {
-        for( x = 0; x < 25; x++ ) {
-            an[ 0 ][ x ] = anBoard[ 1 ][ x ];
-            an[ 1 ][ x ] = anBoard[ 0 ][ x ];
+        for (x = 0; x < 25; x++) {
+            an[0][x] = anBoard[1][x];
+            an[1][x] = anBoard[0][x];
         }
-        
-        strcpy( pch, PositionID( (ConstTanBoard)an ) );
+
+        strcpy(pch, PositionID((ConstTanBoard) an));
     }
-    
+
     pch += 14;
     *pch++ = '\n';
-            
+
     /* match id */
 
-    if ( szMatchID && *szMatchID ) {
-      pch += sprintf(pch, "                    %s   : %s\n", _("Match ID"), szMatchID);
+    if (szMatchID && *szMatchID) {
+        pch += sprintf(pch, "                    %s   : %s\n", _("Match ID"), szMatchID);
     }
-            
-    strcpy( pch, fRoll ? "    +24-23-22-21-20-19------18-17-16-15-14-13-+  " :
-            "    +-1--2--3--4--5--6-------7--8--9-10-11-12-+  " );
+
+    strcpy(pch, fRoll ? "    +24-23-22-21-20-19------18-17-16-15-14-13-+  " :
+           "    +-1--2--3--4--5--6-------7--8--9-10-11-12-+  ");
     pch += 49;
 
-    if( asz[ 0 ] )
-        for( pchIn = asz[ 0 ]; *pchIn; pchIn++ )
+    if (asz[0])
+        for (pchIn = asz[0]; *pchIn; pchIn++)
             *pch++ = *pchIn;
 
     *pch++ = '\n';
 
-    for( y = 0; y < 4; y++ ) {
-    
-        for( x = 2; x < UINT_MAX; x-- )
-            *pch++ = ( cOffO > 5 * x + y ) ? 'O' : ' ';
+    for (y = 0; y < 4; y++) {
+
+        for (x = 2; x < UINT_MAX; x--)
+            *pch++ = (cOffO > 5 * x + y) ? 'O' : ' ';
 
         *pch++ = ' ';
         *pch++ = '|';
 
-        for( x = 23 ; x > 17; x-- ) {
+        for (x = 23; x > 17; x--) {
             *pch++ = ' ';
-            *pch++ = anBoard[ 1 ][ x ] > y ? 'X' :
-                anBoard[ 0 ][ 23 - x ] > y ? 'O' : ' ';
-            *pch++ = ' ';
-        }
-
-        *pch++ = '|';
-        *pch++ = ' ';
-        *pch++ = anBoard[ 0 ][ 24 ] > y ? 'O' : ' ';
-        *pch++ = ' ';
-        *pch++ = '|';
-        
-        for( ; x > 11; x-- ) {
-            *pch++ = ' ';
-            *pch++ = anBoard[ 1 ][ x ] > y ? 'X' :
-                anBoard[ 0 ][ 23 - x ] > y ? 'O' : ' ';
+            *pch++ = anBoard[1][x] > y ? 'X' : anBoard[0][23 - x] > y ? 'O' : ' ';
             *pch++ = ' ';
         }
 
         *pch++ = '|';
         *pch++ = ' ';
-	*pch++ = ' ';
-        if( y < 2 && asz[ y + 1 ] )
-            for( pchIn = asz[ y + 1 ]; *pchIn; pchIn++ )
+        *pch++ = anBoard[0][24] > y ? 'O' : ' ';
+        *pch++ = ' ';
+        *pch++ = '|';
+
+        for (; x > 11; x--) {
+            *pch++ = ' ';
+            *pch++ = anBoard[1][x] > y ? 'X' : anBoard[0][23 - x] > y ? 'O' : ' ';
+            *pch++ = ' ';
+        }
+
+        *pch++ = '|';
+        *pch++ = ' ';
+        *pch++ = ' ';
+        if (y < 2 && asz[y + 1])
+            for (pchIn = asz[y + 1]; *pchIn; pchIn++)
                 *pch++ = *pchIn;
 
         *pch++ = '\n';
     }
 
-    for( x = 2; x < UINT_MAX; x-- )
-        *pch++ = ( cOffO > 5 * x + 4 ) ? 'O' : ' ';
+    for (x = 2; x < UINT_MAX; x--)
+        *pch++ = (cOffO > 5 * x + 4) ? 'O' : ' ';
 
     *pch++ = ' ';
     *pch++ = '|';
 
-    for( x = 23; x > 17; x-- ) {
+    for (x = 23; x > 17; x--) {
         *pch++ = ' ';
-        *pch++ = anBoard[ 1 ][ x ] ? achX[ anBoard[ 1 ][ x ] ] :
-                achO[ anBoard[ 0 ][ 23 - x ] ];
+        *pch++ = anBoard[1][x] ? achX[anBoard[1][x]] : achO[anBoard[0][23 - x]];
         *pch++ = ' ';
     }
 
     *pch++ = '|';
     *pch++ = ' ';
-    *pch++ = achO[ anBoard[ 0 ][ 24 ] ];
+    *pch++ = achO[anBoard[0][24]];
     *pch++ = ' ';
     *pch++ = '|';
-        
-    for( ; x > 11; x-- ) {
+
+    for (; x > 11; x--) {
         *pch++ = ' ';
-        *pch++ = anBoard[ 1 ][ x ] ? achX[ anBoard[ 1 ][ x ] ] :
-                achO[ anBoard[ 0 ][ 23 - x ] ];
+        *pch++ = anBoard[1][x] ? achX[anBoard[1][x]] : achO[anBoard[0][23 - x]];
         *pch++ = ' ';
     }
 
@@ -404,41 +390,39 @@ static char *DrawBoardCls( char *sz, const TanBoard anBoard, int fRoll,
     *pch++ = ' ';
 
     *pch++ = '\n';
-    
-    strcpy( pch, "    |                  |BAR|                  |" );
-    pch = strchr ( pch, 0 );
+
+    strcpy(pch, "    |                  |BAR|                  |");
+    pch = strchr(pch, 0);
     *pch++ = fRoll ? 'v' : '^';
-    *pch++ = ' ';   
-    
-    if( asz[ 3 ] )
-        for( pchIn = asz[ 3 ]; *pchIn; pchIn++ )
+    *pch++ = ' ';
+
+    if (asz[3])
+        for (pchIn = asz[3]; *pchIn; pchIn++)
             *pch++ = *pchIn;
 
     *pch++ = '\n';
 
-    for( x = 2; x < UINT_MAX; x-- )
-        *pch++ = ( cOffX > 5 * x + 4 ) ? 'X' : ' ';
+    for (x = 2; x < UINT_MAX; x--)
+        *pch++ = (cOffX > 5 * x + 4) ? 'X' : ' ';
 
     *pch++ = ' ';
     *pch++ = '|';
 
-    for( x = 0; x < 6; x++ ) {
+    for (x = 0; x < 6; x++) {
         *pch++ = ' ';
-        *pch++ = anBoard[ 1 ][ x ] ? achX[ anBoard[ 1 ][ x ] ] :
-                achO[ anBoard[ 0 ][ 23 - x ] ];
+        *pch++ = anBoard[1][x] ? achX[anBoard[1][x]] : achO[anBoard[0][23 - x]];
         *pch++ = ' ';
     }
 
     *pch++ = '|';
     *pch++ = ' ';
-    *pch++ = achX[ anBoard[ 1 ][ 24 ] ];
+    *pch++ = achX[anBoard[1][24]];
     *pch++ = ' ';
     *pch++ = '|';
-        
-    for( ; x < 12; x++ ) {
+
+    for (; x < 12; x++) {
         *pch++ = ' ';
-        *pch++ = anBoard[ 1 ][ x ] ? achX[ anBoard[ 1 ][ x ] ] :
-                achO[ anBoard[ 0 ][ 23 - x ] ];
+        *pch++ = anBoard[1][x] ? achX[anBoard[1][x]] : achO[anBoard[0][23 - x]];
         *pch++ = ' ';
     }
 
@@ -448,124 +432,125 @@ static char *DrawBoardCls( char *sz, const TanBoard anBoard, int fRoll,
     *pch++ = ' ';
 
     *pch++ = '\n';
-    
-    for( y = 3; y < UINT_MAX; y-- ) {
 
-        for( x = 2; x < UINT_MAX; x-- )
-            *pch++ = ( cOffX > 5 * x + y ) ? 'X' : ' ';
+    for (y = 3; y < UINT_MAX; y--) {
+
+        for (x = 2; x < UINT_MAX; x--)
+            *pch++ = (cOffX > 5 * x + y) ? 'X' : ' ';
 
         *pch++ = ' ';
         *pch++ = '|';
 
-        for( x = 0; x < 6; x++ ) {
+        for (x = 0; x < 6; x++) {
             *pch++ = ' ';
-            *pch++ = anBoard[ 1 ][ x ] > y ? 'X' :
-                anBoard[ 0 ][ 23 - x ] > y ? 'O' : ' ';
+            *pch++ = anBoard[1][x] > y ? 'X' : anBoard[0][23 - x] > y ? 'O' : ' ';
+            *pch++ = ' ';
+        }
+
+        *pch++ = '|';
+        *pch++ = ' ';
+        *pch++ = anBoard[1][24] > y ? 'X' : ' ';
+        *pch++ = ' ';
+        *pch++ = '|';
+
+        for (; x < 12; x++) {
+            *pch++ = ' ';
+            *pch++ = anBoard[1][x] > y ? 'X' : anBoard[0][23 - x] > y ? 'O' : ' ';
             *pch++ = ' ';
         }
 
         *pch++ = '|';
         *pch++ = ' ';
-        *pch++ = anBoard[ 1 ][ 24 ] > y ? 'X' : ' ';
         *pch++ = ' ';
-        *pch++ = '|';
-        
-        for( ; x < 12; x++ ) {
-            *pch++ = ' ';
-            *pch++ = anBoard[ 1 ][ x ] > y ? 'X' :
-                anBoard[ 0 ][ 23 - x ] > y ? 'O' : ' ';
-            *pch++ = ' ';
-        }
-        
-        *pch++ = '|';
-        *pch++ = ' ';
-        *pch++ = ' ';       
-        if( y < 2 && asz[ 5 - y ] )
-            for( pchIn = asz[ 5 - y ]; *pchIn; pchIn++ )
+        if (y < 2 && asz[5 - y])
+            for (pchIn = asz[5 - y]; *pchIn; pchIn++)
                 *pch++ = *pchIn;
-        
+
         *pch++ = '\n';
     }
 
-    strcpy( pch, fRoll ? "    +-1--2--3--4--5--6-------7--8--9-10-11-12-+   " :
-            "    +24-23-22-21-20-19------18-17-16-15-14-13-+  " );
+    strcpy(pch, fRoll ? "    +-1--2--3--4--5--6-------7--8--9-10-11-12-+   " :
+           "    +24-23-22-21-20-19------18-17-16-15-14-13-+  ");
     pch += 49;
 
-    if( asz[ 6 ] )
-        for( pchIn = asz[ 6 ]; *pchIn; pchIn++ )
+    if (asz[6])
+        for (pchIn = asz[6]; *pchIn; pchIn++)
             *pch++ = *pchIn;
-    
+
     *pch++ = '\n';
     *pch = 0;
 
     return sz;
 }
 
-extern char *DrawBoard( char *sz, const TanBoard anBoard, int fRoll,
-                        char *asz[], char *szMatchID, int nChequers ) {
-    if( fClockwise == FALSE ) 
-        return ( DrawBoardStd( sz, anBoard, fRoll, asz, 
-                               szMatchID, nChequers  ) ) ;
+extern char *
+DrawBoard(char *sz, const TanBoard anBoard, int fRoll, char *asz[], char *szMatchID, int nChequers)
+{
+    if (fClockwise == FALSE)
+        return (DrawBoardStd(sz, anBoard, fRoll, asz, szMatchID, nChequers));
 
-    return ( DrawBoardCls( sz, anBoard, fRoll, asz, 
-                           szMatchID, nChequers ) ) ;   
+    return (DrawBoardCls(sz, anBoard, fRoll, asz, szMatchID, nChequers));
 }
 
-static char *FormatPoint( char *pch, int n ) {
+static char *
+FormatPoint(char *pch, int n)
+{
 
-    g_assert( n >= 0 );
-    
+    g_assert(n >= 0);
+
     /*don't translate 'off' and 'bar' as these may be used in UserCommand at a later
      * point */
-    if( !n ) {
-        strcpy( pch, ("off") );
-        return pch + strlen(("off") );
-    } else if( n == 25 ) {
-        strcpy( pch, ("bar") );
-        return pch + strlen(("bar") );
-    } else if( n > 9 )
+    if (!n) {
+        strcpy(pch, ("off"));
+        return pch + strlen(("off"));
+    } else if (n == 25) {
+        strcpy(pch, ("bar"));
+        return pch + strlen(("bar"));
+    } else if (n > 9)
         *pch++ = n / 10 + '0';
 
-    *pch++ = ( n % 10 ) + '0';
+    *pch++ = (n % 10) + '0';
 
     return pch;
 }
 
-static char *FormatPointPlain( char *pch, int n ) {
+static char *
+FormatPointPlain(char *pch, int n)
+{
 
-    g_assert( n >= 0 );
-    
-    if( n > 9 )
+    g_assert(n >= 0);
+
+    if (n > 9)
         *pch++ = n / 10 + '0';
 
-    *pch++ = ( n % 10 ) + '0';
+    *pch++ = (n % 10) + '0';
 
     return pch;
 }
 
-extern char *FormatMovePlain( char *sz, TanBoard anBoard,
-                              int anMove[ 8 ] ) {
+extern char *
+FormatMovePlain(char *sz, TanBoard anBoard, int anMove[8])
+{
 
     char *pch = sz;
     int i, j;
-    
-    for( i = 0; i < 8 && anMove[ i ] >= 0; i += 2 ) {
-        pch = FormatPointPlain( pch, anMove[ i ] + 1 );
-        *pch++ = '/';
-        pch = FormatPointPlain( pch, anMove[ i + 1 ] + 1 );
 
-        if( anBoard && anMove[ i + 1 ] >= 0 &&
-            anBoard[ 0 ][ 23 - anMove[ i + 1 ] ] ) {
-            for( j = 1; ; j += 2 )
-                if( j > i ) {
+    for (i = 0; i < 8 && anMove[i] >= 0; i += 2) {
+        pch = FormatPointPlain(pch, anMove[i] + 1);
+        *pch++ = '/';
+        pch = FormatPointPlain(pch, anMove[i + 1] + 1);
+
+        if (anBoard && anMove[i + 1] >= 0 && anBoard[0][23 - anMove[i + 1]]) {
+            for (j = 1;; j += 2)
+                if (j > i) {
                     *pch++ = '*';
                     break;
-                } else if( anMove[ i + 1 ] == anMove[ j ] )
+                } else if (anMove[i + 1] == anMove[j])
                     break;
         }
-        
-        if( i < 6 )
-            *pch++ = ' '; 
+
+        if (i < 6)
+            *pch++ = ' ';
     }
 
     *pch = 0;
@@ -573,98 +558,101 @@ extern char *FormatMovePlain( char *sz, TanBoard anBoard,
     return sz;
 }
 
-static int CompareMovesSimple( const void *p0, const void *p1 ) {
+static int
+CompareMovesSimple(const void *p0, const void *p1)
+{
 
-    int n0 = *( (int *) p0 ), n1 = *( (int *) p1 );
+    int n0 = *((int *) p0), n1 = *((int *) p1);
 
-    if( n0 != n1 )
+    if (n0 != n1)
         return n1 - n0;
     else
-        return *( (int *) p1 + 1 ) - *( (int *) p0 + 1 );
+        return *((int *) p1 + 1) - *((int *) p0 + 1);
 }
 
-extern void CanonicalMoveOrder( int an[] ) {
+extern void
+CanonicalMoveOrder(int an[])
+{
 
     int i;
 
-    for( i = 0; i < 4 && an[ 2 * i ] > -1; i++ )
-	;
-    
-    qsort( an, i, sizeof( int ) << 1, CompareMovesSimple );
+    for (i = 0; i < 4 && an[2 * i] > -1; i++);
+
+    qsort(an, i, sizeof(int) << 1, CompareMovesSimple);
 }
 
-extern char *FormatMove( char *sz, const TanBoard anBoard, int anMove[ 8 ] ) {
+extern char *
+FormatMove(char *sz, const TanBoard anBoard, int anMove[8])
+{
 
     char *pch = sz;
-    int aanMove[ 4 ][ 4 ], *pnSource[ 4 ], *pnDest[ 4 ], i, j;
+    int aanMove[4][4], *pnSource[4], *pnDest[4], i, j;
     int fl = 0;
     int anCount[4], nMoves, nDuplicate, k;
-  
+
     /* Re-order moves into 2-dimensional array. */
-    for( i = 0; i < 4 && anMove[ i << 1 ] >= 0; i++ ) {
-        aanMove[ i ][ 0 ] = anMove[ i << 1 ] + 1;
-        aanMove[ i ][ 1 ] = anMove[ ( i << 1 ) | 1 ] + 1;
-        pnSource[ i ] = aanMove[ i ];
-        pnDest[ i ] = aanMove[ i ] + 1;
+    for (i = 0; i < 4 && anMove[i << 1] >= 0; i++) {
+        aanMove[i][0] = anMove[i << 1] + 1;
+        aanMove[i][1] = anMove[(i << 1) | 1] + 1;
+        pnSource[i] = aanMove[i];
+        pnDest[i] = aanMove[i] + 1;
     }
 
-    while( i < 4 ) {
-        aanMove[ i ][ 0 ] = aanMove[ i ][ 1 ] = -1;
-        pnSource[ i++ ] = NULL;
+    while (i < 4) {
+        aanMove[i][0] = aanMove[i][1] = -1;
+        pnSource[i++] = NULL;
     }
-    
+
     /* Order the moves in decreasing order of source point. */
-    qsort( aanMove, 4, 4 * sizeof( int ), CompareMovesSimple );
+    qsort(aanMove, 4, 4 * sizeof(int), CompareMovesSimple);
 
     /* Combine moves of a single chequer. */
-    for( i = 0; i < 4; i++ )
-        for( j = i; j < 4; j++ )
-            if( pnSource[ i ] && pnSource[ j ] &&
-                *pnDest[ i ] == *pnSource[ j ] ) {
-                if( anBoard[ 0 ][ 24 - *pnDest[ i ] ] )
+    for (i = 0; i < 4; i++)
+        for (j = i; j < 4; j++)
+            if (pnSource[i] && pnSource[j] && *pnDest[i] == *pnSource[j]) {
+                if (anBoard[0][24 - *pnDest[i]])
                     /* Hitting blot; record intermediate point. */
-                    *++pnDest[ i ] = *pnDest[ j ];
+                    *++pnDest[i] = *pnDest[j];
                 else
                     /* Non-hit; elide intermediate point. */
-                    *pnDest[ i ] = *pnDest[ j ];
+                    *pnDest[i] = *pnDest[j];
 
-                pnSource[ j ] = NULL;           
+                pnSource[j] = NULL;
             }
 
     /* Compact array. */
     i = 0;
 
-    for( j = 0; j < 4; j++ )
-        if( pnSource[ j ] ) {
-            if( j > i ) {
-                pnSource[ i ] = pnSource[ j ];
-                pnDest[ i ] = pnDest[ j ];
+    for (j = 0; j < 4; j++)
+        if (pnSource[j]) {
+            if (j > i) {
+                pnSource[i] = pnSource[j];
+                pnDest[i] = pnDest[j];
             }
 
-	    i++;
+            i++;
         }
 
-    while( i < 4 )
-        pnSource[ i++ ] = NULL;
+    while (i < 4)
+        pnSource[i++] = NULL;
 
-    for ( i = 0; i < 4; i++)
+    for (i = 0; i < 4; i++)
         anCount[i] = pnSource[i] ? 1 : 0;
 
-    for ( i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++) {
         if (pnSource[i]) {
             nMoves = pnDest[i] - pnSource[i];
             for (j = i + 1; j < 4; j++) {
                 if (pnSource[j]) {
                     nDuplicate = 1;
-		    
+
                     if (pnDest[j] - pnSource[j] != nMoves)
                         nDuplicate = 0;
                     else
-                        for (k = 0; k <= nMoves && nDuplicate; k++)
-			    {
-				if (pnSource[i][k] != pnSource[j][k])
-				    nDuplicate = 0;
-			    }
+                        for (k = 0; k <= nMoves && nDuplicate; k++) {
+                            if (pnSource[i][k] != pnSource[j][k])
+                                nDuplicate = 0;
+                        }
                     if (nDuplicate) {
                         anCount[i]++;
                         pnSource[j] = NULL;
@@ -677,42 +665,41 @@ extern char *FormatMove( char *sz, const TanBoard anBoard, int anMove[ 8 ] ) {
     /* Compact array. */
     i = 0;
 
-    for( j = 0; j < 4; j++ )
-        if( pnSource[ j ] ) {
-            if( j > i ) {
-                pnSource[ i ] = pnSource[ j ];
-                pnDest[ i ] = pnDest[ j ];
-		anCount[ i ] = anCount[ j ];
+    for (j = 0; j < 4; j++)
+        if (pnSource[j]) {
+            if (j > i) {
+                pnSource[i] = pnSource[j];
+                pnDest[i] = pnDest[j];
+                anCount[i] = anCount[j];
             }
 
-	    i++;
+            i++;
         }
 
-    if( i < 4 )
-        pnSource[ i ] = NULL;
+    if (i < 4)
+        pnSource[i] = NULL;
 
-    for( i = 0; i < 4 && pnSource[ i ]; i++ ) {
-        if( i )
+    for (i = 0; i < 4 && pnSource[i]; i++) {
+        if (i)
             *pch++ = ' ';
-        
-        pch = FormatPoint( pch, *pnSource[ i ] );
 
-        for( j = 1; pnSource[ i ] + j < pnDest[ i ]; j++ ) {
+        pch = FormatPoint(pch, *pnSource[i]);
+
+        for (j = 1; pnSource[i] + j < pnDest[i]; j++) {
             *pch = '/';
-            pch = FormatPoint( pch + 1, pnSource[ i ][ j ] );
+            pch = FormatPoint(pch + 1, pnSource[i][j]);
             *pch++ = '*';
-            fl |= 1 << pnSource[ i ][ j ];
+            fl |= 1 << pnSource[i][j];
         }
 
         *pch = '/';
-        pch = FormatPoint( pch + 1, *pnDest[ i ] );
-        
-        if( *pnDest[ i ] && anBoard[ 0 ][ 24 - *pnDest[ i ] ] &&
-            !( fl & ( 1 << *pnDest[ i ] ) ) ) {
+        pch = FormatPoint(pch + 1, *pnDest[i]);
+
+        if (*pnDest[i] && anBoard[0][24 - *pnDest[i]] && !(fl & (1 << *pnDest[i]))) {
             *pch++ = '*';
-            fl |= 1 << *pnDest[ i ];
+            fl |= 1 << *pnDest[i];
         }
-	
+
         if (anCount[i] > 1) {
             *pch++ = '(';
             *pch++ = '0' + anCount[i];
@@ -721,28 +708,29 @@ extern char *FormatMove( char *sz, const TanBoard anBoard, int anMove[ 8 ] ) {
     }
 
     *pch = 0;
-    
+
     return sz;
 }
 
-extern int ParseMove( char *pch, int an[ 8 ] ) {
+extern int
+ParseMove(char *pch, int an[8])
+{
 
-    int i, j, iBegin, iEnd, n, c = 0, anUser[ 8 ];
+    int i, j, iBegin, iEnd, n, c = 0, anUser[8];
     unsigned fl = 0;
-    
-    while( *pch ) {
-        if( isspace( *pch ) ) {
+
+    while (*pch) {
+        if (isspace(*pch)) {
             pch++;
             continue;
-        } else if( isdigit( *pch ) ) {
-            if( c == 8 ) {
+        } else if (isdigit(*pch)) {
+            if (c == 8) {
                 /* Too many points. */
                 errno = EINVAL;
                 return -1;
             }
-            
-            if( ( anUser[ c ] = strtol( pch, &pch, 10 ) ) < 0 ||
-                anUser[ c ] > 25 ) {
+
+            if ((anUser[c] = strtol(pch, &pch, 10)) < 0 || anUser[c] > 25) {
                 /* Invalid point number. */
                 errno = EINVAL;
                 return -1;
@@ -750,163 +738,163 @@ extern int ParseMove( char *pch, int an[ 8 ] ) {
 
             c++;
             continue;
-        } else switch( *pch ) {
-        case 'o':
-        case 'O':
-        case '-':
-            if( c == 8 ) {
-                /* Too many points. */
-                errno = EINVAL;
-                return -1;
-            }
-            
-            anUser[ c++ ] = 0;
+        } else
+            switch (*pch) {
+            case 'o':
+            case 'O':
+            case '-':
+                if (c == 8) {
+                    /* Too many points. */
+                    errno = EINVAL;
+                    return -1;
+                }
 
-            if( *pch != '-' && ( pch[ 1 ] == 'f' || pch[ 1 ] == 'F' ) ) {
-                pch++;
-                if( pch[ 1 ] == 'f' || pch[ 1 ] == 'F' )
+                anUser[c++] = 0;
+
+                if (*pch != '-' && (pch[1] == 'f' || pch[1] == 'F')) {
                     pch++;
-            }
-            break;
-            
-        case 'b':
-        case 'B':
-            if( c == 8 ) {
-                /* Too many points. */
-                errno = EINVAL;
-                return -1;
-            }
-            
-            anUser[ c++ ] = 25;
+                    if (pch[1] == 'f' || pch[1] == 'F')
+                        pch++;
+                }
+                break;
 
-            if( pch[ 1 ] == 'a' || pch[ 1 ] == 'A' ) {
-                pch++;
-                if( pch[ 1 ] == 'r' || pch[ 1 ] == 'R' )
+            case 'b':
+            case 'B':
+                if (c == 8) {
+                    /* Too many points. */
+                    errno = EINVAL;
+                    return -1;
+                }
+
+                anUser[c++] = 25;
+
+                if (pch[1] == 'a' || pch[1] == 'A') {
                     pch++;
-            }
-            break;
-            
-        case '/':
-            if( !c || fl & ( 1 << c ) ) {
-                /* Leading '/', or duplicate '/'s. */
+                    if (pch[1] == 'r' || pch[1] == 'R')
+                        pch++;
+                }
+                break;
+
+            case '/':
+                if (!c || fl & (1 << c)) {
+                    /* Leading '/', or duplicate '/'s. */
+                    errno = EINVAL;
+                    return -1;
+                }
+
+                fl |= 1 << c;
+                break;
+
+            case '*':
+            case ',':
+            case ')':
+                /* Currently ignored. */
+                break;
+
+            case '(':
+                if ((n = strtol(pch + 1, &pch, 10) - 1) < 1) {
+                    /* invalid count */
+                    errno = EINVAL;
+                    return -1;
+                }
+
+                if (c < 2) {
+                    /* incomplete move before ( -- syntax error */
+                    errno = EINVAL;
+                    return -1;
+                }
+
+                if (fl & (1 << c)) {
+                    /* / immediately before ( -- syntax error */
+                    errno = EINVAL;
+                    return -1;
+                }
+
+                for (iBegin = c - 1; iBegin >= 0; iBegin--)
+                    if (!(fl & (1 << iBegin)))
+                        break;
+
+                if (iBegin < 0) {
+                    /* no / anywhere before ( -- syntax error */
+                    errno = EINVAL;
+                    return -1;
+                }
+
+                iEnd = c;
+
+                if (c + (iEnd - iBegin) * n > 8) {
+                    /* Too many moves. */
+                    errno = EINVAL;
+                    return -1;
+                }
+
+                for (i = 0; i < n; i++)
+                    for (j = iBegin; j < iEnd; j++) {
+                        if (fl & (1 << j))
+                            fl |= 1 << c;
+                        anUser[c++] = anUser[j];
+                    }
+
+                break;
+
+            default:
                 errno = EINVAL;
                 return -1;
             }
-
-            fl |= 1 << c;
-            break;
-
-        case '*':
-	case ',':
-	case ')':
-            /* Currently ignored. */
-            break;
-
-        case '(':
-	    if( ( n = strtol( pch + 1, &pch, 10 ) - 1 ) < 1 ) {
-		/* invalid count */
-		errno = EINVAL;
-		return -1;
-	    }
-	    
-	    if( c < 2 ) {
-		/* incomplete move before ( -- syntax error */
-		errno = EINVAL;
-		return -1;
-	    }
-	    
-	    if( fl & ( 1 << c ) ) {
-		/* / immediately before ( -- syntax error */
-		errno = EINVAL;
-		return -1;
-	    }
-
-	    for( iBegin = c - 1; iBegin >= 0; iBegin-- )
-		if( !( fl & ( 1 << iBegin ) ) )
-		    break;
-	    
-	    if( iBegin < 0 ) {
-		/* no / anywhere before ( -- syntax error */
-		errno = EINVAL;
-		return -1;
-	    }
-
-	    iEnd = c;
-
-	    if( c + ( iEnd - iBegin ) * n > 8 ) {
-		/* Too many moves. */
-		errno = EINVAL;
-		return -1;
-	    }
-	    
-	    for( i = 0; i < n; i++ )
-		for( j = iBegin; j < iEnd; j++ ) {
-		    if( fl & ( 1 << j ) )
-			fl |= 1 << c;
-		    anUser[ c++ ] = anUser[ j ];
-		}
-
-	    break;
-	    
-        default:
-            errno = EINVAL;
-            return -1;
-        }    
         pch++;
     }
 
-    if( fl & ( 1 << c ) ) {
+    if (fl & (1 << c)) {
         /* Trailing '/'. */
         errno = EINVAL;
         return -1;
     }
-    
-    for( i = 0, j = 0; j < c; j++ ) {
-        if( i == 8 ) {
+
+    for (i = 0, j = 0; j < c; j++) {
+        if (i == 8) {
             /* Too many moves. */
             errno = EINVAL;
             return -1;
         }
 
-        if( ( ( i & 1 ) && anUser[ j ] == 25 ) ||
-            ( !( i & 1 ) && !anUser[ j ] ) ) {
+        if (((i & 1) && anUser[j] == 25) || (!(i & 1) && !anUser[j])) {
             /* Trying to move from off the board, or to the bar. */
             errno = EINVAL;
             return -1;
         }
-        
-        an[ i ] = anUser[ j ];
 
-        if( ( i & 1 ) && ( fl & ( 1 << ( j + 1 ) ) ) ) {
+        an[i] = anUser[j];
+
+        if ((i & 1) && (fl & (1 << (j + 1)))) {
             /* Combined move; this destination is also the next source. */
-            if( i == 7 ) {
+            if (i == 7) {
                 /* Too many moves. */
                 errno = EINVAL;
                 return -1;
             }
 
-            if( !an[ i ] || an[ i ] == 25 ) {
+            if (!an[i] || an[i] == 25) {
                 errno = EINVAL;
                 return -1;
             }
-            
-            an[ ++i ] = anUser[ j ];
+
+            an[++i] = anUser[j];
         }
-        
+
         i++;
     }
 
-    if( i & 1 ) {
+    if (i & 1) {
         /* Incomplete last move. */
         errno = EINVAL;
         return -1;
     }
 
-    if( i < 8 )
-      an[ i ] = -1;
+    if (i < 8)
+        an[i] = -1;
 
-    CanonicalMoveOrder( an );
-    
+    CanonicalMoveOrder(an);
+
     return i >> 1;
 }
 
@@ -921,97 +909,94 @@ extern int ParseMove( char *pch, int an[ 8 ] ) {
  *
  */
 
-extern char *FIBSBoard( char *pch, TanBoard anBoard, int fRoll,
-			const char *szPlayer, const char *szOpp, int nMatchTo,
-			int nScore, int nOpponent, int nDice0, int nDice1,
-			int nCube, int fCubeOwner, int fDoubled, int fTurn,
-			int fCrawford, int nChequers ) {
+extern char *
+FIBSBoard(char *pch, TanBoard anBoard, int fRoll,
+          const char *szPlayer, const char *szOpp, int nMatchTo,
+          int nScore, int nOpponent, int nDice0, int nDice1,
+          int nCube, int fCubeOwner, int fDoubled, int fTurn, int fCrawford, int nChequers)
+{
     char *sz = pch;
-    int i, anOff[ 2 ];
-    
+    int i, anOff[2];
+
     /* Names and match length/score */
-    strcpy( sz, "board:" );
-    
-    for( sz += 6; *szPlayer; szPlayer++ )
-	*sz++ = ( *szPlayer != ':' ? *szPlayer : '_' );
-    
-    for( *sz++ = ':'; *szOpp; szOpp++ )    
-	*sz++ = ( *szOpp != ':' ? *szOpp : '_' );
-    
-    sprintf( sz, ":%d:%d:%d:", nMatchTo, nScore, nOpponent );
+    strcpy(sz, "board:");
+
+    for (sz += 6; *szPlayer; szPlayer++)
+        *sz++ = (*szPlayer != ':' ? *szPlayer : '_');
+
+    for (*sz++ = ':'; *szOpp; szOpp++)
+        *sz++ = (*szOpp != ':' ? *szOpp : '_');
+
+    sprintf(sz, ":%d:%d:%d:", nMatchTo, nScore, nOpponent);
 
     /* Opponent on bar */
-    sprintf( strchr( sz, 0 ), "%d:", -(int)anBoard[ 0 ][ 24 ] );
+    sprintf(strchr(sz, 0), "%d:", -(int) anBoard[0][24]);
 
     /* Board */
-    for( i = 0; i < 24; i++ )
-	{
-		int point = (int)anBoard[ 0 ][ 23 - i ];
-	sprintf( strchr( sz, 0 ), "%d:", (point > 0) ?
-		 -point : (int)anBoard[ 1 ][ i ] );
-	}
-
-    /* Player on bar */
-    sprintf( strchr( sz, 0 ), "%d:", anBoard[ 1 ][ 24 ] );
-
-    /* Whose turn */
-    strcat( sz, fRoll ? "1:" : "-1:" );
-
-    anOff[ 0 ] = anOff[ 1 ] = nChequers ? nChequers : 15;
-    for( i = 0; i < 25; i++ ) {
-	anOff[ 0 ] -= anBoard[ 0 ][ i ];
-	anOff[ 1 ] -= anBoard[ 1 ][ i ];
+    for (i = 0; i < 24; i++) {
+        int point = (int) anBoard[0][23 - i];
+        sprintf(strchr(sz, 0), "%d:", (point > 0) ? -point : (int) anBoard[1][i]);
     }
 
-    sprintf( strchr( sz, 0 ), "%d:%d:%d:%d:%d:%d:%d:%d:1:-1:0:25:%d:%d:0:0:0:"
-	     "0:%d:0", nDice0, nDice1, nDice0, nDice1, fTurn < 0 ? 1 : nCube,
-	     fTurn < 0 || fCubeOwner != 0, fTurn < 0 || fCubeOwner != 1,
-	     fDoubled ? ( fTurn ? -1 : 1 ) : 0, anOff[ 1 ], anOff[ 0 ],
-	     fCrawford );
+    /* Player on bar */
+    sprintf(strchr(sz, 0), "%d:", anBoard[1][24]);
+
+    /* Whose turn */
+    strcat(sz, fRoll ? "1:" : "-1:");
+
+    anOff[0] = anOff[1] = nChequers ? nChequers : 15;
+    for (i = 0; i < 25; i++) {
+        anOff[0] -= anBoard[0][i];
+        anOff[1] -= anBoard[1][i];
+    }
+
+    sprintf(strchr(sz, 0), "%d:%d:%d:%d:%d:%d:%d:%d:1:-1:0:25:%d:%d:0:0:0:"
+            "0:%d:0", nDice0, nDice1, nDice0, nDice1, fTurn < 0 ? 1 : nCube,
+            fTurn < 0 || fCubeOwner != 0, fTurn < 0 || fCubeOwner != 1,
+            fDoubled ? (fTurn ? -1 : 1) : 0, anOff[1], anOff[0], fCrawford);
 
     return pch;
 }
 
-extern int ParseFIBSBoard( char *pch, TanBoard anBoard,
-			   char *szPlayer, char *szOpp, int *pnMatchTo,
-			   int *pnScore, int *pnScoreOpp,
-			   int anDice[ 2 ], int *pnCube, int *pfCubeOwner,
-			   int *pfDoubled, int *pfCrawford ) {
-    
-    int i, c, n, fCanDouble, fOppCanDouble, anOppDice[ 2 ];
+extern int
+ParseFIBSBoard(char *pch, TanBoard anBoard,
+               char *szPlayer, char *szOpp, int *pnMatchTo,
+               int *pnScore, int *pnScoreOpp,
+               int anDice[2], int *pnCube, int *pfCubeOwner, int *pfDoubled, int *pfCrawford)
+{
+
+    int i, c, n, fCanDouble, fOppCanDouble, anOppDice[2];
     int nTmp, fNonCrawford, fPostCrawford;
     char *szTmp;
     int nTurn, nColor, nDirection;
-    int anFIBSBoard[ 26 ];
+    int anFIBSBoard[26];
 
     /* Names and match length/score */
     c = -1;
-    sscanf( pch, "board:%31[^:]:%31[^:]:%d:%d:%d:%n", szPlayer, szOpp,
-	    pnMatchTo, pnScore, pnScoreOpp, &c );
-    if( c < 0 )
-	return -1;
+    sscanf(pch, "board:%31[^:]:%31[^:]:%d:%d:%d:%n", szPlayer, szOpp, pnMatchTo, pnScore, pnScoreOpp, &c);
+    if (c < 0)
+        return -1;
     pch += c;
 
     /* FIBS has a maximum match length of 99.  Unlimited matches are 
      * encoded with a match length of 9999.
      */
-    if( *pnMatchTo == 9999 )
+    if (*pnMatchTo == 9999)
         *pnMatchTo = 0;
 
-    if( *pnMatchTo
-         && ( *pnMatchTo <= *pnScore || *pnMatchTo <= *pnScoreOpp ))
+    if (*pnMatchTo && (*pnMatchTo <= *pnScore || *pnMatchTo <= *pnScoreOpp))
         return -1;
 
     /* If the match length exceeds MAXSCORE we correct the match length
      * to MAXSCORE and the scores to the closest equivalents.
      */
-    if( *pnMatchTo > MAXSCORE ) {
-        if( *pnMatchTo - *pnScore > MAXSCORE )
+    if (*pnMatchTo > MAXSCORE) {
+        if (*pnMatchTo - *pnScore > MAXSCORE)
             *pnScore = 0;
         else
             *pnScore -= *pnMatchTo - MAXSCORE;
 
-        if( *pnMatchTo - *pnScoreOpp > MAXSCORE )
+        if (*pnMatchTo - *pnScoreOpp > MAXSCORE)
             *pnScoreOpp = 0;
         else
             *pnScoreOpp -= *pnMatchTo - MAXSCORE;
@@ -1020,28 +1005,27 @@ extern int ParseFIBSBoard( char *pch, TanBoard anBoard,
     }
 
     /* Board */
-    for( i = 0; i < 26; ++i ) {
-	c = -1;
-	sscanf( pch, "%d:%n", &n, &c );
-	if( c < 0 )
-	    return -1;
-	pch += c;
-        anFIBSBoard[ i ] = -n;
+    for (i = 0; i < 26; ++i) {
+        c = -1;
+        sscanf(pch, "%d:%n", &n, &c);
+        if (c < 0)
+            return -1;
+        pch += c;
+        anFIBSBoard[i] = -n;
     }
 
     c = -1;
-    sscanf( pch, "%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%*d:%*d:%*d:%*d:%*d:%*d:"
-	    "%*d:%d:%d:%n", &nTurn, anDice, anDice + 1, anOppDice,
-	    anOppDice + 1, pnCube, &fCanDouble, &fOppCanDouble,
-	    pfDoubled, &nColor, &nDirection,
-            &fNonCrawford, &fPostCrawford, &c );
-    if( c < 0 )
-	return -1;
+    sscanf(pch, "%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%*d:%*d:%*d:%*d:%*d:%*d:"
+           "%*d:%d:%d:%n", &nTurn, anDice, anDice + 1, anOppDice,
+           anOppDice + 1, pnCube, &fCanDouble, &fOppCanDouble,
+           pfDoubled, &nColor, &nDirection, &fNonCrawford, &fPostCrawford, &c);
+    if (c < 0)
+        return -1;
 
     /* Consistency check: 0 is a valid value for nColor but signifies
      * end of game which is invalid for our purposes here.
      */
-    if( !nTurn || !nColor || !nDirection )
+    if (!nTurn || !nColor || !nDirection)
         return -1;
 
     /* Check whether the cube was turned.  That is indicated by the
@@ -1051,17 +1035,17 @@ extern int ParseFIBSBoard( char *pch, TanBoard anBoard,
      * still help, when processing data from other sources than
      * fibs.com.
      */
-    if( !*pfDoubled && !fCanDouble && !fOppCanDouble )
+    if (!*pfDoubled && !fCanDouble && !fOppCanDouble)
         *pfDoubled = 1;
 
     int fMustSwap = 0;
-    if ( *pfDoubled )
+    if (*pfDoubled)
         fMustSwap = !fMustSwap;
-    if ( nTurn * nColor < 0 )
+    if (nTurn * nColor < 0)
         fMustSwap = !fMustSwap;
 
     /* Opponent's turn? */
-    if( fMustSwap ) {
+    if (fMustSwap) {
         szTmp = szPlayer;
         szPlayer = szOpp;
         szOpp = szTmp;
@@ -1073,42 +1057,42 @@ extern int ParseFIBSBoard( char *pch, TanBoard anBoard,
         fOppCanDouble = nTmp;
     }
 
-    if ( nTurn * nColor < 0 )
+    if (nTurn * nColor < 0)
         nDirection = -nDirection;
     nColor = nTurn > 0 ? 1 : -1;
 
-    for( i = 0; i < 24; ++i ) {
-        n = nDirection < 0 ? anFIBSBoard[ i + 1 ] : anFIBSBoard[ 25 - i - 1 ];
-        if( nColor * n < 0 ) {
-            anBoard[ 1 ][ i ] = n < 0 ? -n : n;
-            anBoard[ 0 ][ 23 - i ] = 0;
-        } else if( nColor * n > 0 ) {
-            anBoard[ 1 ][ i ] = 0;
-            anBoard[ 0 ][ 23 - i ] = n < 0 ? -n : n;
+    for (i = 0; i < 24; ++i) {
+        n = nDirection < 0 ? anFIBSBoard[i + 1] : anFIBSBoard[25 - i - 1];
+        if (nColor * n < 0) {
+            anBoard[1][i] = n < 0 ? -n : n;
+            anBoard[0][23 - i] = 0;
+        } else if (nColor * n > 0) {
+            anBoard[1][i] = 0;
+            anBoard[0][23 - i] = n < 0 ? -n : n;
         } else {
-            anBoard[ 1 ][ i ] = anBoard[ 0 ][ 23 - i ] = 0;
+            anBoard[1][i] = anBoard[0][23 - i] = 0;
         }
     }
 
-    if ( nDirection < 0 ) {
-        n = anFIBSBoard[ 25 ];
-        anBoard[ 1 ][ 24 ] = n < 0 ? -n : n;
-        n = anFIBSBoard[ 0 ];
-        anBoard[ 0 ][ 24 ] = n < 0 ? -n : n;
+    if (nDirection < 0) {
+        n = anFIBSBoard[25];
+        anBoard[1][24] = n < 0 ? -n : n;
+        n = anFIBSBoard[0];
+        anBoard[0][24] = n < 0 ? -n : n;
     } else {
-        n = anFIBSBoard[ 0 ];
-        anBoard[ 1 ][ 24 ] = n < 0 ? -n : n;
-        n = anFIBSBoard[ 25 ];
-        anBoard[ 0 ][ 24 ] = n < 0 ? -n : n;
+        n = anFIBSBoard[0];
+        anBoard[1][24] = n < 0 ? -n : n;
+        n = anFIBSBoard[25];
+        anBoard[0][24] = n < 0 ? -n : n;
     }
 
     /* See https://savannah.gnu.org/bugs/?36485 for this.  */
-    if ( *pfDoubled )
-        SwapSides( anBoard );
+    if (*pfDoubled)
+        SwapSides(anBoard);
 
-    if( !anDice[ 0 ] && anOppDice[ 0 ]) {
-        anDice[ 0 ] = anOppDice[ 0 ];
-        anDice[ 1 ] = anOppDice[ 1 ];
+    if (!anDice[0] && anOppDice[0]) {
+        anDice[0] = anOppDice[0];
+        anDice[1] = anOppDice[1];
     }
 
     /*
@@ -1133,11 +1117,11 @@ extern int ParseFIBSBoard( char *pch, TanBoard anBoard,
      * with the Crawford rule and we assume usage of the Crawford rule
      * as a default, the bias is negligible.
      */
-    if ( !*pnMatchTo ) {
+    if (!*pnMatchTo) {
         *pfCrawford = 0;
     } else {
-        if ( *pnMatchTo - *pnScore == 1 || *pnMatchTo - *pnScoreOpp == 1 ) {
-            if ( fNonCrawford || fPostCrawford) {
+        if (*pnMatchTo - *pnScore == 1 || *pnMatchTo - *pnScoreOpp == 1) {
+            if (fNonCrawford || fPostCrawford) {
                 *pfCrawford = 0;
             } else {
                 *pfCrawford = 1;

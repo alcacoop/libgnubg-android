@@ -16,245 +16,265 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: backgammon.h,v 1.429 2011/12/06 23:16:48 plm Exp $
+ * $Id: backgammon.h,v 1.438 2013/06/29 23:34:15 mdpetch Exp $
  */
 
-#ifndef _BACKGAMMON_H_
-#define _BACKGAMMON_H_
+#ifndef BACKGAMMON_H
+#define BACKGAMMON_H
 
+#include "output.h"
 #include "analysis.h"
 #include "eval.h"
 #include "rollout.h"
 
+#define STRINGIZEAUX(num) #num
+#define STRINGIZE(num) STRINGIZEAUX(num)
+
 #define MAX_CUBE ( 1 << 12 )
 #define MAX_NAME_LEN 32
 #ifndef BUILD_DATE
-#define BUILD_DATE " " __DATE__
+#define BUILD_DATE_STR " " __DATE__
+#else
+#define BUILD_DATE_STR STRINGIZE(BUILD_DATE)
 #endif
-#define VERSION_STRING "GNU Backgammon " VERSION " " BUILD_DATE
+
+#define VERSION_STRING "GNU Backgammon " VERSION " " BUILD_DATE_STR
 #define GNUBG_CHARSET "UTF-8"
 
 extern const char *intro_string;
 typedef struct _command {
-	/* Command name (NULL indicates end of list) */
-	const char *sz;
-	/* Command handler; NULL to use default subcommand handler */
-	void (*pf) (char *);
-	/* Documentation; NULL for abbreviations */
-	const char *szHelp;
-	const char *szUsage;
-	/* List of subcommands (NULL if none) */
-	struct _command *pc;
+    /* Command name (NULL indicates end of list) */
+    const char *sz;
+    /* Command handler; NULL to use default subcommand handler */
+    void (*pf) (char *);
+    /* Documentation; NULL for abbreviations */
+    const char *szHelp;
+    const char *szUsage;
+    /* List of subcommands (NULL if none) */
+    struct _command *pc;
 } command;
 
+typedef struct _procrecorddata {
+    /* Record handler */
+    int (*pfProcessRecord) (struct _procrecorddata *);
+    void *pvUserData;
+    void *avInputData[8];
+    void *avOutputData[8];
+} procrecorddata;
+
+#define PROCREC_HINT_ARGIN_SHOWPROGRESS 0
+#define PROCREC_HINT_ARGIN_MAXMOVES 1
+#define PROCREC_HINT_ARGOUT_MATCHSTATE 0
+#define PROCREC_HINT_ARGOUT_CUBEINFO 1
+#define PROCREC_HINT_ARGOUT_MOVELIST 2
+#define PROCREC_HINT_ARGOUT_MOVERECORD 3
+#define PROCREC_HINT_ARGOUT_INDEX 4
+
+
 typedef enum _playertype {
-	PLAYER_HUMAN, PLAYER_GNU, PLAYER_EXTERNAL
+    PLAYER_HUMAN, PLAYER_GNU, PLAYER_EXTERNAL
 } playertype;
 
 typedef struct _player {
-	/* For all player types: */
-	char szName[MAX_NAME_LEN];
-	playertype pt;
-	/* For PLAYER_GNU: */
-	evalsetup esChequer;
-	evalsetup esCube;
-	movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES];
-	int h;
-	/* For PLAYER_EXTERNAL: */
-	char *szSocket;
+    /* For all player types: */
+    char szName[MAX_NAME_LEN];
+    playertype pt;
+    /* For PLAYER_GNU: */
+    evalsetup esChequer;
+    evalsetup esCube;
+    movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES];
+    int h;
+    /* For PLAYER_EXTERNAL: */
+    char *szSocket;
 } player;
 
 typedef enum _movetype {
-	MOVE_GAMEINFO,
-	MOVE_NORMAL,
-	MOVE_DOUBLE,
-	MOVE_TAKE,
-	MOVE_DROP,
-	MOVE_RESIGN,
-	MOVE_SETBOARD,
-	MOVE_SETDICE,
-	MOVE_SETCUBEVAL,
-	MOVE_SETCUBEPOS
+    MOVE_GAMEINFO,
+    MOVE_NORMAL,
+    MOVE_DOUBLE,
+    MOVE_TAKE,
+    MOVE_DROP,
+    MOVE_RESIGN,
+    MOVE_SETBOARD,
+    MOVE_SETDICE,
+    MOVE_SETCUBEVAL,
+    MOVE_SETCUBEPOS
 } movetype;
 
 typedef struct _movegameinfo {
 
-	/* ordinal number of the game within a match */
-	int i;
-	/* match length */
-	int nMatch;
-	/* match score BEFORE the game */
-	int anScore[2];
-	/* the Crawford rule applies during this match */
-	int fCrawford;
-	/* this is the Crawford game */
-	int fCrawfordGame;
-	int fJacoby;
-	/* who won (-1 = unfinished) */
-	int fWinner;
-	/* how many points were scored by the winner */
-	int nPoints;
-	/* the game was ended by resignation */
-	int fResigned;
-	/* how many automatic doubles were rolled */
-	int nAutoDoubles;
-	/* Type of game */
-	bgvariation bgv;
-	/* Cube used in game */
-	int fCubeUse;
-	statcontext sc;
+    /* ordinal number of the game within a match */
+    int i;
+    /* match length */
+    int nMatch;
+    /* match score BEFORE the game */
+    int anScore[2];
+    /* the Crawford rule applies during this match */
+    int fCrawford;
+    /* this is the Crawford game */
+    int fCrawfordGame;
+    int fJacoby;
+    /* who won (-1 = unfinished) */
+    int fWinner;
+    /* how many points were scored by the winner */
+    int nPoints;
+    /* the game was ended by resignation */
+    int fResigned;
+    /* how many automatic doubles were rolled */
+    int nAutoDoubles;
+    /* Type of game */
+    bgvariation bgv;
+    /* Cube used in game */
+    int fCubeUse;
+    statcontext sc;
 } xmovegameinfo;
 
 typedef struct _cubedecisiondata {
-	float aarOutput[2][NUM_ROLLOUT_OUTPUTS];
-	float aarStdDev[2][NUM_ROLLOUT_OUTPUTS];
-	evalsetup esDouble;
-	CMark cmark;
+    float aarOutput[2][NUM_ROLLOUT_OUTPUTS];
+    float aarStdDev[2][NUM_ROLLOUT_OUTPUTS];
+    evalsetup esDouble;
+    CMark cmark;
 } cubedecisiondata;
 
 typedef struct _movenormal {
-	/* Move made. */
-	int anMove[8];
-	/* index into the movelist of the move that was made */
-	unsigned int iMove;
-	skilltype stMove;
+    /* Move made. */
+    int anMove[8];
+    /* index into the movelist of the move that was made */
+    unsigned int iMove;
+    skilltype stMove;
 } xmovenormal;
 
 typedef struct _moveresign {
-	int nResigned;
-	evalsetup esResign;
-	float arResign[NUM_ROLLOUT_OUTPUTS];
-	skilltype stResign;
-	skilltype stAccept;
+    int nResigned;
+    evalsetup esResign;
+    float arResign[NUM_ROLLOUT_OUTPUTS];
+    skilltype stResign;
+    skilltype stAccept;
 } xmoveresign;
 
 typedef struct _movesetboard {
-	positionkey key;	/* always stored as if player 0 was on roll */
+    positionkey key;            /* always stored as if player 0 was on roll */
 } xmovesetboard;
 
 typedef struct _movesetcubeval {
-	int nCube;
+    int nCube;
 } xmovesetcubeval;
 
 typedef struct _movesetcubepos {
-	int fCubeOwner;
+    int fCubeOwner;
 } xmovesetcubepos;
 
 typedef struct _moverecord {
-	/* 
-	 * Common variables
-	 */
-	/* type of the move */
-	movetype mt;
-	/* annotation */
-	char *sz;
-	/* move record is for player */
-	int fPlayer;
-	/* luck analysis (shared between MOVE_SETDICE and MOVE_NORMAL) */
-	/* dice rolled */
-	unsigned int anDice[2];
-	/* classification of luck */
-	lucktype lt;
-	/* magnitude of luck */
-	float rLuck;		/* ERR_VAL means unknown */
-	/* move analysis (shared between MOVE_SETDICE and MOVE_NORMAL) */
-	/* evaluation setup for move analysis */
-	evalsetup esChequer;
-	/* evaluation of the moves */
-	movelist ml;
-	/* cube analysis (shared between MOVE_NORMAL and MOVE_DOUBLE) */
-	/* 0 in match play, even numbers are doubles, raccoons 
-	   odd numbers are beavers, aardvarken, etc. */
-	int nAnimals;
-	/* the evaluation and settings */
-	cubedecisiondata *CubeDecPtr;
-	cubedecisiondata CubeDec;
-	/* skill for the cube decision */
-	skilltype stCube;
-	/* "private" data */
-	xmovegameinfo g;	/* game information */
-	xmovenormal n;		/* chequerplay move */
-	xmoveresign r;		/* resignation */
-	xmovesetboard sb;	/* setting up board */
-	xmovesetcubeval scv;	/* setting cube */
-	xmovesetcubepos scp;	/* setting cube owner */
+    /* 
+     * Common variables
+     */
+    /* type of the move */
+    movetype mt;
+    /* annotation */
+    char *sz;
+    /* move record is for player */
+    int fPlayer;
+    /* luck analysis (shared between MOVE_SETDICE and MOVE_NORMAL) */
+    /* dice rolled */
+    unsigned int anDice[2];
+    /* classification of luck */
+    lucktype lt;
+    /* magnitude of luck */
+    float rLuck;                /* ERR_VAL means unknown */
+    /* move analysis (shared between MOVE_SETDICE and MOVE_NORMAL) */
+    /* evaluation setup for move analysis */
+    evalsetup esChequer;
+    /* evaluation of the moves */
+    movelist ml;
+    /* cube analysis (shared between MOVE_NORMAL and MOVE_DOUBLE) */
+    /* 0 in match play, even numbers are doubles, raccoons 
+     * odd numbers are beavers, aardvarken, etc. */
+    int nAnimals;
+    /* the evaluation and settings */
+    cubedecisiondata *CubeDecPtr;
+    cubedecisiondata CubeDec;
+    /* skill for the cube decision */
+    skilltype stCube;
+    /* "private" data */
+    xmovegameinfo g;            /* game information */
+    xmovenormal n;              /* chequerplay move */
+    xmoveresign r;              /* resignation */
+    xmovesetboard sb;           /* setting up board */
+    xmovesetcubeval scv;        /* setting cube */
+    xmovesetcubepos scp;        /* setting cube owner */
 } moverecord;
 
 
-typedef struct _matchinfo {	/* SGF match information */
-	char *pchRating[2];
-	char *pchEvent;
-	char *pchRound;
-	char *pchPlace;
-	char *pchAnnotator;
-	char *pchComment;	/* malloc()ed, or NULL if unknown */
- unsigned int nYear;
- unsigned int nMonth;
- unsigned int nDay;		/* 0 for nYear means date unknown */
+typedef struct _matchinfo {     /* SGF match information */
+    char *pchRating[2];
+    char *pchEvent;
+    char *pchRound;
+    char *pchPlace;
+    char *pchAnnotator;
+    char *pchComment;           /* malloc()ed, or NULL if unknown */
+    unsigned int nYear;
+    unsigned int nMonth;
+    unsigned int nDay;          /* 0 for nYear means date unknown */
 } matchinfo;
 
-typedef struct _decisionData
-{
-    float aarOutput[ 2 ][ NUM_ROLLOUT_OUTPUTS ];
-	float aarStdDev[ 2 ][ NUM_ROLLOUT_OUTPUTS ];
-	rolloutstat aarsStatistics[ 2 ][ 2 ];
-	float aarRates[ 2 ][ 2 ];
-    cubeinfo* pci;
-	const evalcontext *pec;
-	evalsetup   *pes;
-	ConstTanBoard pboard;
-	char *szOutput;
-	int n;
+typedef struct _decisionData {
+    float aarOutput[2][NUM_ROLLOUT_OUTPUTS];
+    float aarStdDev[2][NUM_ROLLOUT_OUTPUTS];
+    rolloutstat aarsStatistics[2][2];
+    float aarRates[2][2];
+    cubeinfo *pci;
+    const evalcontext *pec;
+    evalsetup *pes;
+    ConstTanBoard pboard;
+    char *szOutput;
+    int n;
 } decisionData;
 
-typedef struct _moveData
-{
-	moverecord *pmr;
-	matchstate *pms;
-	const evalsetup *pesChequer;
-	evalsetup *pesCube;
-	movefilter (*aamf)[ MAX_FILTER_PLIES ];
+typedef struct _moveData {
+    moverecord *pmr;
+    matchstate *pms;
+    const evalsetup *pesChequer;
+    evalsetup *pesCube;
+     movefilter(*aamf)[MAX_FILTER_PLIES];
 } moveData;
 
-typedef struct _findData
-{
-	movelist *pml;
-	ConstTanBoard pboard;
-	positionkey *keyMove;
-	float rThr;
-	const cubeinfo* pci;
-	const evalcontext* pec;
-	movefilter (*aamf)[ MAX_FILTER_PLIES ];
+typedef struct _findData {
+    movelist *pml;
+    ConstTanBoard pboard;
+    positionkey *keyMove;
+    float rThr;
+    const cubeinfo *pci;
+    const evalcontext *pec;
+     movefilter(*aamf)[MAX_FILTER_PLIES];
 } findData;
 
-typedef struct _scoreData
-{
-	move *pm;
-	const cubeinfo *pci;
-	const evalcontext *pec;
+typedef struct _scoreData {
+    move *pm;
+    const cubeinfo *pci;
+    const evalcontext *pec;
 } scoreData;
 
-typedef void (*AsyncFun)(void *);
+typedef void (*AsyncFun) (void *);
 
-void asyncDumpDecision(decisionData *pdd);
-void asyncFindMove(findData *pfd);
-void asyncScoreMove(scoreData *psd);
-void asyncEvalRoll(decisionData *pcdd);
-void asyncAnalyzeMove(moveData *pmd);
-void asyncGammonRates(decisionData *pcdd);
-void asyncMoveDecisionE(decisionData *pcdd);
-void asyncCubeDecisionE(decisionData *pcdd);
-void asyncCubeDecision(decisionData *pcdd);
+void asyncDumpDecision(decisionData * pdd);
+void asyncFindMove(findData * pfd);
+void asyncScoreMove(scoreData * psd);
+void asyncEvalRoll(decisionData * pcdd);
+void asyncAnalyzeMove(moveData * pmd);
+void asyncGammonRates(decisionData * pcdd);
+void asyncMoveDecisionE(decisionData * pcdd);
+void asyncCubeDecisionE(decisionData * pcdd);
+void asyncCubeDecision(decisionData * pcdd);
 int RunAsyncProcess(AsyncFun fun, void *data, const char *msg);
 
 /* There is a global storedmoves struct to maintain the list of moves
-   for "=n" notation (e.g. "hint", "rollout =1 =2 =4").
-   Anything that _writes_ stored moves ("hint", "show moves", "add move")
-   should free the old dynamic move list first (sm.ml.amMoves), if it is
-   non-NULL.
-   Anything that _reads_ stored moves should check that the move is still
-   valid (i.e. auchKey matches the current board and anDice matches the
-   current dice). */
+ * for "=n" notation (e.g. "hint", "rollout =1 =2 =4").
+ * Anything that _writes_ stored moves ("hint", "show moves", "add move")
+ * should free the old dynamic move list first (sm.ml.amMoves), if it is
+ * non-NULL.
+ * Anything that _reads_ stored moves should check that the move is still
+ * valid (i.e. auchKey matches the current board and anDice matches the
+ * current dice). */
 
 /*
  * Store cube analysis
@@ -262,21 +282,21 @@ int RunAsyncProcess(AsyncFun fun, void *data, const char *msg);
  */
 
 /*  List of moverecords representing the current game. One of the elements in
-    lMatch.
-    Typically the last game in the match).
-*/
+ * lMatch.
+ * Typically the last game in the match).
+ */
 extern listOLD *plGame;
 
 /* Current move inside plGame (typically the most recently
-   one played, but "previous" and "next" commands navigate back and forth).
-*/
+ * one played, but "previous" and "next" commands navigate back and forth).
+ */
 extern listOLD *plLastMove;
 
 /* The current match.
-  A list of games. Each game is a list of moverecords.
-  Note that the first list element is empty. The first game is in
-  lMatch.plNext->p. Same is true for games.
-*/
+ * A list of games. Each game is a list of moverecords.
+ * Note that the first list element is empty. The first game is in
+ * lMatch.plNext->p. Same is true for games.
+ */
 extern listOLD lMatch;
 
 extern char *aszCopying[];
@@ -391,6 +411,11 @@ extern command acTop[];
 extern command cFilename;
 extern command cOnOff;
 
+extern int fInteractive;
+extern int cOutputDisabled;
+extern int cOutputPostponed;
+extern int foutput_on;
+
 #ifdef _LIBINTL_H
 #warning "libintl.h already included expect warnings under mingw"
 #endif
@@ -434,8 +459,7 @@ extern char *strcpyn(char *szDest, const char *szSrc, int cch);
 extern char *GetMatchCheckSum(void);
 extern char *CheckCommand(char *sz, command * ac);
 extern char *FormatMoveHint(char *sz, const matchstate * pms, movelist * pml,
-			    int i, int fRankKnown, int fDetailProb,
-			    int fShowParameters);
+                            int i, int fRankKnown, int fDetailProb, int fShowParameters);
 extern char *FormatPrompt(void);
 extern const char *GetBuildInfoString(void);
 extern char *GetInput(char *szPrompt);
@@ -447,20 +471,19 @@ extern char *locale_to_utf8(const char *sz);
 extern char *NextToken(char **ppch);
 extern char *NextTokenGeneral(char **ppch, const char *szTokens);
 extern char *SetupLanguage(const char *newLangCode);
-extern command *FindHelpCommand(command * pcBase, char *sz,
-				char *pchCommand, char *pchUsage);
+extern command *FindHelpCommand(command * pcBase, char *sz, char *pchCommand, char *pchUsage);
 extern double ParseReal(char **ppch);
 extern int AnalyzeMove(moverecord * pmr, matchstate * pms,
-		       const listOLD * plGame, statcontext * psc,
-		       const evalsetup * pesChequer, evalsetup * pesCube,
-		       movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES],
-		       const int afAnalysePlayers[2], float *doubleError);
-extern void EvaluateRoll ( float ar[ NUM_ROLLOUT_OUTPUTS ], int nDie1, int nDie2, const TanBoard anBoard, 
-                    const cubeinfo *pci, const evalcontext *pec);
+                       const listOLD * plGame, statcontext * psc,
+                       const evalsetup * pesChequer, evalsetup * pesCube,
+                       movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES],
+                       const int afAnalysePlayers[2], float *doubleError);
+extern void EvaluateRoll(float ar[NUM_ROLLOUT_OUTPUTS], int nDie1, int nDie2, const TanBoard anBoard,
+                         const cubeinfo * pci, const evalcontext * pec);
 extern int CompareNames(char *sz0, char *sz1);
 extern int confirmOverwrite(const char *sz, const int f);
 extern int EPC(const TanBoard anBoard, float *arEPC, float *arMu,
-	       float *arSigma, int *pfSource, const int fOnlyBearoff);
+               float *arSigma, int *pfSource, const int fOnlyBearoff);
 extern int EvalCmp(const evalcontext *, const evalcontext *, const int);
 extern int getFinalScore(int *anScore);
 extern int GetInputYN(char *szPrompt);
@@ -469,33 +492,30 @@ extern int InternalCommandNext(int mark, int cmark, int n);
 extern int NextTurn(int fPlayNext);
 extern int ParseKeyValue(char **ppch, char *apch[2]);
 extern int ParseNumber(char **ppch);
+extern gboolean ParseULong(char **ppch, unsigned long *pretVal);
 extern int ParsePlayer(char *sz);
 extern int ParsePosition(TanBoard an, char **ppch, char *pchDesc);
-extern int SetToggle(const char *szName, int *pf, char *sz, const char *szOn,
-		     const char *szOff);
+extern int SetToggle(const char *szName, int *pf, char *sz, const char *szOn, const char *szOff);
 extern moverecord *get_current_moverecord(int *pfHistory);
 extern moverecord *LinkToDouble(moverecord * pmr);
 extern moverecord *NewMoveRecord(void);
 extern void HandleInterrupt(int idSignal);
 extern void AddGame(moverecord * pmr);
 extern void AddMoveRecord(void *pmr);
-extern void ApplyMoveRecord(matchstate * pms, const listOLD * plGame,
-			    const moverecord * pmr);
+extern void ApplyMoveRecord(matchstate * pms, const listOLD * plGame, const moverecord * pmr);
 extern void CalculateBoard(void);
 extern void CancelCubeAction(void);
 extern void ChangeGame(listOLD * plGameNew);
-extern void UpdateGame( int fShowBoard );
+extern void UpdateGame(int fShowBoard);
 extern void ClearMatch(void);
 extern void ClearMoveRecord(void);
-extern void DisectPath(const char *path, const char *extension, char **name,
-		       char **folder);
+extern void DisectPath(const char *path, const char *extension, char **name, char **folder);
 extern void FixMatchState(matchstate * pms, const moverecord * pmr);
 extern void FreeMatch(void);
 extern void GetMatchStateCubeInfo(cubeinfo * pci, const matchstate * pms);
 extern void HandleCommand(char *sz, command * ac);
 extern void InitBoard(TanBoard anBoard, const bgvariation bgv);
-extern void PortableSignal(int nSignal, void(*p) (int),
-			   psighandler * pOld, int fRestart);
+extern void PortableSignal(int nSignal, void (*p) (int), psighandler * pOld, int fRestart);
 extern void PortableSignalRestore(int nSignal, psighandler * p);
 extern void PrintCheatRoll(const int fPlayer, const int n);
 extern void ProgressEnd(void);
@@ -591,7 +611,6 @@ extern void CommandExportMatchPDF(char *);
 extern void CommandExportMatchPS(char *);
 extern void CommandExportMatchText(char *);
 extern void CommandExportPositionGammOnLine(char *);
-extern void CommandExportPositionBGbase2Clipboard(char *);
 extern void CommandExportPositionGOL2Clipboard(char *);
 extern void CommandExportPositionHtml(char *);
 extern void CommandExportPositionJF(char *);
@@ -601,7 +620,7 @@ extern void CommandExportPositionPS(char *);
 extern void CommandExportPositionSnowieTxt(char *);
 extern void CommandExportPositionSVG(char *);
 extern void CommandExportPositionText(char *);
-//extern void CommandExternal(char *);
+extern void CommandExternal(char *);
 extern void CommandFirstGame(char *);
 extern void CommandFirstMove(char *);
 extern void CommandHelp(char *);
@@ -722,7 +741,6 @@ extern void CommandSetEvalParamRollout(char *);
 extern void CommandSetEvalParamType(char *);
 extern void CommandSetEvalPlies(char *);
 extern void CommandSetEvalPrune(char *);
-extern void CommandSetEvalReduced(char *);
 extern void CommandSetEvalSameAsAnalysis(char *);
 extern void CommandSetExportCubeDisplayActual(char *);
 extern void CommandSetExportCubeDisplayBad(char *);
@@ -1001,21 +1019,24 @@ extern void CommandShowWarranty(char *);
 extern void CommandSwapPlayers(char *);
 extern void CommandTake(char *);
 extern void CommandSetDefaultNames(char *sz);
-extern void hint_move(char *sz, gboolean show);
+extern void hint_move(char *sz, gboolean show, procrecorddata *procdatarec);
+extern int fShowProgress;
 extern void hint_double(int show, int did_double);
 extern void hint_take(int show, int did_take);
-extern void find_skills(moverecord *pmr, const matchstate *pms, int did_double, int did_take);
+extern void find_skills(moverecord * pmr, const matchstate * pms, int did_double, int did_take);
 extern int getGameNumber(const listOLD * plGame);
 extern int getMoveNumber(const listOLD * plGame, const void *p);
 extern int CheckGameExists(void);
-extern void pmr_cubedata_set(moverecord *pmr, evalsetup *es, float output[2][NUM_ROLLOUT_OUTPUTS], float stddev[2][NUM_ROLLOUT_OUTPUTS]);
-extern void pmr_cubedata_copy(const moverecord *source, moverecord *target);
-extern void pmr_movelist_set(moverecord *pmr, evalsetup *pes, movelist *pml);
-extern void pmr_movelist_copy(const moverecord *source, moverecord *target);
-extern void current_pmr_cubedata_update(evalsetup *pes, float output[][NUM_ROLLOUT_OUTPUTS], float stddev[][NUM_ROLLOUT_OUTPUTS]);
-extern listOLD *game_add_pmr_hint(listOLD *plGame);
-extern void game_remove_pmr_hint(listOLD *pl_hint);
-extern gboolean game_is_last(listOLD *plGame);
+extern void pmr_cubedata_set(moverecord * pmr, evalsetup * es, float output[2][NUM_ROLLOUT_OUTPUTS],
+                             float stddev[2][NUM_ROLLOUT_OUTPUTS]);
+extern void pmr_cubedata_copy(const moverecord * source, moverecord * target);
+extern void pmr_movelist_set(moverecord * pmr, evalsetup * pes, movelist * pml);
+extern void pmr_movelist_copy(const moverecord * source, moverecord * target);
+extern void current_pmr_cubedata_update(evalsetup * pes, float output[][NUM_ROLLOUT_OUTPUTS],
+                                        float stddev[][NUM_ROLLOUT_OUTPUTS]);
+extern listOLD *game_add_pmr_hint(listOLD * plGame);
+extern void game_remove_pmr_hint(listOLD * pl_hint);
+extern gboolean game_is_last(listOLD * plGame);
 extern void pmr_hint_destroy(void);
 extern void StopAutomaticPlay(void);
 extern gboolean save_autosave(gpointer unused);
@@ -1027,16 +1048,15 @@ extern int fMatchCancelled;
 
 extern void ProcessEvents(void);
 #if !USE_MULTITHREAD
-extern void CallbackProgress( void );
+extern void CallbackProgress(void);
 #endif
-extern void SetRNG( rng *prng, rngcontext *rngctx, rng rngNew, char *szSeed );
+extern void SetRNG(rng * prng, rngcontext * rngctx, rng rngNew, char *szSeed);
 extern int check_resigns(cubeinfo * pci);
 extern int quick_roll(void);
-extern int board_in_list(const movelist *pml, const TanBoard old_board, const TanBoard board, int *an);
+extern int board_in_list(const movelist * pml, const TanBoard old_board, const TanBoard board, int *an);
 extern unsigned int getDiceRandomDotOrg(void);
 extern int GetManualDice(unsigned int anDice[2]);
 extern double get_time(void);
 #endif
 
 extern int fJustSwappedPlayers;
-

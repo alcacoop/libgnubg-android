@@ -12,63 +12,60 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-typedef enum
-{
-	EXPORT_SGF,
-	EXPORT_HTML,
-	EXPORT_GAM,
-	EXPORT_MAT,
-	EXPORT_POS,
-	EXPORT_LATEX,
-	EXPORT_PDF,
-	EXPORT_TEXT,
-	EXPORT_PNG,
-	EXPORT_PS,
-	EXPORT_SNOWIETXT,
-	EXPORT_SVG,
-	N_EXPORT_TYPES
-}ExportType;
+typedef enum {
+    EXPORT_SGF,
+    EXPORT_HTML,
+    EXPORT_GAM,
+    EXPORT_MAT,
+    EXPORT_POS,
+    EXPORT_LATEX,
+    EXPORT_PDF,
+    EXPORT_TEXT,
+    EXPORT_PNG,
+    EXPORT_PS,
+    EXPORT_SNOWIETXT,
+    EXPORT_SVG,
+    N_EXPORT_TYPES
+} ExportType;
 
-typedef enum
-{
-	IMPORT_SGF,
-	IMPORT_SGG,
-	IMPORT_BKG,
-	IMPORT_MAT,
-	IMPORT_OLDMOVES,
-	IMPORT_POS,
-	IMPORT_SNOWIETXT,
-	IMPORT_TMG,
-	IMPORT_EMPIRE,
-	IMPORT_PARTY,
-	IMPORT_BGROOM,
-	N_IMPORT_TYPES
-}ImportType;
+typedef enum {
+    IMPORT_SGF,
+    IMPORT_SGG,
+    IMPORT_BKG,
+    IMPORT_MAT,
+    IMPORT_OLDMOVES,
+    IMPORT_POS,
+    IMPORT_SNOWIETXT,
+    IMPORT_TMG,
+    IMPORT_EMPIRE,
+    IMPORT_PARTY,
+    IMPORT_BGROOM,
+    N_IMPORT_TYPES
+} ImportType;
 
 typedef struct _ExportFormat ExportFormat;
 struct _ExportFormat {
-	ExportType type;
-	const char *extension;
-	const char *description;
-	const char *clname;
-	int exports[3];
+    ExportType type;
+    const char *extension;
+    const char *description;
+    const char *clname;
+    int exports[3];
 };
 
 typedef struct _ImportFormat ImportFormat;
 struct _ImportFormat {
-	ImportType type;
-	const char *extension;
-	const char *description;
-	const char *clname;
+    ImportType type;
+    const char *extension;
+    const char *description;
+    const char *clname;
 };
 
 extern ExportFormat export_format[];
 extern ImportFormat import_format[];
 
 typedef struct _FilePreviewData {
-	ImportType type;
+    ImportType type;
 } FilePreviewData;
 
 extern char *GetFilename(int CheckForCurrent, ExportType type);
 extern FilePreviewData *ReadFilePreview(const char *filename);
-

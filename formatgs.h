@@ -16,25 +16,26 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: formatgs.h,v 1.4 2009/03/24 23:48:45 c_anthon Exp $
+ * $Id: formatgs.h,v 1.6 2013/06/16 02:16:12 mdpetch Exp $
  */
 
-#ifndef _FORMATGS_H_
-#define _FORMATGS_H_
+#ifndef FORMATGS_H
+#define FORMATGS_H
 
 #include <glib.h>
 
 #include "analysis.h"
 
 enum _formatgs {
-  FORMATGS_CHEQUER,
-  FORMATGS_CUBE, 
-  FORMATGS_LUCK,
-  FORMATGS_OVERALL };
+    FORMATGS_CHEQUER,
+    FORMATGS_CUBE,
+    FORMATGS_LUCK,
+    FORMATGS_OVERALL
+};
 
-extern GList *formatGS( const statcontext *psc, const int nMatchTo, const enum _formatgs fg );
+extern GList *formatGS(const statcontext * psc, const int nMatchTo, const enum _formatgs fg);
 
 extern void
-freeGS( GList *list );
+ freeGS(GList * list);
 
-#endif /* _FORMATGS_H_ */
+#endif                          /* FORMATGS_H */

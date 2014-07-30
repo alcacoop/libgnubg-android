@@ -14,7 +14,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: evallock.c,v 1.2 2009/09/23 21:09:31 c_anthon Exp $
+ * $Id: evallock.c,v 1.3 2013/06/16 02:16:11 mdpetch Exp $
  */
 
 #include "config.h"
@@ -24,4 +24,3 @@
 #include "eval.c"
 #include "rollout.c"
 #endif
-

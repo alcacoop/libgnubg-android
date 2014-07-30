@@ -15,54 +15,75 @@
  * neuralnet.h
  *
  * by Gary Wong, 1998
- * $Id: neuralnet.h,v 1.25 2011/03/22 21:34:48 plm Exp $
+ * $Id: neuralnet.h,v 1.30 2013/07/20 22:06:24 mdpetch Exp $
  */
 
-#ifndef _NEURALNET_H_
-#define _NEURALNET_H_
+#ifndef NEURALNET_H
+#define NEURALNET_H
 
 #include <stdio.h>
 #include "common.h"
 
 typedef struct _neuralnet {
-	unsigned int cInput;
-	unsigned int cHidden;
-	unsigned int cOutput;
-	unsigned int fDirect;
-	int nTrained;
-	float rBetaHidden;
-	float rBetaOutput;
-	float *arHiddenWeight;
-	float *arOutputWeight;
-	float *arHiddenThreshold;
-	float *arOutputThreshold;
+    unsigned int cInput;
+    unsigned int cHidden;
+    unsigned int cOutput;
+    unsigned int fDirect;
+    int nTrained;
+    float rBetaHidden;
+    float rBetaOutput;
+    float *arHiddenWeight;
+    float *arOutputWeight;
+    float *arHiddenThreshold;
+    float *arOutputThreshold;
 } neuralnet;
 
 typedef enum {
-	NNEVAL_NONE,
-	NNEVAL_SAVE,
-	NNEVAL_FROMBASE
+    NNEVAL_NONE,
+    NNEVAL_SAVE,
+    NNEVAL_FROMBASE
 } NNEvalType;
 
 typedef enum {
-	NNSTATE_NONE = -1,
-	NNSTATE_INCREMENTAL,
-	NNSTATE_DONE
+    NNSTATE_NONE = -1,
+    NNSTATE_INCREMENTAL,
+    NNSTATE_DONE
 } NNStateType;
 
 typedef struct _NNState {
-	NNStateType state;
-	float *savedBase;
-	float *savedIBase;
+    NNStateType state;
+    float *savedBase;
+    float *savedIBase;
+#if !defined(USE_SIMD_INSTRUCTIONS)
+    int cSavedIBase;
+#endif
 } NNState;
 
-extern int NeuralNetCreate(neuralnet *pnn, unsigned int cInput, unsigned int cHidden, unsigned int cOutput, float rBetaHidden, float rBetaOutput);
-extern void NeuralNetDestroy(neuralnet *pnn);
-extern int NeuralNetEvaluate(const neuralnet *pnn, float arInput[], float arOutput[], NNState *pnState);
-extern int NeuralNetEvaluateSSE(const neuralnet *pnn, float arInput[], float arOutput[], NNState *pnState);
-extern int NeuralNetLoad(neuralnet *pnn, FILE *pf);
-extern int NeuralNetLoadBinary(neuralnet *pnn, FILE *pf);
-extern int NeuralNetSaveBinary(const neuralnet *pnn, FILE *pf);
-extern int SSE_Supported(void);
+extern int NeuralNetCreate(neuralnet * pnn, unsigned int cInput, unsigned int cHidden, unsigned int cOutput,
+                           float rBetaHidden, float rBetaOutput);
+extern void NeuralNetDestroy(neuralnet * pnn);
+extern int NeuralNetEvaluate(const neuralnet * pnn, float arInput[], float arOutput[], NNState * pnState);
+extern int NeuralNetEvaluateSSE(const neuralnet * pnn, float arInput[], float arOutput[], NNState * pnState);
+extern int NeuralNetLoad(neuralnet * pnn, FILE * pf);
+extern int NeuralNetLoadBinary(neuralnet * pnn, FILE * pf);
+extern int NeuralNetSaveBinary(const neuralnet * pnn, FILE * pf);
+extern int SIMD_Supported(void);
+
+/* Try to determine whetehr we are 64-bit or 32-bit */
+#if _WIN32 || _WIN64
+#if _WIN64
+#define ENVIRONMENT64
+#else
+#define ENVIRONMENT32
+#endif
+#endif
+
+#if __GNUC__
+#if __x86_64__
+#define ENVIRONMENT64
+#else
+#define ENVIRONMENT32
+#endif
+#endif
 
 #endif

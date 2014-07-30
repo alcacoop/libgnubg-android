@@ -20,10 +20,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: osr.c,v 1.34 2009/04/20 15:44:09 c_anthon Exp $
+ * $Id: osr.c,v 1.36 2013/07/10 20:51:46 mdpetch Exp $
  */
 
-/*lint -e514*/
+/*lint -e514 */
 
 #include "config.h"
 
@@ -38,40 +38,44 @@
 #define MAX_PROBS        32
 #define MAX_GAMMON_PROBS 15
 
-static unsigned long mt[ N ];
+static unsigned long mt[N];
 static int mti = N + 1;
 
-static unsigned int OSRQuasiRandomDice( const unsigned int iTurn, const unsigned int iGame, const unsigned int cGames, unsigned int anDice[ 2 ] )
+static unsigned int
+OSRQuasiRandomDice(const unsigned int iTurn, const unsigned int iGame, const unsigned int cGames,
+                   unsigned int anDice[2])
 {
-  if( !iTurn && !( cGames % 36 ) ) {
-    anDice[ 0 ] = ( iGame % 6 ) + 1;
-    anDice[ 1 ] = ( ( iGame / 6 ) % 6 ) + 1;
-    return TRUE;
-  } else if( iTurn == 1 && !( cGames % 1296 ) ) {
-    anDice[ 0 ] = ( ( iGame / 36 ) % 6 ) + 1;
-    anDice[ 1 ] = ( ( iGame / 216 ) % 6 ) + 1;
-    return TRUE;
-  } else {
-    anDice[ 0 ] = ( genrand_int32(&mti,mt) % 6 ) + 1;
-    anDice[ 1 ] = ( genrand_int32(&mti,mt) % 6 ) + 1;
-    return ( anDice[ 0 ] > 0 && anDice[ 1 ] > 0 );
-  }
+    if (!iTurn && !(cGames % 36)) {
+        anDice[0] = (iGame % 6) + 1;
+        anDice[1] = ((iGame / 6) % 6) + 1;
+        return TRUE;
+    } else if (iTurn == 1 && !(cGames % 1296)) {
+        anDice[0] = ((iGame / 36) % 6) + 1;
+        anDice[1] = ((iGame / 216) % 6) + 1;
+        return TRUE;
+    } else {
+        anDice[0] = (genrand_int32(&mti, mt) % 6) + 1;
+        anDice[1] = (genrand_int32(&mti, mt) % 6) + 1;
+        return (anDice[0] > 0 && anDice[1] > 0);
+    }
 }
 
 /* Fill aaProb with one sided bearoff probabilities for position with */
 /* bearoff id n.                                                      */
 
-static inline void getBearoffProbs(const unsigned int n, unsigned short int aaProb[32])
+static inline void
+getBearoffProbs(const unsigned int n, unsigned short int aaProb[32])
 {
-  g_assert( pbc1 );
-  if (BearoffDist ( pbc1, n, NULL, NULL, NULL, aaProb, NULL ))
-	puts("BearoffDist failed?");
+    g_assert(pbc1);
+    if (BearoffDist(pbc1, n, NULL, NULL, NULL, aaProb, NULL))
+        puts("BearoffDist failed?");
 }
 
 
 static int
-isCrossOver ( const unsigned int from, const unsigned int to ) {
-  return ( from / 6 ) != ( to / 6 );
+isCrossOver(const unsigned int from, const unsigned int to)
+{
+    return (from / 6) != (to / 6);
 }
 
 
@@ -89,222 +93,230 @@ isCrossOver ( const unsigned int from, const unsigned int to ) {
  *
  */
 
-static unsigned int chequersout(const unsigned int anBoard[25])
+#if !defined(G_DISABLE_ASSERT)
+
+static unsigned int
+chequersout(const unsigned int anBoard[25])
 {
-	unsigned int i, n = 0;
+    unsigned int i, n = 0;
 
-	for (i = 6; i < 25; i++)
-		n += anBoard[i];
+    for (i = 6; i < 25; i++)
+        n += anBoard[i];
 
-	return n;
+    return n;
 }
+
+#endif
 
 /*! \brief checks that we haven't moved too many checkers of any point on the board
  * but board need not contain all 15 checkers */
-static int checkboard(const unsigned int anBoard[25])
-{
-	unsigned int i;
+#if !defined(G_DISABLE_ASSERT)
 
-	for (i = 0; i < 25; i++)
-		if (anBoard[i] > 15)
-			return 0;
-	return 1;
+static int
+checkboard(const unsigned int anBoard[25])
+{
+    unsigned int i;
+
+    for (i = 0; i < 25; i++)
+        if (anBoard[i] > 15)
+            return 0;
+    return 1;
 }
 
-static void FindBestMoveOSR2 ( unsigned int anBoard[ 25 ], const unsigned int anDice[ 2 ], unsigned int *pnOut )
+#endif
+
+static void
+FindBestMoveOSR2(unsigned int anBoard[25], const unsigned int anDice[2], unsigned int *pnOut)
 {
-  unsigned int ifar, inear, iboth;
-  unsigned int iused = 0;
-  unsigned int i, j, lc;
-  unsigned int found;
+    unsigned int ifar, inear, iboth;
+    unsigned int iused = 0;
+    unsigned int i, j, lc;
+    unsigned int found;
 
-  ifar = 5 + anDice[ 0 ];
-  inear = 5 + anDice[ 1 ];
+    ifar = 5 + anDice[0];
+    inear = 5 + anDice[1];
 
-  if ( anBoard[ ifar ] && anBoard[ inear ] ) {
+    if (anBoard[ifar] && anBoard[inear]) {
 
-    /* two chequers move exactly into the home quadrant */
+        /* two chequers move exactly into the home quadrant */
 
-    /* move chequers */
+        /* move chequers */
 
-    --anBoard[ ifar ];
-    --anBoard[ inear ];
-    g_assert ( checkboard ( anBoard ) );
-    anBoard[ 5 ] += 2;
+        --anBoard[ifar];
+        --anBoard[inear];
+        g_assert(checkboard(anBoard));
+        anBoard[5] += 2;
 
-    g_assert(*pnOut >= 2);
-    *pnOut -= 2;
-    g_assert ( *pnOut == chequersout ( anBoard ) );
+        g_assert(*pnOut >= 2);
+        *pnOut -= 2;
+        g_assert(*pnOut == chequersout(anBoard));
 
-    return;
-  }
-
-  iboth = 5 + ( anDice[ 0 ] + anDice[ 1 ] );
-
-  if ( anBoard[ iboth ] ) {
-
-    /* one chequer move exactly into the home quadrant */
-
-    /* move chequer */
-
-    --anBoard[ iboth ];
-    ++anBoard[ 5 ];
-    g_assert ( checkboard ( anBoard ) );
-
-    g_assert ( *pnOut > 0 );
-    --*pnOut;
-    g_assert ( *pnOut == chequersout ( anBoard ) );
-
-    return;
-
-  }
-
-
-  /* loop through dice */
-
-  for ( i = 0; i < 2 && *pnOut; ++i ) {
-
-    /* check for exact cross over */
-
-    if ( anBoard[ 5 + anDice[ i ] ] ) {
-
-      /* move chequer */
-
-      --anBoard[ 5 + anDice[ i ] ];
-      ++anBoard[ 5 ];
-      g_assert ( checkboard ( anBoard ) );
-
-      g_assert ( *pnOut > 0 );
-      --*pnOut;
-      g_assert ( *pnOut == chequersout ( anBoard ) );
-
-      ++iused;
-
-      /* next die */
-
-      continue; 
-
+        return;
     }
 
-    /* find chequer furthest away */
+    iboth = 5 + (anDice[0] + anDice[1]);
 
-    lc = 24;
-    while ( lc > 5 && ! anBoard[ lc ] )
-      --lc;
+    if (anBoard[iboth]) {
 
-    /* try to make cross over from the back */
-
-    found = FALSE;
-    for ( j = lc; j - anDice[ i ] > 5; --j ) {
-
-      if ( anBoard[ j ] && isCrossOver ( j, j - anDice[ i ] ) ) {
+        /* one chequer move exactly into the home quadrant */
 
         /* move chequer */
 
-        --anBoard[ j ];
-        ++anBoard[ j - anDice[ i ] ];
-        g_assert ( checkboard ( anBoard ) );
-        ++iused;
-        found = TRUE;
-        /* FIXME: increment lc if needed */
+        --anBoard[iboth];
+        ++anBoard[5];
+        g_assert(checkboard(anBoard));
 
-        break;
+        g_assert(*pnOut > 0);
+        --*pnOut;
+        g_assert(*pnOut == chequersout(anBoard));
 
-      }
+        return;
 
     }
 
 
-    if ( ! found ) {
+    /* loop through dice */
 
-      /* no move with cross-over was found */
+    for (i = 0; i < 2 && *pnOut; ++i) {
 
-      /* move chequer from the rear */
+        /* check for exact cross over */
 
-      for ( j = lc; j > 5; --j ) {
+        if (anBoard[5 + anDice[i]]) {
 
-        if ( anBoard[ j ] ) {
+            /* move chequer */
 
-          --anBoard[ j ];
-          ++anBoard[ j - anDice[ i ] ];
-          g_assert ( checkboard ( anBoard ) );
-          ++iused;
+            --anBoard[5 + anDice[i]];
+            ++anBoard[5];
+            g_assert(checkboard(anBoard));
 
-          if ( j - anDice[ i ] < 6 )
-		  {	/* we've moved inside home quadrant */
-            g_assert ( *pnOut > 0 );
+            g_assert(*pnOut > 0);
             --*pnOut;
-		  }
+            g_assert(*pnOut == chequersout(anBoard));
 
-          g_assert ( *pnOut == chequersout ( anBoard ) );
+            ++iused;
 
-          break;
+            /* next die */
+
+            continue;
 
         }
-        
-      }
-      
-      
+
+        /* find chequer furthest away */
+
+        lc = 24;
+        while (lc > 5 && !anBoard[lc])
+            --lc;
+
+        /* try to make cross over from the back */
+
+        found = FALSE;
+        for (j = lc; j - anDice[i] > 5; --j) {
+
+            if (anBoard[j] && isCrossOver(j, j - anDice[i])) {
+
+                /* move chequer */
+
+                --anBoard[j];
+                ++anBoard[j - anDice[i]];
+                g_assert(checkboard(anBoard));
+                ++iused;
+                found = TRUE;
+                /* FIXME: increment lc if needed */
+
+                break;
+
+            }
+
+        }
+
+
+        if (!found) {
+
+            /* no move with cross-over was found */
+
+            /* move chequer from the rear */
+
+            for (j = lc; j > 5; --j) {
+
+                if (anBoard[j]) {
+
+                    --anBoard[j];
+                    ++anBoard[j - anDice[i]];
+                    g_assert(checkboard(anBoard));
+                    ++iused;
+
+                    if (j - anDice[i] < 6) {    /* we've moved inside home quadrant */
+                        g_assert(*pnOut > 0);
+                        --*pnOut;
+                    }
+
+                    g_assert(*pnOut == chequersout(anBoard));
+
+                    break;
+
+                }
+
+            }
+
+
+        }
+
     }
-    
-  }
 
-  if ( ! *pnOut && iused < 2 ) {
+    if (!*pnOut && iused < 2) {
 
-    /* die 2 still left, and all chequers inside home quadrant */
+        /* die 2 still left, and all chequers inside home quadrant */
 
-    if ( anBoard[ anDice[ 1 ] - 1 ] ) {
-      /* bear-off */
-      --anBoard[ anDice[ 1 ] - 1 ];
-      g_assert ( checkboard ( anBoard ) );
-      return;
-    }
+        if (anBoard[anDice[1] - 1]) {
+            /* bear-off */
+            --anBoard[anDice[1] - 1];
+            g_assert(checkboard(anBoard));
+            return;
+        }
 
-    /* try filling rearest empty space */
-    
-	for (i = 0; i < 6 - anDice[ 1 ]; i++)
-	{
-      j = 5 - i;
-      if ( anBoard[ j ] && ! anBoard[ j - anDice[ 1 ] ] ) {
-        /* empty space found */
-        
-        --anBoard[ j ];
-        ++anBoard[ j - anDice[ 1 ] ];
+        /* try filling rearest empty space */
 
-        g_assert ( checkboard ( anBoard ) );
-        return;
-        
-      }
-    }
+        for (i = 0; i < 6 - anDice[1]; i++) {
+            j = 5 - i;
+            if (anBoard[j] && !anBoard[j - anDice[1]]) {
+                /* empty space found */
 
-    /* move chequer from the rear */
-	for (i = 0; i < 6; i++)
-	{
-      j = 5 - i;
+                --anBoard[j];
+                ++anBoard[j - anDice[1]];
 
-      if ( anBoard[ j ] ) {
+                g_assert(checkboard(anBoard));
+                return;
+
+            }
+        }
 
         /* move chequer from the rear */
+        for (i = 0; i < 6; i++) {
+            j = 5 - i;
 
-        --anBoard[ j ];
+            if (anBoard[j]) {
 
-        if ( j >= anDice[ 1 ] )
-          /* add chequer to point */
-          ++anBoard[ j - anDice[ 1 ] ];
-        /* else */
-        /*   bearoff */
+                /* move chequer from the rear */
 
-        g_assert ( checkboard ( anBoard ) );
-        return;
+                --anBoard[j];
 
-      }
+                if (j >= anDice[1])
+                    /* add chequer to point */
+                    ++anBoard[j - anDice[1]];
+                /* else */
+                /*   bearoff */
+
+                g_assert(checkboard(anBoard));
+                return;
+
+            }
+
+        }
 
     }
 
-  }
-
-  g_assert ( iused == 2 );
-  return;
+    g_assert(iused == 2);
+    return;
 
 }
 
@@ -322,203 +334,191 @@ static void FindBestMoveOSR2 ( unsigned int anBoard[ 25 ], const unsigned int an
  *
  */
 
-static void FindBestMoveOSR4(unsigned int anBoard[ 25 ], const unsigned int nDice, unsigned int *pnOut)
+static void
+FindBestMoveOSR4(unsigned int anBoard[25], const unsigned int nDice, unsigned int *pnOut)
 {
-  unsigned int nd = 4;
-  unsigned int i, j, n = 0;
-  unsigned int first, any;
-  unsigned int lc;
+    unsigned int nd = 4;
+    unsigned int i, j, n = 0;
+    unsigned int first, any;
+    unsigned int lc;
 
-  /* check for exact bear-ins */
+    /* check for exact bear-ins */
 
-  while ( nd > 0 && *pnOut > 0 && anBoard[ 5 + nDice ] )
-  {
-    --anBoard[ 5 + nDice ];
-    ++anBoard[ 5 ];
-    g_assert ( checkboard ( anBoard ) );
+    while (nd > 0 && *pnOut > 0 && anBoard[5 + nDice]) {
+        --anBoard[5 + nDice];
+        ++anBoard[5];
+        g_assert(checkboard(anBoard));
 
-    --nd;
-    g_assert ( *pnOut > 0 );
-    --*pnOut;
-    g_assert ( *pnOut == chequersout ( anBoard ) );
+        --nd;
+        g_assert(*pnOut > 0);
+        --*pnOut;
+        g_assert(*pnOut == chequersout(anBoard));
 
-  }
+    }
 
 #if 0
-  /* this is broken or very very slow when the player has chequers in the
-   * 3rd or 4th quadrant */
-  if (*pnOut > 0)
-  {
-    /* check for 4, 3, or 2 chequers move exactly into home quadrant */
-    
-    for ( n = nd; n > 1; --n ) {
-      
-      i = 5 + n * nDice;
-      
-      if ( i < 25 && anBoard[ i ] ) {
-        
-        --anBoard[ i ];
-        ++anBoard[ 5 ];
-        g_assert ( checkboard ( anBoard ) );
-        
-        nd -= n;
-        g_assert (*pnOut > 0);
-        --*pnOut;
-        g_assert ( *pnOut == chequersout ( anBoard ) );
-        
-        n =nd; /* restart loop */
-      }
+    /* this is broken or very very slow when the player has chequers in the
+     * 3rd or 4th quadrant */
+    if (*pnOut > 0) {
+        /* check for 4, 3, or 2 chequers move exactly into home quadrant */
+
+        for (n = nd; n > 1; --n) {
+
+            i = 5 + n * nDice;
+
+            if (i < 25 && anBoard[i]) {
+
+                --anBoard[i];
+                ++anBoard[5];
+                g_assert(checkboard(anBoard));
+
+                nd -= n;
+                g_assert(*pnOut > 0);
+                --*pnOut;
+                g_assert(*pnOut == chequersout(anBoard));
+
+                n = nd;         /* restart loop */
+            }
+        }
     }
-  }
 #endif
 
-  if ( *pnOut > 0 && nd > 0 )
-  {
-    first = TRUE;
+    if (*pnOut > 0 && nd > 0) {
+        first = TRUE;
 
-    /* find rearest chequer */
+        /* find rearest chequer */
 
-    lc = 24;
-    while ( lc > 5 && ! anBoard[ lc ] )
-      --lc;
+        lc = 24;
+        while (lc > 5 && !anBoard[lc])
+            --lc;
 
-    /* try to make cross over from the back */
+        /* try to make cross over from the back */
 
-    for ( i = lc; i > 5; --i ) {
+        for (i = lc; i > 5; --i) {
 
-      if ( anBoard[ i ] ) {
+            if (anBoard[i]) {
 
-        if ( isCrossOver ( i, i - nDice ) && ( first || (i - nDice) > 5 ) ) {
+                if (isCrossOver(i, i - nDice) && (first || (i - nDice) > 5)) {
 
-          /* move chequers */
-          
-          while ( anBoard[ i ] && nd && *pnOut )
-		  {
-            --anBoard[ i ];
-            ++anBoard[ i - nDice ];
-            g_assert ( checkboard ( anBoard ) );
-            
-            if ( i - nDice < 6 )
-			{	/* we move into homeland */
-				g_assert ( *pnOut > 0 );
-				--*pnOut;
-			}
+                    /* move chequers */
 
-            
-            g_assert ( *pnOut == chequersout ( anBoard ) );
-            
-            --nd;
-          }
+                    while (anBoard[i] && nd && *pnOut) {
+                        --anBoard[i];
+                        ++anBoard[i - nDice];
+                        g_assert(checkboard(anBoard));
 
-          if ( ! *pnOut || ! nd )
-            break;
+                        if (i - nDice < 6) {    /* we move into homeland */
+                            g_assert(*pnOut > 0);
+                            --*pnOut;
+                        }
 
-          /* did we move all chequers from that point */
 
-          first = ! anBoard[ i ];
-        }
-      }
-    }
+                        g_assert(*pnOut == chequersout(anBoard));
 
-    /* move chequers from the rear */
+                        --nd;
+                    }
 
-    while ( *pnOut && nd )
-	{
-      for ( i = lc; i > 5; --i ) 
-	  {
-        if( anBoard[ i ] )
-		{
-          while ( anBoard[ i ] && nd && *pnOut )
-		  {
-            --anBoard[ i ];
-            ++anBoard[ i - nDice ];
-            g_assert ( checkboard ( anBoard ) );
+                    if (!*pnOut || !nd)
+                        break;
 
-            if ( i - nDice < 6 )
-			{
-              g_assert ( *pnOut > 0 );
-              --*pnOut;
-			}
-            
-            g_assert ( *pnOut == chequersout ( anBoard ) );
+                    /* did we move all chequers from that point */
 
-            --nd;
-          }
-
-          if ( ! n || ! *pnOut )
-            break;
-        }
-      }
-    }
-  }
-
-  if (!*pnOut )
-  {		/* all chequers inside home quadrant */
-    while ( nd )
-	{
-      if ( anBoard[ nDice - 1 ] ) {
-        /* perfect bear-off */
-        --anBoard[ nDice - 1 ];
-        --nd;
-        g_assert ( checkboard ( anBoard ) );
-        continue;
-      }
-
-      if ( nd >= 2 && nDice <= 3 && anBoard[ 2 *nDice - 1 ] > 0 ) {
-        /* bear  double 1s, 2s, and 3s off, e.g., 4/2/0 */
-        --anBoard[ 2 * nDice - 1 ];
-        nd -= 2;
-        g_assert ( checkboard ( anBoard ) );
-        continue;
-      }
-
-      if ( nd >= 3 && nDice <= 2 && anBoard[ 3 * nDice - 1 ] > 0 ) {
-        /* bear double 1s off from 3 point (3/2/1/0) or
-           double 2s off from 6 point (6/4/2/0) */
-        --anBoard[ 3 * nDice - 1 ];
-        nd -= 3;
-        g_assert ( checkboard ( anBoard ) );
-        continue;
-      }
-
-      if ( nd >= 4 && nDice <= 1 && anBoard[ 4 * nDice - 1] > 0 ) {
-        /* hmmm, this should not be possible... */
-        /* bear off double 1s: 4/3/2/1/0 */
-        --anBoard[ 4 * nDice - 1 ];
-        g_assert ( checkboard ( anBoard ) );
-        nd -= 4;
-      }
-
-      any = FALSE;
-
-      /* move chequers from rear */
-
-      /* FIXME: fill gaps? */
-
-	  for (i = 0; nd && i < 6; i++)
-	  {
-        j = 5 - i;
-
-        while ( anBoard[ j ] && nd ) {
-
-          any = TRUE;
-
-          --anBoard[ j ];
-          --nd;
-
-          if ( j >= nDice )
-            ++anBoard[ j - nDice ];
-          g_assert ( checkboard ( anBoard ) );
-
+                    first = !anBoard[i];
+                }
+            }
         }
 
-      }
+        /* move chequers from the rear */
 
-      if ( ! any )
-        /* no more chequers left */
-        nd = 0;
+        while (*pnOut && nd) {
+            for (i = lc; i > 5; --i) {
+                if (anBoard[i]) {
+                    while (anBoard[i] && nd && *pnOut) {
+                        --anBoard[i];
+                        ++anBoard[i - nDice];
+                        g_assert(checkboard(anBoard));
+
+                        if (i - nDice < 6) {
+                            g_assert(*pnOut > 0);
+                            --*pnOut;
+                        }
+
+                        g_assert(*pnOut == chequersout(anBoard));
+
+                        --nd;
+                    }
+
+                    if (!n || !*pnOut)
+                        break;
+                }
+            }
+        }
     }
-  }
+
+    if (!*pnOut) {              /* all chequers inside home quadrant */
+        while (nd) {
+            if (anBoard[nDice - 1]) {
+                /* perfect bear-off */
+                --anBoard[nDice - 1];
+                --nd;
+                g_assert(checkboard(anBoard));
+                continue;
+            }
+
+            if (nd >= 2 && nDice <= 3 && anBoard[2 * nDice - 1] > 0) {
+                /* bear  double 1s, 2s, and 3s off, e.g., 4/2/0 */
+                --anBoard[2 * nDice - 1];
+                nd -= 2;
+                g_assert(checkboard(anBoard));
+                continue;
+            }
+
+            if (nd >= 3 && nDice <= 2 && anBoard[3 * nDice - 1] > 0) {
+                /* bear double 1s off from 3 point (3/2/1/0) or
+                 * double 2s off from 6 point (6/4/2/0) */
+                --anBoard[3 * nDice - 1];
+                nd -= 3;
+                g_assert(checkboard(anBoard));
+                continue;
+            }
+
+            if (nd >= 4 && nDice <= 1 && anBoard[4 * nDice - 1] > 0) {
+                /* hmmm, this should not be possible... */
+                /* bear off double 1s: 4/3/2/1/0 */
+                --anBoard[4 * nDice - 1];
+                g_assert(checkboard(anBoard));
+                nd -= 4;
+            }
+
+            any = FALSE;
+
+            /* move chequers from rear */
+
+            /* FIXME: fill gaps? */
+
+            for (i = 0; nd && i < 6; i++) {
+                j = 5 - i;
+
+                while (anBoard[j] && nd) {
+
+                    any = TRUE;
+
+                    --anBoard[j];
+                    --nd;
+
+                    if (j >= nDice)
+                        ++anBoard[j - nDice];
+                    g_assert(checkboard(anBoard));
+
+                }
+
+            }
+
+            if (!any)
+                /* no more chequers left */
+                nd = 0;
+        }
+    }
 }
 
 
@@ -536,12 +536,13 @@ static void FindBestMoveOSR4(unsigned int anBoard[ 25 ], const unsigned int nDic
  *
  */
 
-static void FindBestMoveOSR(unsigned int anBoard[ 25 ], const unsigned int anDice[ 2 ], unsigned int *pnOut)
+static void
+FindBestMoveOSR(unsigned int anBoard[25], const unsigned int anDice[2], unsigned int *pnOut)
 {
-	if (anDice[0] != anDice[1])
-		FindBestMoveOSR2(anBoard, anDice, pnOut);
-	else
-		FindBestMoveOSR4(anBoard, anDice[0], pnOut);
+    if (anDice[0] != anDice[1])
+        FindBestMoveOSR2(anBoard, anDice, pnOut);
+    else
+        FindBestMoveOSR4(anBoard, anDice[0], pnOut);
 }
 
 /*
@@ -557,29 +558,29 @@ static void FindBestMoveOSR(unsigned int anBoard[ 25 ], const unsigned int anDic
  *          quadrant.
  */
 
-static unsigned int osr(unsigned int anBoard[25], const unsigned int iGame, const unsigned int nGames, unsigned int nOut)
+static unsigned int
+osr(unsigned int anBoard[25], const unsigned int iGame, const unsigned int nGames, unsigned int nOut)
 {
-	unsigned int iTurn = 0;
-	unsigned int anDice[ 2 ];
+    unsigned int iTurn = 0;
+    unsigned int anDice[2];
 
-	/* loop until all chequers are in home quadrant */
+    /* loop until all chequers are in home quadrant */
 
-	while (nOut)
-	{
-		/* roll dice */
-		if ( OSRQuasiRandomDice ( iTurn, iGame, nGames, anDice ) == FALSE)
-			g_warning("Error in function OSRQuasiRandomDice");
+    while (nOut) {
+        /* roll dice */
+        if (OSRQuasiRandomDice(iTurn, iGame, nGames, anDice) == FALSE)
+            g_warning("Error in function OSRQuasiRandomDice");
 
-		if ( anDice[ 0 ] < anDice[ 1 ] )
-			swap_us ( anDice, anDice + 1 );
+        if (anDice[0] < anDice[1])
+            swap_us(anDice, anDice + 1);
 
-		/* find and move best move */
-		FindBestMoveOSR(anBoard, anDice, &nOut);
+        /* find and move best move */
+        FindBestMoveOSR(anBoard, anDice, &nOut);
 
-		iTurn++;
-	}
+        iTurn++;
+    }
 
-	return iTurn;
+    return iTurn;
 }
 
 
@@ -598,66 +599,66 @@ static unsigned int osr(unsigned int anBoard[25], const unsigned int iGame, cons
  */
 
 static void
-rollOSR ( const unsigned int nGames, const unsigned int anBoard[ 25 ], const unsigned int nOut,
-          float arProbs[], const unsigned int nMaxProbs,
-          float arGammonProbs[], const unsigned int nMaxGammonProbs ) {
+rollOSR(const unsigned int nGames, const unsigned int anBoard[25], const unsigned int nOut,
+        float arProbs[], const unsigned int nMaxProbs, float arGammonProbs[], const unsigned int nMaxGammonProbs)
+{
 
-  unsigned int an[ 25 ];
-  unsigned short int anProb[ 32 ];
-  unsigned int i;
-  unsigned int n, m;
-  unsigned int iGame;
-  
-  int *anCounts = (int*) g_alloca(nMaxGammonProbs * sizeof(int));
+    unsigned int an[25];
+    unsigned short int anProb[32];
+    unsigned int i;
+    unsigned int n, m;
+    unsigned int iGame;
 
-  memset(anCounts, 0, sizeof(int) * nMaxGammonProbs);
+    int *anCounts = (int *) g_alloca(nMaxGammonProbs * sizeof(int));
 
-  for ( i = 0; i < nMaxProbs; ++i ) 
-    arProbs[ i ] = 0.0f;
+    memset(anCounts, 0, sizeof(int) * nMaxGammonProbs);
 
-  /* perform rollouts */
+    for (i = 0; i < nMaxProbs; ++i)
+        arProbs[i] = 0.0f;
 
-  for ( iGame = 0; iGame < nGames; ++iGame ) {
+    /* perform rollouts */
 
-    memcpy ( an, anBoard, sizeof ( an ) );
+    for (iGame = 0; iGame < nGames; ++iGame) {
 
-    /* do actual rollout */
+        memcpy(an, anBoard, sizeof(an));
 
-    n = osr ( an, iGame, nGames, nOut );
+        /* do actual rollout */
 
-    /* number of chequers in home quadrant */
+        n = osr(an, iGame, nGames, nOut);
 
-    m = 0;
-    for ( i = 0; i < 6; ++i )
-      m += an[ i ];
+        /* number of chequers in home quadrant */
 
-    /* update counts */
+        m = 0;
+        for (i = 0; i < 6; ++i)
+            m += an[i];
 
-    ++anCounts[ MIN( m == 15 ? n + 1 : n, nMaxGammonProbs - 1 ) ];
+        /* update counts */
 
-    /* get prob. from bearoff1 */
+        ++anCounts[MIN(m == 15 ? n + 1 : n, nMaxGammonProbs - 1)];
 
-    getBearoffProbs ( PositionBearoff ( an, pbc1->nPoints, pbc1->nChequers ), anProb );
+        /* get prob. from bearoff1 */
 
-    for ( i = 0; i < 32; ++i )
-      arProbs[ MIN( n + i, nMaxProbs - 1 ) ] += anProb[ i ] / 65535.0f;
+        getBearoffProbs(PositionBearoff(an, pbc1->nPoints, pbc1->nChequers), anProb);
 
-  }
+        for (i = 0; i < 32; ++i)
+            arProbs[MIN(n + i, nMaxProbs - 1)] += anProb[i] / 65535.0f;
 
-  /* scale resulting probabilities */
+    }
 
-  for ( i = 0; i < (unsigned int)nMaxProbs; ++i ) {
-    arProbs[ i ] /= nGames;
-    /* printf ( "arProbs[%d]=%f\n", i, arProbs[ i ] ); */
-  }
+    /* scale resulting probabilities */
 
-  /* calculate gammon probs. 
-     (prob. of getting inside home quadrant in i rolls */
+    for (i = 0; i < (unsigned int) nMaxProbs; ++i) {
+        arProbs[i] /= nGames;
+        /* printf ( "arProbs[%d]=%f\n", i, arProbs[ i ] ); */
+    }
 
-  for ( i = 0; i < nMaxGammonProbs; ++i ) {
-    arGammonProbs[ i ] = 1.0f * anCounts[ i ] / nGames;
-    /* printf ( "arGammonProbs[%d]=%f\n", i, arGammonProbs[ i ] ); */
-  }
+    /* calculate gammon probs. 
+     * (prob. of getting inside home quadrant in i rolls */
+
+    for (i = 0; i < nMaxGammonProbs; ++i) {
+        arGammonProbs[i] = 1.0f * anCounts[i] / nGames;
+        /* printf ( "arGammonProbs[%d]=%f\n", i, arGammonProbs[ i ] ); */
+    }
 
 }
 
@@ -678,121 +679,117 @@ rollOSR ( const unsigned int nGames, const unsigned int anBoard[ 25 ], const uns
  *
  */
 
-static unsigned int osp ( const unsigned int anBoard[ 25 ], const unsigned int nGames,
-      unsigned int an[ 25 ], float arProbs[ MAX_PROBS ], 
-      float arGammonProbs[ MAX_GAMMON_PROBS ] ) {
+static unsigned int
+osp(const unsigned int anBoard[25], const unsigned int nGames,
+    unsigned int an[25], float arProbs[MAX_PROBS], float arGammonProbs[MAX_GAMMON_PROBS])
+{
 
-  int i, n;
-  unsigned int nTotal, nOut;
-  unsigned short int anProb[ 32 ];
+    int i, n;
+    unsigned int nTotal, nOut;
+    unsigned short int anProb[32];
 
-  /* copy board into an, and find total number of chequers left,
-     and number of chequers outside home */
+    /* copy board into an, and find total number of chequers left,
+     * and number of chequers outside home */
 
-  nTotal = nOut = 0;
+    nTotal = nOut = 0;
 
-  memcpy( an, anBoard, 25 * sizeof( int ) );
+    memcpy(an, anBoard, 25 * sizeof(int));
 
-  for ( i = 0; i < 25; ++i ) {
-    /* total number of chequers left */
-    nTotal += anBoard[ i ];
-    if ( i > 5 )
-      nOut += anBoard[ i ];
-  }
-
-
-  if ( nOut > 0 ) 
-    /* chequers outside home: do one sided rollout */
-    rollOSR ( nGames, an, nOut, 
-              arProbs, MAX_PROBS, 
-              arGammonProbs, MAX_GAMMON_PROBS );
-  else {
-    /* chequers inde home: use BEAROFF2 */
-
-    /* no gammon possible */
-    for ( i = 0; i < MAX_GAMMON_PROBS; ++i )
-      arGammonProbs[ i ] = 0.0f;
-
-    if ( nTotal == 15 )
-      arGammonProbs[ 1 ] = 1.0f;
-    else
-      arGammonProbs[ 0 ] = 1.0f;
-
-    /* get probs from BEAROFF2 */
-
-    for ( i = 0; i < MAX_PROBS; ++i )
-      arProbs[ i ] = 0.0f;
-
-    getBearoffProbs ( PositionBearoff ( anBoard, pbc1->nPoints, pbc1->nChequers), anProb );
-
-    for ( i = 0; i < 32; ++i ) {
-      n = MIN( i, MAX_PROBS - 1 );
-      arProbs[ n ] += anProb[ i ] / 65535.0f;
-      /* printf ( "arProbs[%d]=%f\n", n, arProbs[n] ); */
+    for (i = 0; i < 25; ++i) {
+        /* total number of chequers left */
+        nTotal += anBoard[i];
+        if (i > 5)
+            nOut += anBoard[i];
     }
 
-  }
 
-  return nTotal;
+    if (nOut > 0)
+        /* chequers outside home: do one sided rollout */
+        rollOSR(nGames, an, nOut, arProbs, MAX_PROBS, arGammonProbs, MAX_GAMMON_PROBS);
+    else {
+        /* chequers inde home: use BEAROFF2 */
+
+        /* no gammon possible */
+        for (i = 0; i < MAX_GAMMON_PROBS; ++i)
+            arGammonProbs[i] = 0.0f;
+
+        if (nTotal == 15)
+            arGammonProbs[1] = 1.0f;
+        else
+            arGammonProbs[0] = 1.0f;
+
+        /* get probs from BEAROFF2 */
+
+        for (i = 0; i < MAX_PROBS; ++i)
+            arProbs[i] = 0.0f;
+
+        getBearoffProbs(PositionBearoff(anBoard, pbc1->nPoints, pbc1->nChequers), anProb);
+
+        for (i = 0; i < 32; ++i) {
+            n = MIN(i, MAX_PROBS - 1);
+            arProbs[n] += anProb[i] / 65535.0f;
+            /* printf ( "arProbs[%d]=%f\n", n, arProbs[n] ); */
+        }
+
+    }
+
+    return nTotal;
 
 }
 
 
 static float
-bgProb ( const unsigned int anBoard[ 25 ],
-         const int fOnRoll,
-         const unsigned int nTotal,
-         const float arProbs[],
-         const unsigned int nMaxProbs ) {
+bgProb(const unsigned int anBoard[25],
+       const int fOnRoll, const unsigned int nTotal, const float arProbs[], const unsigned int nMaxProbs)
+{
 
-  unsigned int nTotPipsHome = 0;
-  unsigned int i, j;
-  float r, s;
-  unsigned short int anProb[ 32 ];
+    unsigned int nTotPipsHome = 0;
+    unsigned int i, j;
+    float r, s;
+    unsigned short int anProb[32];
 
-  /* total pips before out of opponent's home quadrant */
+    /* total pips before out of opponent's home quadrant */
 
-  for ( i = 18; i < 25; ++i )
-    nTotPipsHome += anBoard[ i ] * ( i - 17 );
+    for (i = 18; i < 25; ++i)
+        nTotPipsHome += anBoard[i] * (i - 17);
 
-  r = 0.0f;
+    r = 0.0f;
 
-  if ( nTotPipsHome ) {
+    if (nTotPipsHome) {
 
-    /* ( nTotal + 3 ) / 4 - 1: number of rolls before opponent is off. */
-    /* (nTotPipsHome + 2) / 3: numbers of rolls before I'm out of
-       opponent's home quadrant (with consequtive 2-1's) */
+        /* ( nTotal + 3 ) / 4 - 1: number of rolls before opponent is off. */
+        /* (nTotPipsHome + 2) / 3: numbers of rolls before I'm out of
+         * opponent's home quadrant (with consequtive 2-1's) */
 
-    if ( ( nTotal + 3 ) / 4 - 1  <= ( nTotPipsHome + 2 ) / 3 )
-	{
-      /* backgammon is possible */
+        if ((nTotal + 3) / 4 - 1 <= (nTotPipsHome + 2) / 3) {
+            /* backgammon is possible */
 
-      /* get "bear-off" prob (for getting out of opp.'s home quadr.) */
-      
-      /* FIXME: this ignores chequers on the bar */
+            /* get "bear-off" prob (for getting out of opp.'s home quadr.) */
 
-      getBearoffProbs ( PositionBearoff ( anBoard + 18, pbc1->nPoints, pbc1->nChequers ), anProb );
+            /* FIXME: this ignores chequers on the bar */
 
-      for ( i = 0; i < nMaxProbs; ++i ) {
+            getBearoffProbs(PositionBearoff(anBoard + 18, pbc1->nPoints, pbc1->nChequers), anProb);
 
-        if ( arProbs[ i ] > 0.0f ) {
+            for (i = 0; i < nMaxProbs; ++i) {
 
-          s = 0.0f;
+                if (arProbs[i] > 0.0f) {
 
-          for (j = i + !fOnRoll; j < 32; ++j) 
-            s += anProb[ j ] / 65535.0f;
+                    s = 0.0f;
 
-          r += s * arProbs[ i ];
+                    for (j = i + !fOnRoll; j < 32; ++j)
+                        s += anProb[j] / 65535.0f;
+
+                    r += s * arProbs[i];
+
+                }
+
+            }
 
         }
 
-      }
-
     }
 
-  }
-
-  return r;
+    return r;
 
 }
 
@@ -811,105 +808,103 @@ bgProb ( const unsigned int anBoard[ 25 ],
  */
 
 extern void
-raceProbs ( const TanBoard anBoard, const unsigned int nGames,
-            float arOutput[ NUM_OUTPUTS ],
-            float arMu[ 2 ] ) {
-  
-  TanBoard an;
-  float aarProbs[ 2 ][ MAX_PROBS ];
-  float aarGammonProbs[ 2 ][ MAX_PROBS ];
-  float arG[ 2 ], arBG[ 2 ];
+raceProbs(const TanBoard anBoard, const unsigned int nGames, float arOutput[NUM_OUTPUTS], float arMu[2])
+{
 
-  unsigned int anTotal[ 2 ];
+    TanBoard an;
+    float aarProbs[2][MAX_PROBS];
+    float aarGammonProbs[2][MAX_PROBS];
+    float arG[2], arBG[2];
 
-  int i, j, k;
+    unsigned int anTotal[2];
 
-  float w, s;
+    int i, j, k;
 
-  /* Seed set to ensure that OSR are reproducable */
+    float w, s;
 
-  init_genrand ( 0, &mti, mt );
+    /* Seed set to ensure that OSR are reproducable */
 
-  for ( i = 0; i < 5; ++i )
-    arOutput[ i ] = 0.0f;
+    init_genrand(0, &mti, mt);
 
-  for ( i = 0; i < 2; ++i )
-    anTotal[ i ] = osp(anBoard[ i ], nGames, an[ i ], aarProbs[ i ], aarGammonProbs[ i ]);
+    for (i = 0; i < 5; ++i)
+        arOutput[i] = 0.0f;
 
-  /* calculate OUTPUT_WIN */
+    for (i = 0; i < 2; ++i)
+        anTotal[i] = osp(anBoard[i], nGames, an[i], aarProbs[i], aarGammonProbs[i]);
 
-  w = 0;
- 
-  for ( i = 0; i < MAX_PROBS; ++i ) {
-    
-    /* calculate the prob. of the opponent using more than i rolls
-       to bear off */
-    
-    s = 0.0f;
-    for ( j = i; j < MAX_PROBS; ++j )
-      s += aarProbs[ 0 ][ j ];
-    
-    /* winning chance is: prob. of me bearing off in i rolls times
-       prob. the opponent doesn't bear off in i rolls */
-    
-    w += aarProbs[ 1 ][ i ] * s;
+    /* calculate OUTPUT_WIN */
 
-  }
+    w = 0;
 
-  arOutput[ OUTPUT_WIN ] = MIN( w, 1.0f );
+    for (i = 0; i < MAX_PROBS; ++i) {
 
-  /* calculate gammon and backgammon probs */
-
-  for ( i = 0; i < 2; ++i ) {
-
-    arG[ i ] = 0.0f;
-    arBG[ i ] = 0.0f;
-
-    if ( anTotal[ ! i ] == 15 ) {
-
-      /* gammon and backgammon possible */
-
-      for ( j = 0; j < MAX_GAMMON_PROBS; ++j ) {
-
-        /* chance of opponent having borne all chequers of
-           within j rolls */
+        /* calculate the prob. of the opponent using more than i rolls
+         * to bear off */
 
         s = 0.0f;
-        for ( k = 0; k < j + i; ++k )
-          s += aarProbs[ i ][ k ];
+        for (j = i; j < MAX_PROBS; ++j)
+            s += aarProbs[0][j];
 
-        /* gammon chance */
+        /* winning chance is: prob. of me bearing off in i rolls times
+         * prob. the opponent doesn't bear off in i rolls */
 
-        arG[ i ] += aarGammonProbs[ ! i ][ j ] * s;
-
-      }
-
-      if ( arG[ i ] > 0.0f )
-        /* calculate backgammon probs */
-        arBG[ i ] = bgProb ( an[ ! i ], i, anTotal[ i ], 
-                             aarProbs[ i ], MAX_PROBS );
+        w += aarProbs[1][i] * s;
 
     }
 
-  }
+    arOutput[OUTPUT_WIN] = MIN(w, 1.0f);
 
-  arOutput[ OUTPUT_WINGAMMON ] = MIN( arG[ 1 ], 1.0f );
-  arOutput[ OUTPUT_LOSEGAMMON ] = MIN( arG[ 0 ], 1.0f );
-  arOutput[ OUTPUT_WINBACKGAMMON ] = MIN( arBG[ 1 ], 1.0f );
-  arOutput[ OUTPUT_LOSEBACKGAMMON ] = MIN( arBG[ 0 ], 1.0f );
+    /* calculate gammon and backgammon probs */
 
-  /* calculate average number of rolls to bear off */
+    for (i = 0; i < 2; ++i) {
 
-  if ( arMu ) {
+        arG[i] = 0.0f;
+        arBG[i] = 0.0f;
 
+        if (anTotal[!i] == 15) {
 
-    for ( i = 0; i < 2; ++i ) {
-      arMu[ i ] = 0.0f;
-      for ( j = 0; j < MAX_PROBS; ++j )
-        arMu[ i ] += 1.0f * j * aarProbs[ i ][ j ];
+            /* gammon and backgammon possible */
+
+            for (j = 0; j < MAX_GAMMON_PROBS; ++j) {
+
+                /* chance of opponent having borne all chequers of
+                 * within j rolls */
+
+                s = 0.0f;
+                for (k = 0; k < j + i; ++k)
+                    s += aarProbs[i][k];
+
+                /* gammon chance */
+
+                arG[i] += aarGammonProbs[!i][j] * s;
+
+            }
+
+            if (arG[i] > 0.0f)
+                /* calculate backgammon probs */
+                arBG[i] = bgProb(an[!i], i, anTotal[i], aarProbs[i], MAX_PROBS);
+
+        }
 
     }
 
-  }
+    arOutput[OUTPUT_WINGAMMON] = MIN(arG[1], 1.0f);
+    arOutput[OUTPUT_LOSEGAMMON] = MIN(arG[0], 1.0f);
+    arOutput[OUTPUT_WINBACKGAMMON] = MIN(arBG[1], 1.0f);
+    arOutput[OUTPUT_LOSEBACKGAMMON] = MIN(arBG[0], 1.0f);
+
+    /* calculate average number of rolls to bear off */
+
+    if (arMu) {
+
+
+        for (i = 0; i < 2; ++i) {
+            arMu[i] = 0.0f;
+            for (j = 0; j < MAX_PROBS; ++j)
+                arMu[i] += 1.0f * j * aarProbs[i][j];
+
+        }
+
+    }
 
 }

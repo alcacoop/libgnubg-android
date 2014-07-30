@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * $Id: import.h,v 1.15 2007/11/16 21:13:18 c_anthon Exp $
+ * $Id: import.h,v 1.16 2012/08/27 23:06:41 plm Exp $
  */
 
-#ifndef _IMPORT_H_
-#define _IMPORT_H_
+#ifndef IMPORT_H
+#define IMPORT_H
 
 #endif

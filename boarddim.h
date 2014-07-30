@@ -16,11 +16,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: boarddim.h,v 1.13 2009/03/01 20:01:48 Superfly_Jon Exp $
+ * $Id: boarddim.h,v 1.15 2013/06/16 02:16:10 mdpetch Exp $
  */
 
-#ifndef _BOARDDIM_H_
-#define _BOARDDIM_H_
+#ifndef BOARDDIM_H
+#define BOARDDIM_H
 
 
 /* fundamental constants */
@@ -32,7 +32,7 @@
 #define HINGE_WIDTH       2
 
 /* additional space (beyone one chequer's worth) between two points 
-   with 5 chequers */
+ * with 5 chequers */
 #define EXTRA_HEIGHT      10
 
 /* derived constants */
@@ -41,7 +41,7 @@
 #define CUBE_HEIGHT       CUBE_WIDTH
 #define ARROW_HEIGHT      ARROW_WIDTH
 
-#define BORDER_HEIGHT    (CHEQUER_HEIGHT / 2)    
+#define BORDER_HEIGHT    (CHEQUER_HEIGHT / 2)
 #define BORDER_WIDTH     (CHEQUER_WIDTH / 2)
 #define BAR_WIDTH        (2 * CHEQUER_WIDTH)
 #define BEAROFF_INSIDE    CHEQUER_WIDTH
@@ -50,7 +50,7 @@
 #define BEAROFF_DIVIDER_HEIGHT   CHEQUER_HEIGHT
 
 /* the following is technically wrong - it should be 10 chequers, die/cube
-   and two borders - there may be undisplayable positions otherwise */
+ * and two borders - there may be undisplayable positions otherwise */
 #define BOARD_MIN_HEIGHT (11 * CHEQUER_HEIGHT + 2 * BORDER_HEIGHT)
 
 #define BOARD_HEIGHT     (BOARD_MIN_HEIGHT + EXTRA_HEIGHT)
@@ -95,10 +95,10 @@
 /* where to place a chequer on the bar  - x */
 #define BAR_X ((BOARD_WIDTH - CHEQUER_WIDTH) / 2)
 /* where to place the first player 0 chequer on the bar - y */
-#define BAR_Y_0 (BOARD_HEIGHT / 2 - 16) 
+#define BAR_Y_0 (BOARD_HEIGHT / 2 - 16)
 /* and where to place the first player 1 chequer on the bar - y */
 #define BAR_Y_1 (BOARD_HEIGHT / 2 + 9)
- 
+
 /* where to start point x, x = 1..13 */
 
 #define POINT_X(n) ((n < 7) ? (BOARD_WIDTH - BEAROFF_WIDTH -     \
@@ -136,4 +136,4 @@
 #define HINGE_TOP_Y ((BOARD_HEIGHT + CUBE_HEIGHT) / 2 + \
                      2 * CHEQUER_HEIGHT + 1)
 
-#endif /* _BOARDDIM_H_ */
+#endif                          /* BOARDDIM_H */

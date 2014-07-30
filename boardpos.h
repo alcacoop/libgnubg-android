@@ -16,43 +16,40 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: boardpos.h,v 1.7 2008/03/08 13:42:42 Superfly_Jon Exp $
+ * $Id: boardpos.h,v 1.9 2013/06/16 02:16:10 mdpetch Exp $
  */
 
-#ifndef _BOARDPOS_H_
-#define _BOARDPOS_H_
+#ifndef BOARDPOS_H
+#define BOARDPOS_H
 
-#define POINT_UNUSED0 28 /* the top unused bearoff tray */
-#define POINT_UNUSED1 29 /* the bottom unused bearoff tray */
+#define POINT_UNUSED0 28        /* the top unused bearoff tray */
+#define POINT_UNUSED1 29        /* the bottom unused bearoff tray */
 #define POINT_DICE 30
 #define POINT_CUBE 31
 #define POINT_RIGHT 32
 #define POINT_LEFT 33
 #define POINT_RESIGN 34
-    
-extern int positions[ 2 ][ 30 ][ 3 ];
+
+extern int positions[2][30][3];
 
 extern void
-ChequerPosition( const int clockwise, 
-                 const int point, const int chequer,
-                 int *px, int *py );
+ ChequerPosition(const int clockwise, const int point, const int chequer, int *px, int *py);
 
 extern void
-PointArea( const int fClockwise, const int nSize,
-           const int n,
-           int *px, int *py, int *pcx, int *pcy );
+ PointArea(const int fClockwise, const int nSize, const int n, int *px, int *py, int *pcx, int *pcy);
 
 
 extern void
-CubePosition( const int crawford_game, const int cube_use,
-              const int doubled, const int cube_owner, int fClockwise,
-              int *px, int *py, int *porient );
 
-extern void ArrowPosition( const int clockwise, int turn, const int nSize, int *px, int *py );
+
+CubePosition(const int crawford_game, const int cube_use,
+             const int doubled, const int cube_owner, int fClockwise, int *px, int *py, int *porient);
+
+extern void ArrowPosition(const int clockwise, int turn, const int nSize, int *px, int *py);
 
 
 extern void
-ResignPosition( const int resigned, int *px, int *py, int *porient );
+ ResignPosition(const int resigned, int *px, int *py, int *porient);
 
-    
+
 #endif

@@ -18,31 +18,30 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: md5.h,v 1.5 2009/03/07 20:49:45 c_anthon Exp $
+ * $Id: md5.h,v 1.7 2013/06/16 02:16:24 mdpetch Exp $
  */
 
 /* License changed from the GNU LGPL to the GNU GPL (as permitted
-   under Term 3 of the GNU LGPL) by Gary Wong for distribution
-   with GNU Backgammon. */
+ * under Term 3 of the GNU LGPL) by Gary Wong for distribution
+ * with GNU Backgammon. */
 
-#ifndef _MD5_H
-#define _MD5_H 1
+#ifndef MD5_H
+#define MD5_H 1
 #include <glib.h>
 #include <stdio.h>
 #include "common.h"
 typedef guint32 md5_uint32;
 
 /* Structure to save state of computation between the single steps.  */
-struct md5_ctx
-{
-  md5_uint32 A;
-  md5_uint32 B;
-  md5_uint32 C;
-  md5_uint32 D;
+struct md5_ctx {
+    md5_uint32 A;
+    md5_uint32 B;
+    md5_uint32 C;
+    md5_uint32 D;
 
-  md5_uint32 total[2];
-  md5_uint32 buflen;
-  char buffer[128] __attribute__ ((__aligned__ (__alignof__ (md5_uint32))));
+    md5_uint32 total[2];
+    md5_uint32 buflen;
+    char buffer[128] __attribute__ ((__aligned__(__alignof__(md5_uint32))));
 };
 
 /*
@@ -51,49 +50,49 @@ struct md5_ctx
  */
 
 /* Initialize structure containing state of computation.
-   (RFC 1321, 3.3: Step 3)  */
+ * (RFC 1321, 3.3: Step 3)  */
 extern void md5_init_ctx(struct md5_ctx *ctx);
 
 /* Starting with the result of former calls of this function (or the
-   initialization function) update the context for the next LEN bytes
-   starting at BUFFER.
-   It is necessary that LEN is a multiple of 64!!! */
+ * initialization function) update the context for the next LEN bytes
+ * starting at BUFFER.
+ * It is necessary that LEN is a multiple of 64!!! */
 extern void md5_process_block(const void *buffer, size_t len, struct md5_ctx *ctx);
 
 /* Starting with the result of former calls of this function (or the
-   initialization function) update the context for the next LEN bytes
-   starting at BUFFER.
-   It is NOT required that LEN is a multiple of 64.  */
+ * initialization function) update the context for the next LEN bytes
+ * starting at BUFFER.
+ * It is NOT required that LEN is a multiple of 64.  */
 extern void md5_process_bytes(const void *buffer, size_t len, struct md5_ctx *ctx);
 
 /* Process the remaining bytes in the buffer and put result from CTX
-   in first 16 bytes following RESBUF.  The result is always in little
-   endian byte order, so that a byte-wise output yields to the wanted
-   ASCII representation of the message digest.
-
-   IMPORTANT: On some systems it is required that RESBUF is correctly
-   aligned for a 32 bits value.  */
+ * in first 16 bytes following RESBUF.  The result is always in little
+ * endian byte order, so that a byte-wise output yields to the wanted
+ * ASCII representation of the message digest.
+ * 
+ * IMPORTANT: On some systems it is required that RESBUF is correctly
+ * aligned for a 32 bits value.  */
 extern void *md5_finish_ctx(struct md5_ctx *ctx, void *resbuf);
 
 
 /* Put result from CTX in first 16 bytes following RESBUF.  The result is
-   always in little endian byte order, so that a byte-wise output yields
-   to the wanted ASCII representation of the message digest.
-
-   IMPORTANT: On some systems it is required that RESBUF is correctly
-   aligned for a 32 bits value.  */
+ * always in little endian byte order, so that a byte-wise output yields
+ * to the wanted ASCII representation of the message digest.
+ * 
+ * IMPORTANT: On some systems it is required that RESBUF is correctly
+ * aligned for a 32 bits value.  */
 extern void *md5_read_ctx(const struct md5_ctx *ctx, void *resbuf);
 
 
 /* Compute MD5 message digest for bytes read from STREAM.  The
-   resulting message digest number will be written into the 16 bytes
-   beginning at RESBLOCK.  */
-extern int md5_stream(FILE *stream, void *resblock);
+ * resulting message digest number will be written into the 16 bytes
+ * beginning at RESBLOCK.  */
+extern int md5_stream(FILE * stream, void *resblock);
 
 /* Compute MD5 message digest for LEN bytes beginning at BUFFER.  The
-   result is always in little endian byte order, so that a byte-wise
-   output yields to the wanted ASCII representation of the message
-   digest.  */
+ * result is always in little endian byte order, so that a byte-wise
+ * output yields to the wanted ASCII representation of the message
+ * digest.  */
 extern void *md5_buffer(const char *buffer, size_t len, void *resblock);
 
-#endif /* md5.h */
+#endif                          /* md5.h */

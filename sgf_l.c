@@ -73,7 +73,6 @@ typedef int flex_int32_t;
 typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
-#endif /* ! C99 */
 
 /* Limits of integral types. */
 #ifndef INT8_MIN
@@ -103,6 +102,8 @@ typedef unsigned int flex_uint32_t;
 #ifndef UINT32_MAX
 #define UINT32_MAX             (4294967295U)
 #endif
+
+#endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
 
@@ -160,7 +161,15 @@ typedef unsigned int flex_uint32_t;
 
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k.
+ * Moreover, YY_BUF_SIZE is 2*YY_READ_BUF_SIZE in the general case.
+ * Ditto for the __ia64__ case accordingly.
+ */
+#define YY_BUF_SIZE 32768
+#else
 #define YY_BUF_SIZE 16384
+#endif /* __ia64__ */
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -1002,7 +1011,7 @@ char *sgftext;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: sgf_l.c,v 1.6 2008/05/15 09:23:22 c_anthon Exp $
+ * $Id: sgf_l.l,v 1.1 2007/12/15 20:36:58 c_anthon Exp $
  */
 #line 23 "sgf_l.l"
 #include "config.h"
@@ -1032,7 +1041,7 @@ static int error( char *s ) {
 #define YY_FATAL_ERROR(m) error(m)
 #define YY_NO_INPUT 1
 
-#line 1036 "sgf_l.c"
+#line 1045 "sgf_l.c"
 
 #define INITIAL 0
 #define value 1
@@ -1112,7 +1121,12 @@ static int input (void );
 
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k */
+#define YY_READ_BUF_SIZE 16384
+#else
 #define YY_READ_BUF_SIZE 8192
+#endif /* __ia64__ */
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -1120,7 +1134,7 @@ static int input (void );
 /* This used to be an fputs(), but since the string might contain NUL's,
  * we now use fwrite().
  */
-#define ECHO fwrite( sgftext, sgfleng, 1, sgfout )
+#define ECHO do { if (fwrite( sgftext, sgfleng, 1, sgfout )) {} } while (0)
 #endif
 
 /* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
@@ -1131,7 +1145,7 @@ static int input (void );
 	if ( YY_CURRENT_BUFFER_LVALUE->yy_is_interactive ) \
 		{ \
 		int c = '*'; \
-		unsigned n; \
+		size_t n; \
 		for ( n = 0; n < max_size && \
 			     (c = getc( sgfin )) != EOF && c != '\n'; ++n ) \
 			buf[n] = (char) c; \
@@ -1215,7 +1229,7 @@ YY_DECL
     
 #line 67 "sgf_l.l"
 
-#line 1219 "sgf_l.c"
+#line 1233 "sgf_l.c"
 
 	if ( !(yy_init) )
 		{
@@ -1364,7 +1378,7 @@ YY_RULE_SETUP
 #line 100 "sgf_l.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1368 "sgf_l.c"
+#line 1382 "sgf_l.c"
 			case YY_STATE_EOF(INITIAL):
 			case YY_STATE_EOF(value):
 				yyterminate();

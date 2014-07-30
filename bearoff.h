@@ -16,90 +16,85 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: bearoff.h,v 1.28 2012/03/25 14:50:18 plm Exp $
+ * $Id: bearoff.h,v 1.30 2013/06/16 02:16:09 mdpetch Exp $
  */
 
-#ifndef _BEAROFF_H_
-#define _BEAROFF_H_
+#ifndef BEAROFF_H
+#define BEAROFF_H
 
 #include "gnubg-types.h"
 
 #include <glib.h>
 
 typedef enum _bearofftype {
-	BEAROFF_INVALID,
-  BEAROFF_ONESIDED,
-  BEAROFF_TWOSIDED,
-  BEAROFF_HYPERGAMMON
+    BEAROFF_INVALID,
+    BEAROFF_ONESIDED,
+    BEAROFF_TWOSIDED,
+    BEAROFF_HYPERGAMMON
 } bearofftype;
 
-typedef struct _bearoffcontext
-{
-  FILE *pf;          /* file pointer */
-  bearofftype bt; /* type of bearoff database */
-  unsigned int nPoints;    /* number of points covered by database */
-  unsigned int nChequers;  /* number of chequers for one-sided database */
-  char *szFilename; /* filename */
-  /* one sided dbs */
-  int fCompressed; /* is database compressed? */
-  int fGammon;     /* gammon probs included */
-  int fND;         /* normal distibution instead of exact dist? */
-  int fHeuristic;  /* heuristic database? */
-  /* two sided dbs */
-  int fCubeful;    /* cubeful equities included */
+typedef struct _bearoffcontext {
+    FILE *pf;                   /* file pointer */
+    bearofftype bt;             /* type of bearoff database */
+    unsigned int nPoints;       /* number of points covered by database */
+    unsigned int nChequers;     /* number of chequers for one-sided database */
+    char *szFilename;           /* filename */
+    /* one sided dbs */
+    int fCompressed;            /* is database compressed? */
+    int fGammon;                /* gammon probs included */
+    int fND;                    /* normal distibution instead of exact dist? */
+    int fHeuristic;             /* heuristic database? */
+    /* two sided dbs */
+    int fCubeful;               /* cubeful equities included */
 #if GLIB_CHECK_VERSION(2,8,0)
-  GMappedFile *map;
+    GMappedFile *map;
 #endif
-  unsigned char *p;        /* pointer to data in memory */
+    unsigned char *p;           /* pointer to data in memory */
 
-  unsigned long int nReads; /* number of reads */
+    unsigned long int nReads;   /* number of reads */
 
 } bearoffcontext;
 
 enum _bearoffoptions {
-  BO_NONE              = 0,
-  BO_IN_MEMORY         = 1,
-  BO_MUST_BE_ONE_SIDED = 2,
-  BO_MUST_BE_TWO_SIDED = 4,
-  BO_HEURISTIC         = 8
+    BO_NONE = 0,
+    BO_IN_MEMORY = 1,
+    BO_MUST_BE_ONE_SIDED = 2,
+    BO_MUST_BE_TWO_SIDED = 4,
+    BO_HEURISTIC = 8
 };
 
-extern bearoffcontext *BearoffInit ( const char *szFilename, const int bo, void (*p)(unsigned int) );
+extern bearoffcontext *BearoffInit(const char *szFilename, const int bo, void (*p) (unsigned int));
 
-extern bearoffcontext *BearoffInitBuiltin ( void );
+extern bearoffcontext *BearoffInitBuiltin(void);
 
 extern int
-BearoffEval ( const bearoffcontext *pbc, const TanBoard anBoard, float arOutput[] );
+ BearoffEval(const bearoffcontext * pbc, const TanBoard anBoard, float arOutput[]);
 
 extern void
-BearoffStatus ( const bearoffcontext *pbc, char *sz );
+ BearoffStatus(const bearoffcontext * pbc, char *sz);
 
 extern int
-BearoffDump ( const bearoffcontext *pbc, const TanBoard anBoard, char *sz );
+ BearoffDump(const bearoffcontext * pbc, const TanBoard anBoard, char *sz);
 
 extern int
-BearoffDist ( const bearoffcontext *pbc, const unsigned int nPosID,
-              float arProb[ 32 ], float arGammonProb[ 32 ],
-              float ar[ 4 ],
-              unsigned short int ausProb[ 32 ], 
-              unsigned short int ausGammonProb[ 32 ] );
+
+
+BearoffDist(const bearoffcontext * pbc, const unsigned int nPosID,
+            float arProb[32], float arGammonProb[32],
+            float ar[4], unsigned short int ausProb[32], unsigned short int ausGammonProb[32]);
 
 extern int
-BearoffCubeful ( const bearoffcontext *pbc,
-                 const unsigned int iPos,
-                 float ar[ 4 ], unsigned short int aus[ 4 ] );
+ BearoffCubeful(const bearoffcontext * pbc, const unsigned int iPos, float ar[4], unsigned short int aus[4]);
 
-extern void BearoffClose ( bearoffcontext *ppbc );
+extern void BearoffClose(bearoffcontext * ppbc);
 
 extern int
-isBearoff ( const bearoffcontext *pbc, const TanBoard anBoard );
+ isBearoff(const bearoffcontext * pbc, const TanBoard anBoard);
 
 extern float
-fnd ( const float x, const float mu, const float sigma  );
+ fnd(const float x, const float mu, const float sigma);
 
 extern int
-BearoffHyper( const bearoffcontext *pbc,
-              const unsigned int iPos,
-              float arOutput[], float arEquity[] );
+ BearoffHyper(const bearoffcontext * pbc, const unsigned int iPos, float arOutput[], float arEquity[]);
 
-#endif /* _BEAROFF_H_ */
+#endif                          /* BEAROFF_H */

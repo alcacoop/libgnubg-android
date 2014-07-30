@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: openurl.c,v 1.26 2009/03/01 20:01:51 Superfly_Jon Exp $
+ * $Id: openurl.c,v 1.28 2013/07/22 23:04:00 mdpetch Exp $
  */
 #include "config.h"
 #include <stdio.h>
@@ -29,62 +29,59 @@
 #include "shellapi.h"
 #else
 #include <string.h>
-#endif /* WIN32 */
+#endif                          /* WIN32 */
 static gchar *web_browser = NULL;
 
-extern const gchar * get_web_browser (void)
+extern const gchar *
+get_web_browser(void)
 {
-	const gchar *pch;
+    const gchar *pch;
 #ifdef WIN32
-	if (!web_browser || !*web_browser)
-		return("");
+    if (!web_browser || !*web_browser)
+        return ("");
 #endif
-	if (web_browser && *web_browser)
-		return web_browser;
-	if ((pch = g_getenv ("BROWSER")) == NULL)
-	{
+    if (web_browser && *web_browser)
+        return web_browser;
+    if ((pch = g_getenv("BROWSER")) == NULL) {
 #ifdef __APPLE__
-		pch = "open";
+        pch = "open";
 #else
-		pch = "firefox";
+        pch = OPEN_URL_PROG;
 #endif
-	}
-	return pch;
+    }
+    return pch;
 }
 
 
-extern char * set_web_browser (const char *sz)
+extern char *
+set_web_browser(const char *sz)
 {
-  g_free (web_browser);
-  web_browser = g_strdup (sz ? sz : "");
-  return web_browser;
+    g_free(web_browser);
+    web_browser = g_strdup(sz ? sz : "");
+    return web_browser;
 }
 
-extern void OpenURL(const char *szURL)
+extern void
+OpenURL(const char *szURL)
 {
-	const gchar *browser = get_web_browser();
-	gchar *commandString;
-	GError *error = NULL;
-	if (!(browser) || !(*browser)) {
+    const gchar *browser = get_web_browser();
+    gchar *commandString;
+    GError *error = NULL;
+    if (!(browser) || !(*browser)) {
 #ifdef WIN32
-		int win_error;
-		gchar *url = g_filename_to_uri(szURL, NULL, NULL);
-		win_error =
-			(int) ShellExecute(NULL, TEXT("open"), url ? url : szURL, NULL,
-				       ".\\", SW_SHOWNORMAL);
-		if (win_error < 33)
-			outputerrf(_("Failed to perform default action on "
-				     "%s. Error code was %d"), url,
-				   win_error);
-		g_free(url);
-		return;
+        int win_error;
+        gchar *url = g_filename_to_uri(szURL, NULL, NULL);
+        win_error = (int) ShellExecute(NULL, TEXT("open"), url ? url : szURL, NULL, ".\\", SW_SHOWNORMAL);
+        if (win_error < 33)
+            outputerrf(_("Failed to perform default action on " "%s. Error code was %d"), url, win_error);
+        g_free(url);
+        return;
 #endif
-	}
-	commandString = g_strdup_printf("'%s' '%s'", browser, szURL);
-	if (!g_spawn_command_line_async(commandString, &error)) {
-		outputerrf(_("Browser couldn't open file (%s): %s\n"),
-			   commandString, error->message);
-		g_error_free(error);
-	}
-	return;
+    }
+    commandString = g_strdup_printf("'%s' '%s'", browser, szURL);
+    if (!g_spawn_command_line_async(commandString, &error)) {
+        outputerrf(_("Browser couldn't open file (%s): %s\n"), commandString, error->message);
+        g_error_free(error);
+    }
+    return;
 }
