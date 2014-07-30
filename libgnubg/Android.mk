@@ -30,25 +30,11 @@
  ##################################################################
 
 
+
+LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)  
 
-NDK_PROJECT_PATH := ${CMAKE_CURRENT_SOURCE_DIR}
-
-LOCAL_PATH := $(call my-dir)  
-LOCAL_PATH := /home/dmt/Progetti/gnubg-android/
-GLIB_TOP   := $(LOCAL_PATH)/glib/
-
-
-include $(call all-subdir-makefiles)
-
-include $(GLIB_TOP)glib/Android.mk
-include $(GLIB_TOP)gthread/Android.mk
-
-
-LOCAL_PATH := /home/dmt/Progetti/gnubg-android/
 LOCAL_SRC_FILES := \
-		mtsupport.c \
-		multithread.c \
     lib/list.c \
     lib/neuralnet.c \
     lib/mt19937ar.c \
@@ -56,6 +42,8 @@ LOCAL_SRC_FILES := \
     lib/md5.c \
     lib/cache.c \
     lib/inputs.c \
+		mtsupport.c \
+		multithread.c \
 		output.c \
 		timer.c \
     globals.c \
@@ -78,40 +66,29 @@ LOCAL_SRC_FILES := \
 		test.c
 
 
-LOCAL_CFLAGS := -ffast-math -O3 -funroll-loops
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/lib $(SYSROOT)/usr/lib 
-LOCAL_LDLIBS := -llog
 LOCAL_MODULE := libgnubg
 LOCAL_MODULE_FILENAME := libgnubg
 
-LOCAL_SHARED_LIBRARIES := libgthread-2.0 libglib-2.0
-
-
-GLIB_C_INCLUDES :=			\
-	$(GLIB_TOP)			\
-	$(GLIB_TOP)glib/glib		\
-	$(GLIB_TOP)glib/android \
-	$(GLIB_TOP)glib/android-internal
-
-LOCAL_CFLAGS=-DIS_LIBRARY -DIS_ANDROID -DHAVE_CONFIG_H -g -O2 -DLOCALEDIR=\"/usr/share/locale\" -pthread -DAC_DATADIR=\"/usr/share\" -DAC_PKGDATADIR=\"/usr/share/gnubg\" -DAC_DOCDIR=\"/usr/share/doc/gnubg/\" -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -w
+LOCAL_CFLAGS := \
+	-DIS_ANDROID \
+	-DIS_LIBRARY \
+  -ffast-math -O3 -funroll-loops \
+	-DHAVE_CONFIG_H -g -w \
+  -DAC_DATADIR=\"/\" \
+  -DAC_PKGDATADIR=\"/\" \
+  -DAC_DOCDIR=\"/\" \
 
 LOCAL_C_INCLUDES :=			\
-	$(GLIB_TOP)			\
-	$(LOCAL_PATH)lib 	\
-	$(GLIB_TOP)glib		\
-	$(GLIB_TOP)android-internal \
-	$(GLIB_TOP)android
+	$(GLIB_TOP)/	\
+	$(GLIB_TOP)/glib 	\
+	$(GLIB_TOP)/glib/gthread 	\
+	$(GLIB_TOP)/glib/android \
+	$(LIBGNUBG_TOP)/lib
 
-GTHREAD_C_INCLUDES :=			\
-	$(GLIB_C_INCLUDES)		\
-	$(GLIB_TOP)gthread
-
-GLIB_SHARED_LIBRARIES := \
+LOCAL_SHARED_LIBRARIES := \
 	libgthread-2.0 \
 	libglib-2.0
 
-include $(BUILD_SHARED_LIBRARY) 
+LOCAL_LDLIBS := -llog
 
-include $(shell cp -rf libs/armeabi/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi/)  
-include $(shell cp -rf libs/armeabi-v7a/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi-v7a/)  
-include $(shell cp -rf libs/x86/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/x86/)  
+include $(BUILD_SHARED_LIBRARY) 
