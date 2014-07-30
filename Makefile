@@ -34,43 +34,43 @@ NDK_PROJECT_PATH=${pwd}
 CC=gcc
 
 CFLAGS=-DIS_LIBRARY -DHAVE_CONFIG_H -g -O2 -DLOCALEDIR=\"/usr/share/locale\" -pthread -DAC_DATADIR=\"/usr/share\" -DAC_PKGDATADIR=\"/usr/share/gnubg\" -DAC_DOCDIR=\"/usr/share/doc/gnubg/\" -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -Ilib -fPIC
-INCLUDES=-I. -I./lib -I/usr/lib/jvm/java-6-openjdk-amd64/include/
+INCLUDES=-Ilibgnubg -Ilibgnubg/lib -I/usr/lib/jvm/java-6-openjdk-amd64/include/
 
 
 OBJS= \
-    lib/list.o \
-    lib/neuralnet.o \
-    lib/mt19937ar.o \
-    lib/isaac.o \
-    lib/md5.o \
-    lib/cache.o \
-    lib/inputs.o \
-		mtsupport.o \
-		multithread.o \
-		output.o \
-		timer.o \
-    globals.o \
-    async.o \
-    dice.o \
-    bearoff.o \
-    bearoffgammon.o \
-    imported_functions.o \
-    levels.o \
-    matchequity.o \
-    matchid.o \
-    nativeAPI.o \
-    util.o \
-    mec.o \
-    positionid.o \
-		eval.o \
-		rollout.o \
-		evallock.o \
-		jniAPI.o \
-    test.o
+    libgnubg/lib/list.o \
+    libgnubg/lib/neuralnet.o \
+    libgnubg/lib/mt19937ar.o \
+    libgnubg/lib/isaac.o \
+    libgnubg/lib/md5.o \
+    libgnubg/lib/cache.o \
+    libgnubg/lib/inputs.o \
+		libgnubg/mtsupport.o \
+		libgnubg/multithread.o \
+		libgnubg/output.o \
+		libgnubg/timer.o \
+    libgnubg/globals.o \
+    libgnubg/async.o \
+    libgnubg/dice.o \
+    libgnubg/bearoff.o \
+    libgnubg/bearoffgammon.o \
+    libgnubg/imported_functions.o \
+    libgnubg/levels.o \
+    libgnubg/matchequity.o \
+    libgnubg/matchid.o \
+    libgnubg/nativeAPI.o \
+    libgnubg/util.o \
+    libgnubg/mec.o \
+    libgnubg/positionid.o \
+		libgnubg/eval.o \
+		libgnubg/rollout.o \
+		libgnubg/evallock.o \
+		libgnubg/jniAPI.o \
+    libgnubg/test.o
 
 
 
-LDFLAGS=-L./lib -lm -fPIC
+LDFLAGS=-Llibgnubg/lib -lm -fPIC
 
 all: src
 	$(CC) -o test $(OBJS) $(LDFLAGS) -lglib-2.0
@@ -86,6 +86,9 @@ clean:
 jar: src
 	$(CC)  -shared -o libgnubg64.so $(OBJS) glib-static/libpcre.a glib-static/libglib.a glib-static/libcharset.a $(LDFLAGS)
 	jar cvf /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-desktop/libs/gnubg.jar libgnubg64.so
+
+ndk-clean:
+	ndk-build clean
 
 ndk:
 	ndk-build
