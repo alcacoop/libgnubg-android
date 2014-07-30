@@ -156,7 +156,7 @@ ConstTanBoard msBoard(){return (ConstTanBoard)ms.anBoard;};
 
 #ifdef IS_ANDROID
 #include <android/log.h>
-void MYLOG(char* s) {__android_log_write(ANDROID_LOG_ERROR,"MYLOG", s);};
+void MYLOG(char* s) {__android_log_print(ANDROID_LOG_ERROR,"MYLOG", s);};
 #else
 void MYLOG(char* s) {printf("%s", s);}
 #endif

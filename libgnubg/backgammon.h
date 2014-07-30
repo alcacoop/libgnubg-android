@@ -452,7 +452,9 @@ extern void outputoff(void);
 /* Enable output */
 extern void outputon(void);
 /* now we can include libintl.h */
+#ifndef IS_ANDROID
 #include <glib/gi18n.h>
+#endif
 /* Like strncpy, except it does the right thing */
 extern char *strcpyn(char *szDest, const char *szSrc, int cch);
 
