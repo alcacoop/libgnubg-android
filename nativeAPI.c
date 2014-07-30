@@ -49,6 +49,8 @@ void initEnvironment(const char* path) {
   DATA_DIR = (char*)calloc(len, sizeof(char));
   sprintf(DATA_DIR, "%s", path);
 
+  MT_InitThreads();
+
   char *w1, *w2, *met;
   w1 = BuildFilename("gnubg.weights");
   w2 = BuildFilename("gnubg.wd");
@@ -67,6 +69,7 @@ void setAILevel(available_levels l) {
 
 
 int acceptResign(int r) {
+  MT_InitThreads();
   ConstTanBoard board = msBoard();
   cubeinfo ci;
   ms.fResigned = r;
@@ -93,6 +96,7 @@ void updateMSCubeInfo(int nCube, int fCubeOwner) {
 
 
 int acceptDouble() {
+  MT_InitThreads();
   decisionData dd;
   cubedecision cd;
   cubeinfo ci;
@@ -158,6 +162,7 @@ int acceptDouble() {
 
 
 int askForResignation() {
+  MT_InitThreads();
   TanBoard anBoardMove;
   cubeinfo ci;
   float arResign[NUM_ROLLOUT_OUTPUTS];
@@ -186,6 +191,7 @@ int askForResignation() {
 
 
 int askForDoubling() {
+  MT_InitThreads();
   TanBoard anBoardMove;
   cubeinfo ci;
   float arDouble[4];
@@ -275,6 +281,7 @@ int askForDoubling() {
 
 
 void evaluateBestMove(int dices[2], int move[8]) {
+  MT_InitThreads();
   TanBoard anBoardMove;
   cubeinfo ci;
 
@@ -308,6 +315,7 @@ void setMatchTo(int matchTo) {
 
 
 int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
+  MT_InitThreads();
   int f = 2;
   if (d1==d2) f=1;
 
