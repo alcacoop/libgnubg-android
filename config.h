@@ -1,14 +1,8 @@
-#ifdef IS_ANDROID
-  #define _(s) s
-  #define N_(s) s
-  #define gettext(s) s
-#endif
-
 /* config.h.  Generated from config.h.in by configure.  */
-/* config.h.in.  Generated from configure.in by autoheader.  */
+/* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define if you want to disable the SSE cpu test */
-#define DISABLE_SSE_TEST 1
+/* Define if you want to disable the SIMD CPU instruction test */
+#define DISABLE_SIMD_TEST 1
 
 /* always defined to indicate that i18n is enabled */
 #define ENABLE_NLS 1
@@ -17,8 +11,7 @@
 #define GETTEXT_PACKAGE "gnubg"
 
 /* Define if you wish to use glib threads */
-//#define GLIB_THREADS 1
-# undef GLIB_THREADS
+#define GLIB_THREADS 1
 
 /* Define if you want to disable deprecated gtk functions */
 /* #undef GTK_DISABLE_DEPRECATED */
@@ -26,18 +19,24 @@
 /* Define if you want to disable deprecated glib functions */
 /* #undef G_DISABLE_DEPRECATED */
 
+/* Support Altivec instructions */
+/* #undef HAVE_ALTIVEC */
+
 /* Define if you have Apple CoreAudio */
 /* #undef HAVE_APPLE_COREAUDIO */
 
 /* Define if you have Apple QuickTime */
 /* #undef HAVE_APPLE_QUICKTIME */
 
+/* Support AVX (Advanced Vector Extensions) instructions */
+#define HAVE_AVX /**/
+
 /* Define to 1 if you have the `bind_textdomain_codeset' function. */
 #define HAVE_BIND_TEXTDOMAIN_CODESET 1
 
 /* Define if you want to use libcairo */
-#define HAVE_CAIRO 0
-#undef HAVE_CAIRO
+/* #undef HAVE_CAIRO */
+
 /* Define if you want to use gstreamer */
 /* #undef HAVE_CANBERRA */
 
@@ -52,14 +51,13 @@
 #define HAVE_DLFCN_H 1
 
 /* Define if you have freetype2 */
-#define HAVE_FREETYPE 0
-#undef HAVE_FREETYPE
+/* #undef HAVE_FREETYPE */
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #define HAVE_GETTEXT 1
 
 /* Define to 1 if you have the <GL/glx.h> header file. */
-#define HAVE_GL_GLX_H 1
+/* #undef HAVE_GL_GLX_H */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -74,23 +72,28 @@
 #define HAVE_LIBM 1
 
 /* Define if you have libpng */
-#define HAVE_LIBPNG 0
-#undef HAVE_LIBPNG
+/* #undef HAVE_LIBPNG */
 
 /* Define if you have libreadline */
-//#define HAVE_LIBREADLINE 0
-//#undef HAVE_LIBREADLINE
-
+#define HAVE_LIBREADLINE 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
 
+/* Define to 1 if you have the <mcheck.h> header file. */
+#define HAVE_MCHECK_H 1
+
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
+/* Support mmx instructions */
+#define HAVE_MMX /**/
+
+/* Define to 1 if you have the `mtrace' function. */
+#define HAVE_MTRACE 1
+
 /* Define if you want to use pangocairo */
-#define HAVE_PANGOCAIRO 0
-#undef HAVE_PANGOCAIRO
+/* #undef HAVE_PANGOCAIRO */
 
 /* Define to 1 if you have the `random' function. */
 #define HAVE_RANDOM 1
@@ -105,8 +108,25 @@
 /* #undef HAVE_SIGVEC */
 
 /* Define if the system supports AF_LOCAL sockets. */
-#define HAVE_SOCKETS 0
-#undef HAVE_SOCKETS
+#define HAVE_SOCKETS 1
+
+/* Support SSE (Streaming SIMD Extensions) instructions */
+#define HAVE_SSE /**/
+
+/* Support SSE2 (Streaming SIMD Extensions 2) instructions */
+#define HAVE_SSE2 /**/
+
+/* Support SSE3 (Streaming SIMD Extensions 3) instructions */
+#define HAVE_SSE3 /**/
+
+/* Support SSSE4.1 (Streaming SIMD Extensions 4.1) instructions */
+#define HAVE_SSE4_1 /**/
+
+/* Support SSSE4.2 (Streaming SIMD Extensions 4.2) instructions */
+#define HAVE_SSE4_2 /**/
+
+/* Support SSSE3 (Supplemental Streaming SIMD Extensions 3) instructions */
+#define HAVE_SSSE3 /**/
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
@@ -145,6 +165,18 @@
    */
 #define LT_OBJDIR ".libs/"
 
+/* maximum number of evaluation threads */
+#define MAX_NUMTHREAD 2
+
+/* Define to 1 if your C compiler doesn't accept -c and -o together. */
+/* #undef NO_MINUS_C_MINUS_O */
+
+/* Needed for now on recent Ubuntu releases */
+#define NO_OVERLAYSCROLLBARS 1
+
+/* program to open URLs */
+#define OPEN_URL_PROG "sensible-browser"
+
 /* Name of package */
 #define PACKAGE "gnubg"
 
@@ -155,7 +187,7 @@
 #define PACKAGE_NAME "GNU Backgammon"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU Backgammon 0.90.0"
+#define PACKAGE_STRING "GNU Backgammon 1.02.000"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "gnubg"
@@ -164,13 +196,16 @@
 #define PACKAGE_URL "http://www.gnu.org/software/gnubg/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.90.0"
+#define PACKAGE_VERSION "1.02.000"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
 /* Define if using Apple OpenGL */
 /* #undef USE_APPLE_OPENGL */
+
+/* Define if you want to compile with AVX support */
+/* #undef USE_AVX */
 
 /* Define if you want to use the 3d boards */
 /* #undef USE_BOARD3D */
@@ -179,28 +214,22 @@
 #define USE_EXTENDEDMATCHID 1
 
 /* Define if you want to use the gtk gui */
-#define USE_GTK 0
-#undef USE_GTK
+/* #undef USE_GTK */
 
 /* Define if you want to have multithread support */
-#define USE_MULTITHREAD 0
-#undef USE_MULTITHREAD
+#define USE_MULTITHREAD 1
 
 /* Define if you want to use Python inside gnubg */
-#define USE_PYTHON 0
-#undef USE_PYTHON
+/* #undef USE_PYTHON */
+
+/* Define if you want to compile with SIMD support */
+/* #undef USE_SIMD_INSTRUCTIONS */
 
 /* Define if you want to use sqlite */
-#define USE_SQLITE 0
-#undef USE_SQLITE
+#define USE_SQLITE 1
 
 /* Define if you want to compile with SSE2 support */
-#define USE_SSE2 0
-#undef USE_SSE2
-
-/* Define if you want to compile with SSE support */
-#define USE_SSE_VECTORIZE 0
-#undef USE_SSE_VECTORIZE
+/* #undef USE_SSE2 */
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
@@ -225,7 +254,7 @@
 
 
 /* Version number of package */
-#define VERSION "0.90.0"
+#define VERSION "1.02.000"
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */
@@ -249,3 +278,8 @@
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 /* #undef size_t */
+
+#if IS_ANDROID
+#define _(s) (s)
+#define gettext(s) (s)
+#endif
