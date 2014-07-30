@@ -45,10 +45,13 @@ OBJS= \
     lib/md5.o \
     lib/cache.o \
     lib/inputs.o \
+		mtsupport.o \
+		multithread.o \
+		output.o \
+		timer.o \
     globals.o \
     async.o \
     dice.o \
-    eval.o \
     bearoff.o \
     bearoffgammon.o \
     imported_functions.o \
@@ -59,9 +62,12 @@ OBJS= \
     util.o \
     mec.o \
     positionid.o \
-    rollout.o \
+		eval.o \
+		rollout.o \
+		evallock.o \
 		jniAPI.o \
     test.o
+
 
 
 LDFLAGS=-L./lib -lm -fPIC

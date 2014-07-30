@@ -47,6 +47,8 @@ include $(GLIB_TOP)gthread/Android.mk
 
 LOCAL_PATH := /home/dmt/Progetti/gnubg-android/
 LOCAL_SRC_FILES := \
+		mtsupport.c \
+		multithread.c \
     lib/list.c \
     lib/neuralnet.c \
     lib/mt19937ar.c \
@@ -54,10 +56,11 @@ LOCAL_SRC_FILES := \
     lib/md5.c \
     lib/cache.c \
     lib/inputs.c \
+		output.c \
+		timer.c \
     globals.c \
     async.c \
     dice.c \
-    eval.c \
     bearoff.c \
     bearoffgammon.c \
     imported_functions.c \
@@ -69,8 +72,10 @@ LOCAL_SRC_FILES := \
     util.c \
     mec.c \
     positionid.c \
+    eval.c \
     rollout.c \
-    test.c
+		evallock.c \
+		test.c
 
 
 LOCAL_CFLAGS := -ffast-math -O3 -funroll-loops
