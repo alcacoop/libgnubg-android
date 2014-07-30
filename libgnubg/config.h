@@ -282,4 +282,5 @@
 #if IS_ANDROID
 #define _(s) (s)
 #define gettext(s) (s)
+#define N_(s) (s)
 #endif
