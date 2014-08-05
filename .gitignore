@@ -7,7 +7,7 @@ libgnubg.so
 *.so
 libs
 objs
-
+obj
 ## EMACS
 *~
 \#*
