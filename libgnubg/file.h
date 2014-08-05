@@ -1,4 +1,9 @@
-/* This program is free software; you can redistribute it and/or modify
+/*
+ * file.h
+ *
+ * by Christian Anthon 2007
+ *
+ * This program is free software; you can redistribute it and/or modify
  * it under the terms of version 3 or later of the GNU General Public License as
  * published by the Free Software Foundation.
  *
@@ -10,7 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * $Id: file.h,v 1.10 2013/11/13 23:39:51 plm Exp $
  */
+
+#ifndef FILE_H
+#define FILE_H
 
 typedef enum {
     EXPORT_SGF,
@@ -31,7 +41,6 @@ typedef enum {
 typedef enum {
     IMPORT_SGF,
     IMPORT_SGG,
-    IMPORT_BKG,
     IMPORT_MAT,
     IMPORT_OLDMOVES,
     IMPORT_POS,
@@ -69,3 +78,5 @@ typedef struct _FilePreviewData {
 
 extern char *GetFilename(int CheckForCurrent, ExportType type);
 extern FilePreviewData *ReadFilePreview(const char *filename);
+
+#endif

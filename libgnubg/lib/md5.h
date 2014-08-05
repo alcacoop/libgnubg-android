@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: md5.h,v 1.7 2013/06/16 02:16:24 mdpetch Exp $
+ * $Id: md5.h,v 1.8 2014/05/11 15:20:32 plm Exp $
  */
 
 /* License changed from the GNU LGPL to the GNU GPL (as permitted
@@ -84,10 +84,12 @@ extern void *md5_finish_ctx(struct md5_ctx *ctx, void *resbuf);
 extern void *md5_read_ctx(const struct md5_ctx *ctx, void *resbuf);
 
 
+#if 0
 /* Compute MD5 message digest for bytes read from STREAM.  The
  * resulting message digest number will be written into the 16 bytes
  * beginning at RESBLOCK.  */
 extern int md5_stream(FILE * stream, void *resblock);
+#endif
 
 /* Compute MD5 message digest for LEN bytes beginning at BUFFER.  The
  * result is always in little endian byte order, so that a byte-wise

@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: inputs.c,v 1.8 2013/07/18 02:01:24 mdpetch Exp $
+ * $Id: inputs.c,v 1.9 2014/07/20 21:18:29 plm Exp $
  */
 
 #include "config.h"
@@ -37,7 +37,7 @@ typedef float float_vector[4];
 
 typedef SSE_ALIGN(float float_vec_aligned[sizeof(float_vector)/sizeof(float)]);
 
-SSE_ALIGN (float_vec_aligned inpvec[16]) = {
+SSE_ALIGN (static float_vec_aligned inpvec[16]) = {
     /*  0 */  {
     0.0, 0.0, 0.0, 0.0},
         /*  1 */  {
@@ -71,7 +71,7 @@ SSE_ALIGN (float_vec_aligned inpvec[16]) = {
         /* 15 */  {
 0.0, 0.0, 1.0, 6.0}};
 
-SSE_ALIGN(float_vec_aligned inpvecb[16]) = {
+SSE_ALIGN(static float_vec_aligned inpvecb[16]) = {
     /*  0 */  {
     0.0, 0.0, 0.0, 0.0},
         /*  1 */  {

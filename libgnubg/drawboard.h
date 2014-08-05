@@ -16,13 +16,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: drawboard.h,v 1.20 2013/06/16 02:16:11 mdpetch Exp $
+ * $Id: drawboard.h,v 1.22 2014/06/24 23:53:13 mdpetch Exp $
  */
 
 #ifndef DRAWBOARD_H
 #define DRAWBOARD_H
 
 #include "gnubg-types.h"
+#include "external.h"
 
 extern int fClockwise;          /* Player 1 moves clockwise */
 
@@ -40,9 +41,11 @@ extern char *FIBSBoard(char *pch, TanBoard anBoard, int fRoll,
                        int nScore, int nOpponent, int nDice0, int nDice1,
                        int nCube, int fCubeOwner, int fDoubled, int fTurn, int fCrawford, int nChequers);
 /* Read a FIBS "boardstyle 3" description from pch. */
-extern int ParseFIBSBoard(char *pch, TanBoard anBoard,
-                          char *szPlayer, char *szOpp, int *pnMatchTo,
-                          int *pnScore, int *pnScoreOpponent,
-                          int anDice[2], int *pnCube, int *pfCubeOwner, int *pfDoubled, int *pfCrawford);
+extern int ProcessFIBSBoardString(char *pch, ProcessedFIBSBoard * procBrd);
+
+/* Process a board info structure from external interface */
+extern int ProcessFIBSBoardInfo(FIBSBoardInfo * brdInfo, ProcessedFIBSBoard * procBrd);
+
+extern int ParseFIBSBoardString(char *pch, FIBSBoardInfo * brdInfo);
 
 #endif

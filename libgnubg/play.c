@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: play.c,v 1.420 2013/06/26 04:41:47 mdpetch Exp $
+ * $Id: play.c,v 1.432 2014/07/27 01:28:30 mdpetch Exp $
  */
 
 #include "config.h"
@@ -35,7 +35,6 @@
 #include "positionid.h"
 #include "matchid.h"
 #include "matchequity.h"
-#include "rollout.h"
 #include "sound.h"
 #include "renderprefs.h"
 #include "md5.h"
@@ -47,7 +46,7 @@
 #include "fun3d.h"
 #endif
 
-moverecord *pmr_hint = NULL;
+static moverecord *pmr_hint = NULL;
 
 const char *aszGameResult[] = {
     N_("single game"),
@@ -149,7 +148,7 @@ static int
 #if USE_GTK
 #include "gtkgame.h"
 
-int anLastMove[8], fLastMove, fLastPlayer;
+static int anLastMove[8], fLastMove, fLastPlayer;
 #endif
 
 static void
@@ -414,8 +413,10 @@ FreeMoveRecord(moverecord * pmr)
 
     switch (pmr->mt) {
     case MOVE_NORMAL:
-        if (pmr->ml.cMoves)
+        if (pmr->ml.cMoves && pmr->ml.amMoves) {
             free(pmr->ml.amMoves);
+            pmr->ml.amMoves = NULL;
+        }
         break;
 
     default:
@@ -723,12 +724,13 @@ ResetDelayTimer(void)
 extern void
 AddGame(moverecord * pmr)
 {
-
     g_assert(pmr->mt == MOVE_GAMEINFO);
 
 #if USE_GTK
     if (fX)
         GTKAddGame(pmr);
+#else
+    (void) pmr;                 /* silence compiler warning */
 #endif
 }
 
@@ -849,8 +851,8 @@ NewGame(void)
     pmr = NewMoveRecord();
     pmr->mt = MOVE_SETDICE;
 
-    pmr->anDice[0] = ms.anDice[0];
-    pmr->anDice[1] = ms.anDice[1];
+    pmr->anDice[0] = MAX(ms.anDice[0], ms.anDice[1]);
+    pmr->anDice[1] = MIN(ms.anDice[0], ms.anDice[1]);
     pmr->fPlayer = ms.anDice[1] > ms.anDice[0];
 
 
@@ -1306,8 +1308,8 @@ ComputerTurn(void)
                     case OPTIONAL_DOUBLE_PASS:
                     case OPTIONAL_REDOUBLE_PASS:
 
-                        if (ap[ms.fTurn].esCube.et == EVAL_EVAL && ap[ms.fTurn].esCube.ec.nPlies == 0) {
-                            /* double if 0-ply */
+                        if (ap[ms.fTurn].esCube.et == EVAL_EVAL && ap[ms.fTurn].esCube.ec.nPlies == 0 && arOutput[0] > 0.001f ) {
+                            /* double if 0-ply except when about to lose game */
                             if (fTutor && fTutorCube)
                                 current_pmr_cubedata_update(dd.pes, dd.aarOutput, dd.aarStdDev);
                             fComputerDecision = TRUE;
@@ -1353,8 +1355,8 @@ ComputerTurn(void)
             pmr = NewMoveRecord();
 
             pmr->mt = MOVE_NORMAL;
-            pmr->anDice[0] = ms.anDice[0];
-            pmr->anDice[1] = ms.anDice[1];
+            pmr->anDice[0] = MAX(ms.anDice[0], ms.anDice[1]);
+            pmr->anDice[1] = MIN(ms.anDice[0], ms.anDice[1]);
             pmr->fPlayer = ms.fTurn;
             pmr->esChequer = ap[ms.fTurn].esChequer;
 
@@ -1519,8 +1521,8 @@ ComputerTurn(void)
             parse_move_is_legal(szResponse, &ms, an);
             pmr = NewMoveRecord();
             pmr->mt = MOVE_NORMAL;
-            pmr->anDice[0] = ms.anDice[0];
-            pmr->anDice[1] = ms.anDice[1];
+            pmr->anDice[0] = MAX(ms.anDice[0], ms.anDice[1]);
+            pmr->anDice[1] = MIN(ms.anDice[0], ms.anDice[1]);
             pmr->fPlayer = ms.fTurn;
             memcpy(pmr->n.anMove, an, sizeof pmr->n.anMove);
             if (pmr->n.anMove[0] < 0) {
@@ -1629,8 +1631,8 @@ TryBearoff(void)
                 pmr = NewMoveRecord();
 
                 pmr->mt = MOVE_NORMAL;
-                pmr->anDice[0] = ms.anDice[0];
-                pmr->anDice[1] = ms.anDice[1];
+                pmr->anDice[0] = MAX(ms.anDice[0], ms.anDice[1]);
+                pmr->anDice[1] = MIN(ms.anDice[0], ms.anDice[1]);
                 pmr->fPlayer = ms.fTurn;
                 memcpy(pmr->n.anMove, ml.amMoves[i].anMove, sizeof(pmr->n.anMove));
 
@@ -2599,8 +2601,8 @@ CommandMove(char *sz)
 
             pmr->mt = MOVE_NORMAL;
             pmr->sz = NULL;
-            pmr->anDice[0] = ms.anDice[0];
-            pmr->anDice[1] = ms.anDice[1];
+            pmr->anDice[0] = MAX(ms.anDice[0], ms.anDice[1]);
+            pmr->anDice[1] = MIN(ms.anDice[0], ms.anDice[1]);
             pmr->fPlayer = ms.fTurn;
             if (ml.cMoves)
                 memcpy(pmr->n.anMove, ml.amMoves[0].anMove, sizeof(pmr->n.anMove));
@@ -2636,8 +2638,8 @@ CommandMove(char *sz)
     pmr = NewMoveRecord();
     pmr->mt = MOVE_NORMAL;
     pmr->sz = NULL;
-    pmr->anDice[0] = ms.anDice[0];
-    pmr->anDice[1] = ms.anDice[1];
+    pmr->anDice[0] = MAX(ms.anDice[0], ms.anDice[1]);
+    pmr->anDice[1] = MIN(ms.anDice[0], ms.anDice[1]);
     pmr->fPlayer = ms.fTurn;
     memcpy(pmr->n.anMove, an, sizeof pmr->n.anMove);
 
@@ -2951,9 +2953,7 @@ ChangeGame(listOLD * plGameNew)
         if (reallastmt >= MOVE_SETBOARD && pmr_cur->ml.cMoves == 0)
             pmr_cur->fPlayer = reallastplayer;
         if (pmr_cur->fPlayer != ms.fTurn) {
-            char *sz = g_strdup_printf("%s", pmr_cur->fPlayer ? "1" : "0");
-            CommandSetTurn(sz);
-            g_free(sz);
+            SetTurn(pmr_cur->fPlayer);
         }
         if (dice_rolled) {
             ms.anDice[0] = pmr_cur->anDice[0];
@@ -3280,15 +3280,15 @@ CommandEndGame(char *UNUSED(sz))
     int fAutoGame_store = fAutoGame;
     int fDisplay_store = fDisplay;
     int fQuiet_store = fQuiet;
+    const evalcontext ec_quick = { FALSE, 0, FALSE, TRUE, 0.0 };
+    int manual_dice = (rngCurrent == RNG_MANUAL);
+    evalcontext ec_cheq_store[2];
+    evalcontext ec_cube_store[2];
 #if USE_BOARD3D
     BoardData *bd = NULL;
     if (fX && pwBoard)
         bd = BOARD(pwBoard)->board_data;
 #endif
-    const evalcontext ec_quick = { FALSE, 0, FALSE, TRUE, 0.0 };
-    int manual_dice = (rngCurrent == RNG_MANUAL);
-    evalcontext ec_cheq_store[2];
-    evalcontext ec_cube_store[2];
     ec_cheq_store[0] = ap[0].esChequer.ec;
     ec_cheq_store[1] = ap[1].esChequer.ec;
     ec_cube_store[0] = ap[0].esCube.ec;
@@ -3807,8 +3807,8 @@ CommandRoll(char *UNUSED(sz))
     pmr = NewMoveRecord();
 
     pmr->mt = MOVE_SETDICE;
-    pmr->anDice[0] = ms.anDice[0];
-    pmr->anDice[1] = ms.anDice[1];
+    pmr->anDice[0] = MAX(ms.anDice[0], ms.anDice[1]);
+    pmr->anDice[1] = MIN(ms.anDice[0], ms.anDice[1]);
     pmr->fPlayer = ms.fTurn;
 
     AddMoveRecord(pmr);
@@ -3834,8 +3834,8 @@ CommandRoll(char *UNUSED(sz))
         pmr = NewMoveRecord();
 
         pmr->mt = MOVE_NORMAL;
-        pmr->anDice[0] = ms.anDice[0];
-        pmr->anDice[1] = ms.anDice[1];
+        pmr->anDice[0] = MAX(ms.anDice[0], ms.anDice[1]);
+        pmr->anDice[1] = MIN(ms.anDice[0], ms.anDice[1]);
         pmr->fPlayer = ms.fTurn;
 
         ShowAutoMove(msBoard(), pmr->n.anMove);
@@ -3849,8 +3849,8 @@ CommandRoll(char *UNUSED(sz))
         pmr = NewMoveRecord();
 
         pmr->mt = MOVE_NORMAL;
-        pmr->anDice[0] = ms.anDice[0];
-        pmr->anDice[1] = ms.anDice[1];
+        pmr->anDice[0] = MAX(ms.anDice[0], ms.anDice[1]);
+        pmr->anDice[1] = MIN(ms.anDice[0], ms.anDice[1]);
         pmr->fPlayer = ms.fTurn;
         memcpy(pmr->n.anMove, ml.amMoves[0].anMove, sizeof(pmr->n.anMove));
 
@@ -3935,12 +3935,7 @@ SetMatchID(const char *szMatchID)
 
     lfJacoby = fJacoby;
     if (MatchFromID(anDice, &fTurn, &fResigned, &fDoubled, &fMove, &fCubeOwner, &fCrawford,
-#if USE_EXTENDEDMATCHID
                     &nMatchTo, anScore, &nCube, &lfJacoby, &gs, szMatchID) < 0) {
-#else
-                    &nMatchTo, anScore, &nCube, &gs, szMatchID) < 0) {
-#endif
-
         outputf(_("Illegal match ID '%s'\n"), szMatchID);
         outputf(_("Dice %d %d, "), anDice[0], anDice[1]);
         outputf(_("player on roll %d (turn %d), "), fMove, fTurn);
@@ -3955,7 +3950,6 @@ SetMatchID(const char *szMatchID)
         outputf(_("game state %d\n"), (int) gs);
         outputx();
         return;
-
     }
 
     if (fDoubled) {
@@ -4023,7 +4017,7 @@ SetMatchID(const char *szMatchID)
 
     if (anDice[0]) {
         char sz[10];
-        sprintf(sz, "%d %d", anDice[0], anDice[1]);
+        sprintf(sz, "%u %u", anDice[0], anDice[1]);
         CommandSetDice(sz);
 
     }
@@ -4149,8 +4143,8 @@ get_current_moverecord(int *pfHistory)
 
     if (ms.anDice[0] > 0) {
         pmr_hint->mt = MOVE_NORMAL;
-        pmr_hint->anDice[0] = ms.anDice[0];
-        pmr_hint->anDice[1] = ms.anDice[1];
+        pmr_hint->anDice[0] = MAX(ms.anDice[0], ms.anDice[1]);
+        pmr_hint->anDice[1] = MIN(ms.anDice[0], ms.anDice[1]);
     } else if (ms.fDoubled) {
         pmr_hint->mt = MOVE_TAKE;
     } else {
@@ -4236,8 +4230,8 @@ static int
 CompareRollEquity(const void *p1, const void *p2)
 {
 
-    const rollequity *per1 = (rollequity *) p1;
-    const rollequity *per2 = (rollequity *) p2;
+    const rollequity *per1 = (const rollequity *) p1;
+    const rollequity *per2 = (const rollequity *) p2;
 
     if (per1->r > per2->r)
         return -1;
@@ -4296,15 +4290,14 @@ EvaluateRoll(float ar[NUM_ROLLOUT_OUTPUTS], int nDie1, int nDie2, const TanBoard
 
     memcpy(&anBoardTemp[0][0], &anBoard[0][0], 2 * 25 * sizeof(int));
 
-    if (FindBestMove(NULL, nDie1, nDie2, anBoardTemp, (cubeinfo *) pci, NULL, defaultFilters) < 0)
-        return;
-
+    if (FindBestMove(NULL, nDie1, nDie2, anBoardTemp, pci, NULL, defaultFilters) < 0)
+        g_assert_not_reached();
 
     SwapSides(anBoardTemp);
 
-    if (GeneralEvaluationE(ar, (ConstTanBoard) anBoardTemp, &ciOpp, (evalcontext *) pec))
-        return;
+    GeneralEvaluationE(ar, (ConstTanBoard) anBoardTemp, &ciOpp, pec);
 
+    return;
 }
 
 /* routine to link doubles/beavers/raccoons/etc and their eventual
@@ -4379,8 +4372,8 @@ GetMoveString(moverecord * pmr, int *pPlayer, gboolean addSkillMarks)
     case MOVE_NORMAL:
         *pPlayer = pmr->fPlayer;
         pch = sz;
-        sz[0] = (char) pmr->anDice[0] + '0';
-        sz[1] = (char) pmr->anDice[1] + '0';
+        sz[0] = (char) (MAX(pmr->anDice[0], pmr->anDice[1]) + '0');
+        sz[1] = (char) (MIN(pmr->anDice[0], pmr->anDice[1]) + '0');
         sz[2] = ':';
         sz[3] = ' ';
         FormatMove(sz + 4, msBoard(), pmr->n.anMove);
@@ -4432,7 +4425,7 @@ GetMoveString(moverecord * pmr, int *pPlayer, gboolean addSkillMarks)
 
     case MOVE_SETDICE:
         *pPlayer = pmr->fPlayer;
-        sprintf(sz, _("Rolled %d%d"), pmr->anDice[0], pmr->anDice[1]);
+        sprintf(sz, _("Rolled %d%d"), MAX(pmr->anDice[0], pmr->anDice[1]), MIN(pmr->anDice[0], pmr->anDice[1]));
         pch = sz;
         break;
 

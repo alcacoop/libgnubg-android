@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: matchid.c,v 1.24 2013/06/16 02:16:18 mdpetch Exp $
+ * $Id: matchid.c,v 1.26 2013/11/20 23:04:14 plm Exp $
  */
 
 #include "config.h"
@@ -39,14 +39,14 @@
  */
 
 extern int
-LogCube(const int n)
+LogCube(int n)
 {
+    int i = 0;
 
-    int i;
+    while (n >>= 1)
+        i++;
 
-    for (i = 0;; i++)
-        if (n <= (1 << i))
-            return i;
+    return i;
 }
 
 
@@ -146,10 +146,7 @@ MatchID(const unsigned int anDice[2],
         const int fDoubled,
         const int fMove,
         const int fCubeOwner, const int fCrawford, const int nMatchTo, const int anScore[2], const int nCube,
-#if USE_EXTENDEDMATCHID
-        const int fJacoby,
-#endif
-        const gamestate gs)
+        const int fJacoby, const gamestate gs)
 {
 
     unsigned char auchKey[9];
@@ -174,9 +171,7 @@ MatchID(const unsigned int anDice[2],
     SetBits(auchKey, 21, 15, nMatchTo & 0x7FFF);
     SetBits(auchKey, 36, 15, anScore[0] & 0x7FFF);
     SetBits(auchKey, 51, 15, anScore[1] & 0x7FFF);
-#if USE_EXTENDEDMATCHID
     SetBits(auchKey, 66, 1, (!fJacoby));
-#endif
 
     return MatchIDFromKey(auchKey);
 
@@ -189,10 +184,7 @@ MatchFromKey(int anDice[2],
              int *pfResigned,
              int *pfDoubled,
              int *pfMove, int *pfCubeOwner, int *pfCrawford, int *pnMatchTo, int anScore[2], int *pnCube,
-#if USE_EXTENDEDMATCHID
-             int *pfJacoby,
-#endif
-             gamestate * pgs, const unsigned char *auchKey)
+             int *pfJacoby, gamestate * pgs, const unsigned char *auchKey)
 {
     int temp;
     GetBits(auchKey, 0, 4, pnCube);
@@ -214,10 +206,8 @@ MatchFromKey(int anDice[2],
     GetBits(auchKey, 21, 15, pnMatchTo);
     GetBits(auchKey, 36, 15, &anScore[0]);
     GetBits(auchKey, 51, 15, &anScore[1]);
-#if USE_EXTENDEDMATCHID
     GetBits(auchKey, 66, 1, pfJacoby);
     *pfJacoby = !(*pfJacoby);
-#endif
 
     /* FIXME: implement a consistency check */
 
@@ -250,10 +240,7 @@ MatchFromID(unsigned int anDice[2],
             int *pfTurn,
             int *pfResigned,
             int *pfDoubled, int *pfMove, int *pfCubeOwner, int *pfCrawford, int *pnMatchTo, int anScore[2], int *pnCube,
-#if USE_EXTENDEDMATCHID
-            int *pfJacoby,
-#endif
-            gamestate * pgs, const char *szMatchID)
+            int *pfJacoby, gamestate * pgs, const char *szMatchID)
 {
 
     unsigned char auchKey[9];
@@ -278,12 +265,7 @@ MatchFromID(unsigned int anDice[2],
     /* get matchstate info from the key */
 
     return MatchFromKey((int *) anDice, pfTurn, pfResigned, pfDoubled, pfMove, pfCubeOwner, pfCrawford, pnMatchTo,
-#if USE_EXTENDEDMATCHID
                         (int *) anScore, pnCube, pfJacoby, pgs, auchKey);
-#else
-                        (int *) anScore, pnCube, pgs, auchKey);
-#endif
-
 }
 
 /*
@@ -302,9 +284,6 @@ MatchIDFromMatchState(const matchstate * pms)
                    pms->fTurn,
                    pms->fResigned,
                    pms->fDoubled, pms->fMove, pms->fCubeOwner, pms->fCrawford, pms->nMatchTo, pms->anScore, pms->nCube,
-#if USE_EXTENDEDMATCHID
-                   pms->fJacoby,
-#endif
-                   pms->gs);
+                   pms->fJacoby, pms->gs);
 
 }

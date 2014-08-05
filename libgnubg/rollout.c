@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: rollout.c,v 1.236 2013/06/30 05:32:15 mdpetch Exp $
+ * $Id: rollout.c,v 1.242 2014/07/27 16:00:01 plm Exp $
  */
 
 #include "config.h"
@@ -48,7 +48,7 @@ f_BasicCubefulRollout BasicCubefulRollout = BasicCubefulRolloutNoLocking;
 
 int log_rollouts = 0;
 char *log_file_name = 0;
-unsigned int initial_game_count;
+static unsigned int initial_game_count;
 
 /* make sgf files of rollouts if log_rollouts is true and we have a file 
  * name template to work with
@@ -174,7 +174,6 @@ log_game_over(FILE * logfp)
         return;
     fprintf(logfp, ")");
     fclose(logfp);
-    logfp = 0;
 }
 
 extern void
@@ -189,7 +188,7 @@ QuasiRandomSeed(perArray * pArray, int n)
         return;
 
     for (i = 0; i < RANDSIZ; i++)
-        rc.randrsl[i] = (unsigned long) n;
+        rc.randrsl[i] = (ub4) n;
 
     irandinit(&rc, TRUE);
 
@@ -284,10 +283,7 @@ ClosedBoard(int afClosedBoard[2], const TanBoard anBoard)
 
 #define BasicCubefulRollout BasicCubefulRolloutWithLocking
 
-extern unsigned int initial_game_count;
-#if USE_GTK
-extern int fX;
-#endif
+static unsigned int initial_game_count;
 
 #endif
 
@@ -906,28 +902,28 @@ comp_jsdinfo_order(const void *a, const void *b)
 }
 
 /* Lots of shared variables - should probably not be globals... */
-unsigned int cGames;
-cubeinfo *aciLocal;
-int show_jsds;
+static unsigned int cGames;
+static cubeinfo *aciLocal;
+static int show_jsds;
 
-float (*aarMu)[NUM_ROLLOUT_OUTPUTS];
-float (*aarSigma)[NUM_ROLLOUT_OUTPUTS];
-double (*aarResult)[NUM_ROLLOUT_OUTPUTS];
-double (*aarVariance)[NUM_ROLLOUT_OUTPUTS];
-int *fNoMore;
-jsdinfo *ajiJSD;
+static float (*aarMu)[NUM_ROLLOUT_OUTPUTS];
+static float (*aarSigma)[NUM_ROLLOUT_OUTPUTS];
+static float (*aarResult)[NUM_ROLLOUT_OUTPUTS];
+static float (*aarVariance)[NUM_ROLLOUT_OUTPUTS];
+static int *fNoMore;
+static jsdinfo *ajiJSD;
 
-int ro_alternatives = -1;
-evalsetup **ro_apes;
-ConstTanBoard *ro_apBoard;
-const cubeinfo **ro_apci;
-int **ro_apCubeDecTop;
-rolloutstat(*ro_aarsStatistics)[2];
-int ro_fCubeRollout;
-int ro_fInvert;
-int ro_NextTrial;
-unsigned int *altGameCount;
-int *altTrialCount;
+static int ro_alternatives = -1;
+static evalsetup **ro_apes;
+static ConstTanBoard *ro_apBoard;
+static const cubeinfo **ro_apci;
+static int **ro_apCubeDecTop;
+static rolloutstat(*ro_aarsStatistics)[2];
+static int ro_fCubeRollout;
+static int ro_fInvert;
+static int ro_NextTrial;
+static unsigned int *altGameCount;
+static int *altTrialCount;
 
 static void
 check_jsds(int *active)
@@ -980,7 +976,7 @@ check_jsds(int *active)
             ajiJSD[alt].nRank = alt;
             ajiJSD[alt].rEquity = v - ajiJSD[alt].rEquity;
 
-            denominator = (float) sqrt(s + ajiJSD[alt].rJSD * ajiJSD[alt].rJSD);
+            denominator = sqrtf(s + ajiJSD[alt].rJSD * ajiJSD[alt].rJSD);
 
             if (denominator < 1e-8f)
                 denominator = 1e-8f;
@@ -1028,21 +1024,21 @@ check_jsds(int *active)
             denominator = ajiJSD[0].rJSD;
             if (denominator < 1e-8f)
                 denominator = 1e-8f;
-            ajiJSD[0].rJSD = (float) fabs(ajiJSD[0].rEquity / denominator);
+            ajiJSD[0].rJSD = fabsf(ajiJSD[0].rEquity / denominator);
         } else {
             /* compare nd to dt */
             ajiJSD[0].rEquity = ajiJSD[0].rEquity - ajiJSD[1].rEquity;
-            denominator = (float) sqrt(ajiJSD[0].rJSD * ajiJSD[0].rJSD + ajiJSD[1].rJSD * ajiJSD[1].rJSD);
+            denominator = sqrtf(ajiJSD[0].rJSD * ajiJSD[0].rJSD + ajiJSD[1].rJSD * ajiJSD[1].rJSD);
             if (denominator < 1e-8f)
                 denominator = 1e-8f;
-            ajiJSD[0].rJSD = (float) fabs(ajiJSD[0].rEquity / denominator);
+            ajiJSD[0].rJSD = fabsf(ajiJSD[0].rEquity / denominator);
         }
         /* compare dt to dp */
         ajiJSD[1].rEquity = ajiJSD[1].rEquity - eq_dp;
         denominator = ajiJSD[1].rJSD;
         if (denominator < 1e-8f)
             denominator = 1e-8f;
-        ajiJSD[1].rJSD = (float) fabs(ajiJSD[1].rEquity / denominator);
+        ajiJSD[1].rJSD = fabsf(ajiJSD[1].rEquity / denominator);
         if (rcRollout.fStopOnJsd &&
             (altGameCount[0] >= (rcRollout.nMinimumJsdGames)) &&
             rcRollout.rJsdLimit < MIN(ajiJSD[0].rJSD, ajiJSD[1].rJSD)) {
@@ -1060,7 +1056,7 @@ check_sds(int *active)
 {
     int alt;
     for (alt = 0; alt < ro_alternatives; ++alt) {
-        double s;
+        float s;
         int output;
         int err_too_big = 0;
         rolloutcontext *prc;
@@ -1070,12 +1066,12 @@ check_sds(int *active)
         for (output = OUTPUT_EQUITY; output < NUM_ROLLOUT_OUTPUTS; output++) {
             if (output == OUTPUT_EQUITY) {      /* cubeless */
                 if (!ms.nMatchTo) {     /* money game */
-                    s = fabs(aarSigma[alt][output]);
+                    s = fabsf(aarSigma[alt][output]);
                     if (ro_fCubeRollout) {
                         s *= aciLocal[alt].nCube / aciLocal[0].nCube;
                     }
                 } else {        /* match play */
-                    s = fabs(se_mwc2eq(se_eq2mwc(aarSigma[alt][output],
+                    s = fabsf(se_mwc2eq(se_eq2mwc(aarSigma[alt][output],
                                                  &aciLocal[alt]), &aciLocal[(ro_fCubeRollout ? 0 : alt)]));
                 }
             } else {
@@ -1083,9 +1079,9 @@ check_sds(int *active)
                     continue;
                 /* cubeful */
                 if (!ms.nMatchTo) {     /* money game */
-                    s = fabs(aarSigma[alt][output]);
+                    s = fabsf(aarSigma[alt][output]);
                 } else {
-                    s = fabs(se_mwc2eq(aarSigma[alt][output], &aciLocal[(ro_fCubeRollout ? 0 : alt)]));
+                    s = fabsf(se_mwc2eq(aarSigma[alt][output], &aciLocal[(ro_fCubeRollout ? 0 : alt)]));
                 }
             }
 
@@ -1144,13 +1140,13 @@ RolloutLoopMT(void *UNUSED(unused))
 
             /* get the dice generator set up... */
             if (prc->fRotate)
-                QuasiRandomSeed(&dicePerms, prc->nSeed);
+                QuasiRandomSeed(&dicePerms, (int) prc->nSeed);
 
             nSkip = 0;          /* not multi-thread safe do quasi random dice for initial positions */
 
             /* ... and the RNG */
             if (prc->rngRollout != RNG_MANUAL)
-                InitRNGSeed(prc->nSeed + (trial << 8), prc->rngRollout, rngctxMTRollout);
+                InitRNGSeed((unsigned int) (prc->nSeed + (trial << 8)), prc->rngRollout, rngctxMTRollout);
 
             memcpy(&anBoardEval, ro_apBoard[alt], sizeof(anBoardEval));
 
@@ -1184,14 +1180,14 @@ RolloutLoopMT(void *UNUSED(unused))
                 float rMuNew, rDelta;
 
                 aarResult[alt][j] += aar[j];
-                rMuNew = (float) aarResult[alt][j] / (altGameCount[alt]);
+                rMuNew = aarResult[alt][j] / (altGameCount[alt]);
 
                 if (altGameCount[alt] > 1) {    /* for i == 0 aarVariance is not defined */
 
                     rDelta = rMuNew - aarMu[alt][j];
 
                     aarVariance[alt][j] =
-                        aarVariance[alt][j] * (1.0 - 1.0 / (altGameCount[alt] - 1)) +
+                        aarVariance[alt][j] * (1.0f - 1.0f / (altGameCount[alt] - 1)) +
                         (altGameCount[alt]) * rDelta * rDelta;
                 }
 
@@ -1204,7 +1200,7 @@ RolloutLoopMT(void *UNUSED(unused))
                         aarMu[alt][j] = 1.0f;
                 }
 
-                aarSigma[alt][j] = (float) sqrt(aarVariance[alt][j] / (altGameCount[alt]));
+                aarSigma[alt][j] = sqrtf(aarVariance[alt][j] / (altGameCount[alt]));
             }                   /* for (j = 0; j < NUM_ROLLOUT_OUTPUTS; j++ ) */
 
             /* For normal alternatives nGamesDone and altGameCount will be equal. For cube decisions,
@@ -1248,8 +1244,8 @@ RolloutLoopMT(void *UNUSED(unused))
     free(rngctxMTRollout);
 }
 
-rolloutprogressfunc *ro_pfProgress;
-void *ro_pUserData;
+static rolloutprogressfunc *ro_pfProgress;
+static void *ro_pUserData;
 
 static gboolean
 UpdateProgress(gpointer UNUSED(unused))
@@ -1312,8 +1308,8 @@ RolloutGeneral(ConstTanBoard * apBoard,
 
     aarMu = g_alloca(alternatives * NUM_ROLLOUT_OUTPUTS * sizeof(float));
     aarSigma = g_alloca(alternatives * NUM_ROLLOUT_OUTPUTS * sizeof(float));
-    aarResult = g_alloca(alternatives * NUM_ROLLOUT_OUTPUTS * sizeof(double));
-    aarVariance = g_alloca(alternatives * NUM_ROLLOUT_OUTPUTS * sizeof(double));
+    aarResult = g_alloca(alternatives * NUM_ROLLOUT_OUTPUTS * sizeof(float));
+    aarVariance = g_alloca(alternatives * NUM_ROLLOUT_OUTPUTS * sizeof(float));
 
     if (ms.nMatchTo == 0)
         fOutputMWC = 0;
@@ -1384,7 +1380,7 @@ RolloutGeneral(ConstTanBoard * apBoard,
             }
         } else {
             int nGames = prc->nGamesDone;
-            double r;
+            float r;
 
             previous_rollouts++;
 
@@ -1532,7 +1528,7 @@ extern int
 GeneralEvaluation(float arOutput[NUM_ROLLOUT_OUTPUTS],
                   float arStdDev[NUM_ROLLOUT_OUTPUTS],
                   rolloutstat arsStatistics[2],
-                  TanBoard anBoard, const cubeinfo * pci, const evalsetup * pes, rolloutprogressfunc * pf, void *p)
+                  TanBoard anBoard, cubeinfo * const pci, const evalsetup * pes, rolloutprogressfunc * pf, void *p)
 {
 
     int i;
@@ -1676,10 +1672,12 @@ GeneralCubeDecisionR(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
                 pci->nMatchTo, pci->anScore, pci->fCrawford, pci->fJacoby, pci->fBeavers, pci->bgv);
 
     if (!GetDPEq(NULL, NULL, &aci[0])) {
+        outputl(_("Cube not available!"));
         return -1;
     }
 
     if (!prc->fCubeful) {
+        outputl(_("Setting cubeful on"));
         prc->fCubeful = TRUE;
     }
 
@@ -1741,7 +1739,7 @@ initRolloutstat(rolloutstat * prs)
  */
 
 extern int
-getResignation(float arResign[NUM_ROLLOUT_OUTPUTS], TanBoard anBoard, const cubeinfo * pci, const evalsetup * pesResign)
+getResignation(float arResign[NUM_ROLLOUT_OUTPUTS], TanBoard anBoard, cubeinfo * const pci, const evalsetup * pesResign)
 {
 
     float arStdDev[NUM_ROLLOUT_OUTPUTS];

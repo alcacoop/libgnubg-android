@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: htmlimages.c,v 1.54 2013/06/16 02:16:17 mdpetch Exp $
+ * $Id: htmlimages.c,v 1.55 2014/07/20 20:56:28 plm Exp $
  */
 
 #include "config.h"
@@ -43,13 +43,13 @@
 
 #if HAVE_LIBPNG
 
-char *szFile, *pchFile;
-int imagesWritten;
+static char *szFile, *pchFile;
+static int imagesWritten;
 
 #define NUM_IMAGES 344
 
 /* Overall board size */
-int s;
+static int s;
 /* Size of cube and dice - now same as rest of board */
 #define ss s
 
@@ -58,16 +58,16 @@ int s;
 #define coord(x, y) ((x) * s * 3 + (y) * s * boardStride)
 #define coordStride(x, y, stride) ((x) * s * 3 + (y) * s * stride)
 
-unsigned char *auchBoard, *auchChequer[2], *auchChequerLabels, *auchLo, *auchHi,
+static unsigned char *auchBoard, *auchChequer[2], *auchChequerLabels, *auchLo, *auchHi,
     *auchLoRev, *auchHiRev, *auchCube, *auchCubeFaces, *auchDice[2], *auchPips[2],
     *auchLabel, *auchOff[2], *auchMidBoard, *auchBar[2], *auchPoint[2][2][2];
 
-unsigned short *asRefract[2];
+static unsigned short *asRefract[2];
 
 #if USE_GTK
-unsigned char *auchArrow[2];
+static unsigned char *auchArrow[2];
 #endif
-unsigned char *auchMidlb;
+static unsigned char *auchMidlb;
 
 static void
 WriteImageStride(unsigned char *img, int stride, int cx, int cy)

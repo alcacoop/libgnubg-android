@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: backgammon.h,v 1.438 2013/06/29 23:34:15 mdpetch Exp $
+ * $Id: backgammon.h,v 1.450 2014/07/29 15:08:16 plm Exp $
  */
 
 #ifndef BACKGAMMON_H
@@ -165,7 +165,7 @@ typedef struct _movesetcubepos {
 } xmovesetcubepos;
 
 typedef struct _moverecord {
-    /* 
+    /*
      * Common variables
      */
     /* type of the move */
@@ -187,7 +187,7 @@ typedef struct _moverecord {
     /* evaluation of the moves */
     movelist ml;
     /* cube analysis (shared between MOVE_NORMAL and MOVE_DOUBLE) */
-    /* 0 in match play, even numbers are doubles, raccoons 
+    /* 0 in match play, even numbers are doubles, raccoons
      * odd numbers are beavers, aardvarken, etc. */
     int nAnimals;
     /* the evaluation and settings */
@@ -245,6 +245,7 @@ typedef struct _findData {
     float rThr;
     const cubeinfo *pci;
     const evalcontext *pec;
+    int anDice[2];
      movefilter(*aamf)[MAX_FILTER_PLIES];
 } findData;
 
@@ -257,6 +258,7 @@ typedef struct _scoreData {
 typedef void (*AsyncFun) (void *);
 
 void asyncDumpDecision(decisionData * pdd);
+void asyncFindBestMoves(findData * pfd);
 void asyncFindMove(findData * pfd);
 void asyncScoreMove(scoreData * psd);
 void asyncEvalRoll(decisionData * pcdd);
@@ -378,9 +380,12 @@ extern ConstTanBoard msBoard(void);
 extern movefilter aamfAnalysis[MAX_FILTER_PLIES][MAX_FILTER_PLIES];
 extern movefilter aamfEval[MAX_FILTER_PLIES][MAX_FILTER_PLIES];
 typedef movefilter TmoveFilter[MAX_FILTER_PLIES][MAX_FILTER_PLIES];
+typedef const movefilter (*ConstTmoveFilter)[MAX_FILTER_PLIES];
+
 extern TmoveFilter *GetEvalMoveFilter(void);
 extern player ap[2];
 extern char default_names[2][31];
+extern char player1aliases[256];
 extern rolloutcontext rcRollout;
 extern skilltype TutorSkill;
 extern statcontext scMatch;
@@ -412,45 +417,11 @@ extern command cFilename;
 extern command cOnOff;
 
 extern int fInteractive;
-extern int cOutputDisabled;
-extern int cOutputPostponed;
-extern int foutput_on;
 
-#ifdef _LIBINTL_H
+#if defined(_LIBINTL_H) && defined(__MINGW32__)
 #warning "libintl.h already included expect warnings under mingw"
 #endif
-/* Write a string to stdout/status bar/popup window */
-extern void output(const char *sz);
-/* Write a string to stdout/status bar/popup window, and append \n */
-extern void outputl(const char *sz);
-/* Write a character to stdout/status bar/popup window */
-extern void outputc(const char ch);
-/* Write a string to stdout/status bar/popup window, printf style */
-extern void outputf(const char *sz, ...)
-    __attribute__ ((format(printf, 1, 2)));
-/* Write a string to stdout/status bar/popup window, vprintf style */
-extern void outputv(const char *sz, va_list val)
-    __attribute__ ((format(printf, 1, 0)));
-/* Write an error message, perror() style */
-extern void outputerr(const char *sz);
-/* Write an error message, fprintf() style */
-extern void outputerrf(const char *sz, ...)
-    __attribute__ ((format(printf, 1, 2)));
-/* Write an error message, vfprintf() style */
-extern void outputerrv(const char *sz, va_list val)
-    __attribute__ ((format(printf, 1, 0)));
-/* Signifies that all output for the current command is complete */
-extern void outputx(void);
-/* Temporarily disable outputx() calls */
-extern void outputpostpone(void);
-/* Re-enable outputx() calls */
-extern void outputresume(void);
-/* Signifies that subsequent output is for a new command */
-extern void outputnew(void);
-/* Disable output */
-extern void outputoff(void);
-/* Enable output */
-extern void outputon(void);
+
 /* now we can include libintl.h */
 #ifndef IS_ANDROID
 #include <glib/gi18n.h>
@@ -474,7 +445,7 @@ extern char *NextToken(char **ppch);
 extern char *NextTokenGeneral(char **ppch, const char *szTokens);
 extern char *SetupLanguage(const char *newLangCode);
 extern command *FindHelpCommand(command * pcBase, char *sz, char *pchCommand, char *pchUsage);
-extern double ParseReal(char **ppch);
+extern float ParseReal(char **ppch);
 extern int AnalyzeMove(moverecord * pmr, matchstate * pms,
                        const listOLD * plGame, statcontext * psc,
                        const evalsetup * pesChequer, evalsetup * pesCube,
@@ -534,6 +505,7 @@ extern void SetMatchDate(matchinfo * pmi);
 extern void SetMatchID(const char *szMatchID);
 extern void SetMatchInfo(char **ppch, const char *sz, char *szMessage);
 extern void SetMoveRecord(void *pmr);
+extern void SetTurn(int i);
 extern void show_8912(TanBoard anBoard, char *sz);
 extern void show_bearoff(TanBoard an, char *sz);
 extern void ShowBoard(void);
@@ -630,7 +602,6 @@ extern void CommandHint(char *);
 extern void CommandHistory(char *);
 extern void CommandImportAuto(char *);
 extern void CommandImportBGRoom(char *);
-extern void CommandImportBKG(char *);
 extern void CommandImportEmpire(char *);
 extern void CommandImportJF(char *);
 extern void CommandImportMat(char *);
@@ -953,6 +924,7 @@ extern void CommandSetVariationStandard(char *);
 extern void CommandSetVsync3d(char *);
 extern void CommandSetWarning(char *);
 extern void CommandShow8912(char *);
+extern void CommandShowAliases(char *);
 extern void CommandShowAnalysis(char *);
 extern void CommandShowAutoSave(char *);
 extern void CommandShowAutomatic(char *);
@@ -999,6 +971,7 @@ extern void CommandShowPipCount(char *);
 extern void CommandShowPlayer(char *);
 extern void CommandShowPostCrawford(char *);
 extern void CommandShowPrompt(char *);
+extern void CommandShowRatingOffset(char *);
 extern void CommandShowRNG(char *);
 extern void CommandShowRollout(char *);
 extern void CommandShowRolls(char *);
@@ -1021,8 +994,8 @@ extern void CommandShowWarranty(char *);
 extern void CommandSwapPlayers(char *);
 extern void CommandTake(char *);
 extern void CommandSetDefaultNames(char *sz);
-extern void hint_move(char *sz, gboolean show, procrecorddata *procdatarec);
-extern int fShowProgress;
+extern void CommandSetAliases(char *sz);
+extern void hint_move(char *sz, gboolean show, procrecorddata * procdatarec);
 extern void hint_double(int show, int did_double);
 extern void hint_take(int show, int did_take);
 extern void find_skills(moverecord * pmr, const matchstate * pms, int did_double, int did_take);
@@ -1047,9 +1020,10 @@ extern int get_input_discard(void);
 extern void SaveGame(FILE * pf, listOLD * plGame);
 
 extern int fMatchCancelled;
+extern int fJustSwappedPlayers;
 
 extern void ProcessEvents(void);
-#if !USE_MULTITHREAD
+#if !defined(USE_MULTITHREAD)
 extern void CallbackProgress(void);
 #endif
 extern void SetRNG(rng * prng, rngcontext * rngctx, rng rngNew, char *szSeed);
@@ -1058,7 +1032,5 @@ extern int quick_roll(void);
 extern int board_in_list(const movelist * pml, const TanBoard old_board, const TanBoard board, int *an);
 extern unsigned int getDiceRandomDotOrg(void);
 extern int GetManualDice(unsigned int anDice[2]);
-extern double get_time(void);
-#endif
 
-extern int fJustSwappedPlayers;
+#endif	/* BACKGAMMON_H */

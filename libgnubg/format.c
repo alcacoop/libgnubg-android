@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: format.c,v 1.46 2013/06/16 02:16:12 mdpetch Exp $
+ * $Id: format.c,v 1.47 2014/01/24 23:14:29 plm Exp $
  */
 
 #include "config.h"
@@ -113,7 +113,7 @@ OutputEvalContext(const evalcontext * pec, const int fChequer)
     char *pc;
     int i;
 
-    sprintf(sz, "%d-%s %s", pec->nPlies, _("ply"), (!fChequer || pec->fCubeful) ? _("cubeful") : _("cubeless"));
+    sprintf(sz, "%u-%s %s", pec->nPlies, _("ply"), (!fChequer || pec->fCubeful) ? _("cubeful") : _("cubeless"));
 
     if (pec->fUsePrune) {
         sprintf(pc = strchr(sz, 0), " prune");
@@ -257,9 +257,9 @@ OutputEvalContextsForRollout(char *sz, const char *szIndent,
                                                                              aaamf[1][aecChequer[0].nPlies - 1]));
     int fIdentical = fCube && fChequer && fMovefilter;
     int i;
-    int j;
 
     for (i = 0; i < 1 + !fIdentical; i++) {
+        int j;
 
         if (!fIdentical) {
 
@@ -333,7 +333,7 @@ OutputRolloutContext(const char *szIndent, const rolloutcontext * prc)
     if (szIndent && *szIndent)
         strcat(sz, szIndent);
 
-    sprintf(strchr(sz, 0), "%d games", prc->nGamesDone);
+    sprintf(strchr(sz, 0), "%u games", prc->nGamesDone);
 
     if (prc->fInitial)
         strcat(sz, ", rollout as initial position");
@@ -792,7 +792,7 @@ OutputCubeAnalysis(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
         strcat(sz, _("n/a"));
         break;
     case EVAL_EVAL:
-        sprintf(strchr(sz, 0), "%d-%s", pes->ec.nPlies, _("ply"));
+        sprintf(strchr(sz, 0), "%u-%s", pes->ec.nPlies, _("ply"));
         break;
     case EVAL_ROLLOUT:
         strcat(sz, _("Rollout"));

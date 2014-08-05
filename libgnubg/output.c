@@ -1,5 +1,5 @@
 /*
- * gnubg.c
+ * output.c
  *
  * by Gary Wong <gtw@gnu.org>, 1998, 1999, 2000, 2001, 2002, 2003.
  *
@@ -16,11 +16,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: output.c,v 1.2 2013/06/20 01:51:48 mdpetch Exp $
+ * $Id: output.c,v 1.4 2014/07/29 15:19:44 plm Exp $
  */
 
 #include "config.h"
 #include "output.h"
+#include "backgammon.h"
 
 #include <sys/types.h>
 #include <stdlib.h>
@@ -31,6 +32,7 @@
 #include <stdio.h>
 #include <glib.h>
 #include <glib/gstdio.h>
+#include <string.h>
 #include <signal.h>
 #include <ctype.h>
 #ifdef WIN32
@@ -44,8 +46,6 @@
 #if USE_GTK
 #include "gtkgame.h"
 #endif
-
-#include "backgammon.h"
 
 int cOutputDisabled;
 int cOutputPostponed;

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: makehyper.c,v 1.41 2013/07/10 19:21:45 mdpetch Exp $
+ * $Id: makehyper.c,v 1.44 2014/07/27 12:37:57 plm Exp $
  */
 
 #include "config.h"
@@ -39,6 +39,7 @@
 #include "drawboard.h"
 #include "multithread.h"
 #include "lib/simd.h"
+#include "glib-ext.h"
 #include "multithread.h"
 
 static cubeinfo ci;
@@ -72,8 +73,7 @@ MT_CloseThreads(void)
     return;
 }
 
-int aiNorm[10];
-
+static int aiNorm[10];
 
 static hyperclass
 ClassifyHyper(TanBoard anBoard)
@@ -592,7 +592,7 @@ main(int argc, char **argv)
         {"restart", 'r', 0, G_OPTION_ARG_FILENAME, &szRestart,
          "Restart calculation of database from \"filename\"", "filename"},
         {"threshold", 't', 0, G_OPTION_ARG_STRING, &szEpsilon,
-         "The convergens threshold (T). Default is 1e-5", "T"},
+         "The convergence threshold (T). Default is 1e-5", "T"},
         {"no-checkpoint", 'n', G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, &fCheckPoint,
          "Do not write a checkpoint file after each iteration.", NULL},
         {"version", 'v', 0, G_OPTION_ARG_NONE, &show_version,
@@ -607,6 +607,7 @@ main(int argc, char **argv)
 
     /* i18n */
 
+    glib_ext_init();
     MT_InitThreads();
     setlocale(LC_ALL, "");
     bindtextdomain(PACKAGE, LOCALEDIR);
@@ -652,7 +653,7 @@ main(int argc, char **argv)
     printf("%-40s: %d\n", _("Total number of two sided positions"), nPos * nPos);
     printf("%-40s: %s %d\n", _("Estimated size of file"), _("bytes"), nPos * nPos * 28 + 40);
     printf("%-40s: %s\n", _("Output file"), szOutput);
-    printf("%-40s: %e\n", _("Convergens threshold"), rEpsilon);
+    printf("%-40s: %e\n", _("Convergence threshold"), rEpsilon);
 
     /* Iteration 0 */
 

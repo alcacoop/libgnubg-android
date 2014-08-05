@@ -19,11 +19,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbprovider.c,v 1.42 2013/07/26 21:20:46 plm Exp $
+ * $Id: dbprovider.c,v 1.45 2014/07/20 21:27:06 plm Exp $
  */
 
 #include "config.h"
 #include "gnubgmodule.h"
+#include "stdlib.h"
 
 #include "backgammon.h"
 #include <glib/gstdio.h>
@@ -65,7 +66,7 @@ static void SQLiteCommit(void);
 #if NUM_PROVIDERS
 static int SQLiteDeleteDatabase(const char *dbfilename, const char *user, const char *password, const char *hostname);
 static GList *SQLiteGetDatabaseList(const char *user, const char *password, const char *hostname);
-DBProvider providers[NUM_PROVIDERS] = {
+static DBProvider providers[NUM_PROVIDERS] = {
 #if USE_SQLITE
     {SQLiteConnect, SQLiteDisconnect, SQLiteSelect, SQLiteUpdateCommand, SQLiteCommit, SQLiteGetDatabaseList,
      SQLiteDeleteDatabase,
@@ -281,7 +282,7 @@ GetDBProvider(DBProviderType dbType)
 int
 PyMySQLConnect(const char *dbfilename, const char *user, const char *password, const char *hostname)
 {
-    int iret;
+    long iret;
     PyObject *ret;
 
     const char *host = hostname ? hostname : "";
@@ -293,7 +294,7 @@ PyMySQLConnect(const char *dbfilename, const char *user, const char *password, c
     if (ret == NULL || !PyInt_Check(ret) || (iret = PyInt_AsLong(ret)) < 0) {
         PyErr_Print();
         return -1;
-    } else if (iret == 0) {     /* New database - populate */
+    } else if (iret == 0L) {     /* New database - populate */
         return 0;
     }
     return 1;
@@ -303,7 +304,7 @@ PyMySQLConnect(const char *dbfilename, const char *user, const char *password, c
 int
 PyPostgreConnect(const char *dbfilename, const char *user, const char *password, const char *hostname)
 {
-    int iret;
+    long iret;
     PyObject *ret;
     const char *host = hostname ? hostname : "";
 
@@ -314,7 +315,7 @@ PyPostgreConnect(const char *dbfilename, const char *user, const char *password,
     if (ret == NULL || !PyInt_Check(ret) || (iret = PyInt_AsLong(ret)) < 0) {
         PyErr_Print();
         return -1;
-    } else if (iret == 0) {     /* New database - populate */
+    } else if (iret == 0L) {     /* New database - populate */
         return 0;
     }
     return 1;
@@ -566,7 +567,7 @@ PyPostgreDeleteDatabase(const char *dbfilename, const char *user, const char *pa
 
 #include <sqlite3.h>
 
-sqlite3 *connection;
+static sqlite3 *connection;
 
 int
 SQLiteConnect(const char *dbfilename, const char *UNUSED(user), const char *UNUSED(password),

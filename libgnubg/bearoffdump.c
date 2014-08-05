@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: bearoffdump.c,v 1.20 2013/07/10 13:56:00 mdpetch Exp $
+ * $Id: bearoffdump.c,v 1.21 2014/07/09 20:32:49 plm Exp $
  */
 
 #include "config.h"
@@ -86,6 +86,9 @@ main(int argc, char **argv)
     } else {
         printf("Position number : %d\n", id);
     }
+
+    /* This is needed since we call ReadBearoffFile() from bearoff.c */
+    MT_InitThreads();
 
     if (!(pbc = BearoffInit(filename, BO_NONE, NULL))) {
         printf("Failed to initialise bearoff database %s\n", filename);

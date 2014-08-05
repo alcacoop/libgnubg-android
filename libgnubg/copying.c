@@ -1,7 +1,7 @@
 /* Do not modify this file!  It is created automatically by
    copying.awk.  Modify copying.awk instead. */
 
-#include "config.h"
+#include "backgammon.h"
 char *aszCopying[] = {
   "                    GNU GENERAL PUBLIC LICENSE",
   "                       Version 3, 29 June 2007",

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dice.c,v 1.89 2013/07/10 22:35:13 mdpetch Exp $
+ * $Id: dice.c,v 1.91 2014/03/09 20:07:09 plm Exp $
  */
 
 #include "config.h"
@@ -52,14 +52,14 @@
 #endif
 
 const char *aszRNG[NUM_RNGS] = {
-    N_("ANSI"),
+    "ANSI",
     N_("Blum, Blum and Shub"),
-    N_("BSD"),
-    N_("ISAAC"),
-    N_("MD5"),
+    "BSD",
+    "ISAAC",
+    "MD5",
     N_("Mersenne Twister"),
     N_("manual dice"),
-    N_("www.random.org"),
+    "www.random.org",
     N_("read from file")
 };
 
@@ -67,7 +67,7 @@ const char *aszRNGTip[NUM_RNGS] = {
     N_("The rand() generator specified by ANSI C (typically linear congruential)"),
     N_("Blum, Blum and Shub's verifiably strong generator"),
     N_("The random() non-linear additive feedback generator from 4.3 BSD Unix"),
-    N_("Bob Jenkin's Indirection, Shift, Accumulate, Add and Count " "cryptographic generator"),
+    N_("Bob Jenkins' Indirection, Shift, Accumulate, Add and Count " "cryptographic generator"),
     N_("A generator based on the Message Digest 5 algorithm"),
     N_("Makoto Matsumoto and Takuji Nishimura's generator"),
     N_("Enter each dice roll by hand"),
@@ -560,7 +560,7 @@ InitRNGSeedMP(mpz_t n, rng rng, rngcontext * rngctx)
 
                 free(achState);
             } else {
-                InitRNGSeed((unsigned long) (mpz_get_ui(n)), rng, rngctx);
+                InitRNGSeed((unsigned int) (mpz_get_ui(n)), rng, rngctx);
             }
             break;
         }
@@ -780,9 +780,9 @@ RollDice(unsigned int anDice[2], rng * prng, rngcontext * rngctx)
     switch (*prng) {
     case RNG_ANSI:
         while ((tmprnd = rand()) >= rand_max_l);        /* Try again */
-        anDice[0] = 1 + tmprnd / rand_max_q;
+        anDice[0] = 1 + (unsigned int) (tmprnd / rand_max_q);
         while ((tmprnd = rand()) >= rand_max_l);
-        anDice[1] = 1 + tmprnd / rand_max_q;
+        anDice[1] = 1 + (unsigned int) (tmprnd / rand_max_q);
         rngctx->c += 2;
         break;
 
@@ -803,9 +803,9 @@ RollDice(unsigned int anDice[2], rng * prng, rngcontext * rngctx)
     case RNG_BSD:
 #if HAVE_RANDOM
         while ((tmprnd = random()) >= rand_max_l);      /* Try again */
-        anDice[0] = 1 + tmprnd / rand_max_q;
+        anDice[0] = 1 + (unsigned int) (tmprnd / rand_max_q);
         while ((tmprnd = random()) >= rand_max_l);
-        anDice[1] = 1 + tmprnd / rand_max_q;
+        anDice[1] = 1 + (unsigned int) (tmprnd / rand_max_q);
         rngctx->c += 2;
         break;
 #else
@@ -814,11 +814,12 @@ RollDice(unsigned int anDice[2], rng * prng, rngcontext * rngctx)
 
     case RNG_ISAAC:
         while ((tmprnd = irand(&rngctx->rc)) >= exp232_l);      /* Try again */
-        anDice[0] = 1 + tmprnd / exp232_q;
+        anDice[0] = 1 + (unsigned int) (tmprnd / exp232_q);
         while ((tmprnd = irand(&rngctx->rc)) >= exp232_l);
-        anDice[1] = 1 + tmprnd / exp232_q;
+        anDice[1] = 1 + (unsigned int) (tmprnd / exp232_q);
         rngctx->c += 2;
         break;
+
 
     case RNG_MD5:{
             union _hash {
@@ -843,9 +844,9 @@ RollDice(unsigned int anDice[2], rng * prng, rngcontext * rngctx)
 
     case RNG_MERSENNE:
         while ((tmprnd = genrand_int32(&rngctx->mti, rngctx->mt)) >= exp232_l); /* Try again */
-        anDice[0] = 1 + tmprnd / exp232_q;
+        anDice[0] = 1 + (unsigned int) (tmprnd / exp232_q);
         while ((tmprnd = genrand_int32(&rngctx->mti, rngctx->mt)) >= exp232_l);
-        anDice[1] = 1 + tmprnd / exp232_q;
+        anDice[1] = 1 + (unsigned int) (tmprnd / exp232_q);
         rngctx->c += 2;
         break;
 
@@ -860,7 +861,7 @@ RollDice(unsigned int anDice[2], rng * prng, rngcontext * rngctx)
 
     }
     if (anDice[0] < 1 || anDice[1] < 1 || anDice[0] > 6 || anDice[1] > 6) {
-        anDice[0] = 1;
+        anDice[0] = 1; 
         anDice[1] = 1;
     }
     return 0;

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: eval.h,v 1.181 2013/07/18 20:52:50 plm Exp $
+ * $Id: eval.h,v 1.186 2014/07/27 16:00:07 plm Exp $
  */
 
 #ifndef EVAL_H
@@ -25,6 +25,7 @@
 #include "dice.h"
 #include "bearoff.h"
 #include "neuralnet.h"
+#include "cache.h"
 
 #define EXP_LOCK_FUN(ret, name, ...) \
 	typedef ret (*f_##name)( __VA_ARGS__); \
@@ -137,11 +138,11 @@ typedef struct {
     rng rngRollout;
     unsigned long nSeed;
     unsigned int nMinimumGames; /* but always do at least this many */
-    double rStdLimit;           /* stop when abs( value / std ) < this */
+    float rStdLimit;           /* stop when abs( value / std ) < this */
     unsigned int nMinimumJsdGames;
-    double rJsdLimit;
+    float rJsdLimit;
     unsigned int nGamesDone;
-    double rStoppedOnJSD;
+    float rStoppedOnJSD;
     int nSkip;
 } rolloutcontext;
 
@@ -262,6 +263,7 @@ extern const char *aszDoubleTypes[NUM_DOUBLE_TYPES];
 #define SETTINGS_BEGINNER       0
 
 extern evalcontext aecSettings[NUM_SETTINGS];
+extern evalcontext ecBasic;
 extern int aiSettingsMoveFilter[NUM_SETTINGS];
 extern const char *aszSettings[NUM_SETTINGS];
 
@@ -337,6 +339,10 @@ typedef enum {
 
 #define CLASS_PERFECT CLASS_BEAROFF_TS
 
+typedef int (*classevalfunc) (const TanBoard anBoard, float arOutput[], const bgvariation bgv, NNState * nnStates);
+
+extern classevalfunc acef[N_CLASSES];
+
 /* Evaluation cache size is 2^SIZE entries */
 #define CACHE_SIZE_DEFAULT 19
 #define CACHE_SIZE_GUIMAX 23
@@ -358,12 +364,11 @@ extern void EvalStatus(char *szOutput);
 
 extern int EvalNewWeights(int nSize);
 
-extern int
- EvalSave(const char *szWeights);
+extern int EvalSave(const char *szWeights);
 
 
 EXP_LOCK_FUN(int, EvaluatePosition, NNState * nnStates, const TanBoard anBoard, float arOutput[],
-             const cubeinfo * pci, const evalcontext * pec);
+             cubeinfo * const pci, const evalcontext * pec);
 
 extern void
  InvertEvaluationR(float ar[NUM_ROLLOUT_OUTPUTS], const cubeinfo * pci);
@@ -372,7 +377,7 @@ extern void
  InvertEvaluation(float ar[NUM_OUTPUTS]);
 
 EXP_LOCK_FUN(int, FindBestMove, int anMove[8], int nDice0, int nDice1,
-             TanBoard anBoard, cubeinfo * pci, evalcontext * pec, movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES]);
+             TanBoard anBoard, const cubeinfo * pci, evalcontext * pec, movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES]);
 
 EXP_LOCK_FUN(int, FindnSaveBestMoves, movelist * pml,
              int nDice0, int nDice1, const TanBoard anBoard,
@@ -389,9 +394,7 @@ extern int
  KeithCount(const TanBoard anBoard, int pn[2]);
 
 extern int
-
-
-DumpPosition(const TanBoard anBoard, char *szOutput,
+ DumpPosition(const TanBoard anBoard, char *szOutput,
              const evalcontext * pec, cubeinfo * pci, int fOutputMWC,
              int fOutputWinPC, int fOutputInvert, const char *szMatchID);
 
@@ -401,19 +404,17 @@ extern void
 extern int
  GameStatus(const TanBoard anBoard, const bgvariation bgv);
 
-extern void
- EvalCacheFlush(void);
-
-extern int
- EvalCacheResize(unsigned int cNew);
-
-extern int
- EvalCacheStats(unsigned int *pcUsed, unsigned int *pcLookup, unsigned int *pcHit);
-
+extern void EvalCacheFlush(void);
+extern int EvalCacheResize(unsigned int cNew);
+extern int EvalCacheStats(unsigned int *pcUsed, unsigned int *pcLookup, unsigned int *pcHit);
 extern double GetEvalCacheSize(void);
 void SetEvalCacheSize(unsigned int size);
 extern unsigned int GetEvalCacheEntries(void);
 extern int GetCacheMB(int size);
+
+extern evalCache cEval;
+extern evalCache cpEval;
+extern unsigned int cCache;
 
 extern int
  GenerateMoves(movelist * pml, const TanBoard anBoard, int n0, int n1, int fPartial);
@@ -425,7 +426,6 @@ extern int ApplyMove(TanBoard anBoard, const int anMove[8], const int fCheckLega
 extern positionclass ClassifyPosition(const TanBoard anBoard, const bgvariation bgv);
 
 /* internal use only */
-extern int EvalBearoff1Full(const TanBoard anBoard, float arOutput[]);
 extern void EvalRaceBG(const TanBoard anBoard, float arOutput[], const bgvariation bgv);
 
 extern float
@@ -436,21 +436,15 @@ extern float
 
 
 extern int
-
-
-SetCubeInfoMoney(cubeinfo * pci, const int nCube, const int fCubeOwner,
+ SetCubeInfoMoney(cubeinfo * pci, const int nCube, const int fCubeOwner,
                  const int fMove, const int fJacoby, const int fBeavers, const bgvariation bgv);
 
 extern int
-
-
-SetCubeInfoMatch(cubeinfo * pci, const int nCube, const int fCubeOwner,
+ SetCubeInfoMatch(cubeinfo * pci, const int nCube, const int fCubeOwner,
                  const int fMove, const int nMatchTo, const int anScore[2], const int fCrawford, const bgvariation bgv);
 
 extern int
-
-
-SetCubeInfo(cubeinfo * pci, const int nCube, const int fCubeOwner,
+ SetCubeInfo(cubeinfo * pci, const int nCube, const int fCubeOwner,
             const int fMove, const int nMatchTo, const int anScore[2],
             const int fCrawford, const int fJacoby, const int fBeavers, const bgvariation bgv);
 
@@ -493,10 +487,10 @@ extern char
 extern cubedecision FindCubeDecision(float arDouble[], float aarOutput[][NUM_ROLLOUT_OUTPUTS], const cubeinfo * pci);
 
 EXP_LOCK_FUN(int, GeneralCubeDecisionE, float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
-             const TanBoard anBoard, const cubeinfo * pci, const evalcontext * pec, const evalsetup * pes);
+             const TanBoard anBoard, cubeinfo * const pci, const evalcontext * pec, const evalsetup * pes);
 
 EXP_LOCK_FUN(int, GeneralEvaluationE, float arOutput[NUM_ROLLOUT_OUTPUTS],
-             const TanBoard anBoard, const cubeinfo * pci, const evalcontext * pec);
+             const TanBoard anBoard, cubeinfo * const pci, const evalcontext * pec);
 
 extern int
  cmp_evalsetup(const evalsetup * pes1, const evalsetup * pes2);
@@ -514,9 +508,7 @@ extern cubedecision
 FindBestCubeDecision(float arDouble[], float aarOutput[2][NUM_ROLLOUT_OUTPUTS], const cubeinfo * pci);
 
 extern int
-
-
-getCurrentGammonRates(float aarRates[2][2],
+ getCurrentGammonRates(float aarRates[2][2],
                       float arOutput[], const TanBoard anBoard, cubeinfo * pci, const evalcontext * pec);
 
 extern void
@@ -526,15 +518,11 @@ extern void
  getMoneyPoints(float aaarPoints[2][7][2], const int fJacoby, const int fBeavers, float aarRates[2][2]);
 
 extern void
-
-
-getMatchPoints(float aaarPoints[2][4][2],
+ getMatchPoints(float aaarPoints[2][4][2],
                int afAutoRedouble[2], int afDead[2], const cubeinfo * pci, float aarRates[2][2]);
 
 extern void
-
-
-getCubeDecisionOrdering(int aiOrder[3],
+ getCubeDecisionOrdering(int aiOrder[3],
                         float arDouble[4], float aarOutput[2][NUM_ROLLOUT_OUTPUTS], const cubeinfo * pci);
 
 extern float
@@ -564,9 +552,7 @@ extern int
  equal_movefilter(const int i, movefilter amf1[MAX_FILTER_PLIES], movefilter amf2[MAX_FILTER_PLIES]);
 
 extern int
-
-
-equal_movefilters(movefilter aamf1[MAX_FILTER_PLIES][MAX_FILTER_PLIES],
+ equal_movefilters(movefilter aamf1[MAX_FILTER_PLIES][MAX_FILTER_PLIES],
                   movefilter aamf2[MAX_FILTER_PLIES][MAX_FILTER_PLIES]);
 
 
@@ -582,7 +568,6 @@ extern void
  CalculateRaceInputs(const TanBoard anBoard, float inputs[]);
 
 
-extern float Noise(const evalcontext * pec, const TanBoard anBoard, int iOutput);
 extern int CompareMoves(const move * pm0, const move * pm1);
 extern float EvalEfficiency(const TanBoard anBoard, positionclass pc);
 extern float Cl2CfMoney(float arOutput[NUM_OUTPUTS], cubeinfo * pci, float rCubeX);
@@ -594,5 +579,6 @@ extern void GetECF3(float arCubeful[], int cci, float arCf[], cubeinfo aci[]);
 extern int EvaluatePerfectCubeful(const TanBoard anBoard, float arEquity[], const bgvariation bgv);
 
 extern neuralnet nnContact, nnRace, nnCrashed;
+extern neuralnet nnpContact, nnpRace, nnpCrashed;
 
 #endif

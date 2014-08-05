@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: bearoff.h,v 1.30 2013/06/16 02:16:09 mdpetch Exp $
+ * $Id: bearoff.h,v 1.32 2014/07/23 19:43:02 plm Exp $
  */
 
 #ifndef BEAROFF_H
@@ -50,9 +50,6 @@ typedef struct _bearoffcontext {
     GMappedFile *map;
 #endif
     unsigned char *p;           /* pointer to data in memory */
-
-    unsigned long int nReads;   /* number of reads */
-
 } bearoffcontext;
 
 enum _bearoffoptions {
@@ -64,8 +61,6 @@ enum _bearoffoptions {
 };
 
 extern bearoffcontext *BearoffInit(const char *szFilename, const int bo, void (*p) (unsigned int));
-
-extern bearoffcontext *BearoffInitBuiltin(void);
 
 extern int
  BearoffEval(const bearoffcontext * pbc, const TanBoard anBoard, float arOutput[]);

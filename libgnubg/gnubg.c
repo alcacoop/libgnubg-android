@@ -16,12 +16,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: gnubg.c,v 1.940 2013/07/21 23:42:50 mdpetch Exp $
+ * $Id: gnubg.c,v 1.963 2014/07/27 16:00:14 plm Exp $
  */
 
 #include "config.h"
 
 #include "gnubgmodule.h"
+#include "glib-ext.h"
 
 #include <sys/types.h>
 #include <stdlib.h>
@@ -85,42 +86,6 @@ static char szCommandSeparators[] = " \t\n\r\v\f";
 #else                           /* #ifndef WIN32 */
 #include <winsock2.h>
 #include <ws2tcpip.h>
-
-#define EWOULDBLOCK             WSAEWOULDBLOCK
-#define EINPROGRESS             WSAEINPROGRESS
-#define EALREADY                WSAEALREADY
-#define ENOTSOCK                WSAENOTSOCK
-#define EDESTADDRREQ            WSAEDESTADDRREQ
-#define EMSGSIZE                WSAEMSGSIZE
-#define EPROTOTYPE              WSAEPROTOTYPE
-#define ENOPROTOOPT             WSAENOPROTOOPT
-#define EPROTONOSUPPORT         WSAEPROTONOSUPPORT
-#define ESOCKTNOSUPPORT         WSAESOCKTNOSUPPORT
-#define EOPNOTSUPP              WSAEOPNOTSUPP
-#define EPFNOSUPPORT            WSAEPFNOSUPPORT
-#define EAFNOSUPPORT            WSAEAFNOSUPPORT
-#define EADDRINUSE              WSAEADDRINUSE
-#define EADDRNOTAVAIL           WSAEADDRNOTAVAIL
-#define ENETDOWN                WSAENETDOWN
-#define ENETUNREACH             WSAENETUNREACH
-#define ENETRESET               WSAENETRESET
-#define ECONNABORTED            WSAECONNABORTED
-#define ECONNRESET              WSAECONNRESET
-#define ENOBUFS                 WSAENOBUFS
-#define EISCONN                 WSAEISCONN
-#define ENOTCONN                WSAENOTCONN
-#define ESHUTDOWN               WSAESHUTDOWN
-#define ETOOMANYREFS            WSAETOOMANYREFS
-#define ETIMEDOUT               WSAETIMEDOUT
-#define ECONNREFUSED            WSAECONNREFUSED
-#define ELOOP                   WSAELOOP
-#define EHOSTDOWN               WSAEHOSTDOWN
-#define EHOSTUNREACH            WSAEHOSTUNREACH
-#define EPROCLIM                WSAEPROCLIM
-#define EUSERS                  WSAEUSERS
-#define EDQUOT                  WSAEDQUOT
-#define ESTALE                  WSAESTALE
-#define EREMOTE                 WSAEREMOTE
 
 #define inet_aton(ip,addr)  (addr)->s_addr = inet_addr(ip), 1
 #define inet_pton(fam,ip,addr) (addr)->s_addr = inet_addr(ip), 1
@@ -329,9 +294,9 @@ rolloutcontext rcRollout = {
     RNG_MERSENNE,               /* RNG */
     0,                          /* seed */
     324,                        /* minimum games  */
-    0.01,                       /* stop when std's are lower than 0.01 */
+    0.01f,                      /* stop when std's are lower than 0.01 */
     324,                        /* minimum games  */
-    2.33,                       /* stop when best has j.s.d. for 99% confidence */
+    2.33f,                      /* stop when best has j.s.d. for 99% confidence */
     0,                          /* nGamesDone */
     0.0,                        /* rStoppedOnJSD */
     0,                          /* nSkip */
@@ -383,9 +348,9 @@ rolloutcontext rcRollout = {
   RNG_MERSENNE, /* RNG */ \
   0,  /* seed */ \
   324,    /* minimum games  */ \
-  0.01,	  /* stop when std's are lower than 0.01 */ \
+  0.01f,  /* stop when std's are lower than 0.01 */ \
   324,    /* minimum games  */ \
-  2.33,   /* stop when best has j.s.d. for 99% confidence */ \
+  2.33f,  /* stop when best has j.s.d. for 99% confidence */ \
   0, \
   0.0, \
   0 \
@@ -438,9 +403,9 @@ rolloutcontext rcRollout = {
   RNG_MERSENNE, /* RNG */ \
   0,  /* seed */ \
   324,    /* minimum games  */ \
-  0.01,	  /* stop when std's are lower than 0.01 */ \
+  0.01f,  /* stop when std's are lower than 0.01 */ \
   324,    /* minimum games  */ \
-  2.33,   /* stop when best has j.s.d. for 99% confidence */ \
+  2.33f,  /* stop when best has j.s.d. for 99% confidence */ \
   0, \
   0.0, \
   0 \
@@ -508,8 +473,6 @@ exportsetup exsExport = {
 };
 
 
-#define DEFAULT_NET_SIZE 128
-
 player ap[2] = {
     {"gnubg", PLAYER_GNU, EVALSETUP_WORLDCLASS, EVALSETUP_WORLDCLASS, MOVEFILTER_NORMAL, 0, NULL}
     ,
@@ -517,6 +480,8 @@ player ap[2] = {
 };
 
 char default_names[2][31] = { "gnubg", "user" };
+
+char player1aliases[256] = "";
 
 /* Usage strings */
 static char szDICE[] = N_("<die> <die>"),
@@ -560,7 +525,7 @@ static char szDICE[] = N_("<die> <die>"),
     szMATCHID[] = N_("<matchid>"),
     szGNUBGID[] = N_("<gnubgid>"),
     szXGID[] = N_("<xgid>"),
-    szURL[] = N_("<URL>"),
+    szURL[] = "<URL>",
     szMAXERR[] = N_("<fraction>"), szMINGAMES[] = N_("<minimum games to rollout>"), szFOLDER[] = N_("<folder>"),
 #if USE_GTK
     szWARN[] = N_("[<warning>]"), szWARNYN[] = N_("<warning> on|off"),
@@ -579,7 +544,7 @@ char *default_sgf_folder = NULL;
 
 const char *szHomeDirectory;
 
-char const *aszBuildInfo[] = {
+static char const *aszBuildInfo[] = {
 #if USE_PYTHON
     N_("Python supported."),
 #endif
@@ -654,16 +619,16 @@ GetBuildInfoString(void)
  return value points to jklm, ppch points to space before 
  the 'n'
  ppch points past null terminator
-
+ 
  ignores leading whitespace, advances ppch over token and trailing
  whitespace
-
+ 
  matching single or double quotes are allowed, any character outside
- of quotes or in doubly quoated strings can be escaped with a
+ of quotes or in doubly quoted strings can be escaped with a
  backslash and will be taken as literal.  Backslashes within single
- quoted strings are taken literally. Multiple quoted strins can be
- concatentated.  
-
+ quoted strings are taken literally. Multiple quoted strings can be
+ concatenated.  
+ 
  For example: input ' abc\"d"e f\"g h i"jk'l m n \" o p q'rst uvwzyz'
  with the terminator list ' \t\r\n\v\f'
  The returned token will be the string
@@ -673,7 +638,7 @@ GetBuildInfoString(void)
  a double quote and is *not* the start of a quoted string.
  The " before the 'd' begins a double quoted string, so spaces and tabs are
  not terminators. The \" between f and g is reduced to a double quote and 
- does not teminate the quoted string. which ends with the double quote 
+ does not terminate the quoted string. which ends with the double quote 
  between i and j. The \" between n and o is taken as a pair of literal
  characters because they are within the single quoted string beginning
  before l and ending after q.
@@ -718,7 +683,6 @@ NextTokenGeneral(char **ppch, const char *szTokens)
                 *pchSave++ = **ppch;
         } else {
             switch (**ppch) {
-            case '\'':
             case '"':
                 /* quote mark */
                 if (!chQuote)
@@ -840,17 +804,17 @@ CountTokens(char *pch)
  * ERR_VAL (a very large negative double.
  */
 
-extern double
+extern float
 ParseReal(char **ppch)
 {
 
     char *pch, *pchOrig;
-    double r;
+    float r;
 
     if (!ppch || !(pchOrig = NextToken(ppch)))
         return ERR_VAL;
 
-    r = g_ascii_strtod(pchOrig, &pch);
+    r = (float)g_ascii_strtod(pchOrig, &pch);
 
     return *pch ? ERR_VAL : r;
 }
@@ -1016,7 +980,13 @@ ParsePosition(TanBoard an, char **ppch, char *pchDesc)
         static oldpositionkey key;
 
         for (i = 0; i < 10; ++i) {
-            key.auch[i] = ((pch[2 * i + 0] - 'A') << 4) + (pch[2 * i + 1] - 'A');
+            if (pch[2 * i + 0] >= 'A' && pch[2 * i + 0] <= 'P' && pch[2 * i + 1] >= 'A' && pch[2 * i + 1] <= 'P')
+                key.auch[i] = (unsigned char) (((pch[2 * i + 0] - 'A') << 4)
+                    + (pch[2 * i + 1] - 'A'));
+            else {
+                outputl(_("Illegal position."));
+                return -1;
+            }
         }
 
         oldPositionFromKey(an, &key);
@@ -1517,7 +1487,7 @@ ShowBoard(void)
                     cch = 20;
 
                 sprintf(szCube, "%c: %*s (%s: %d)", ms.fCubeOwner ? 'X' : 'O',
-                        (int)cch, ap[ms.fCubeOwner].szName, _("Cube"), ms.nCube);
+                        (int) cch, ap[ms.fCubeOwner].szName, _("Cube"), ms.nCube);
 
                 apch[ms.fCubeOwner ? 6 : 0] = szCube;
 
@@ -1581,7 +1551,7 @@ FormatPrompt(void)
                     strcpy(pchDest, _("No game"));
                 else {
                     PipCount(msBoard(), anPips);
-                    sprintf(pchDest, "%d:%d", anPips[1], anPips[0]);
+                    sprintf(pchDest, "%u:%u", anPips[1], anPips[0]);
                 }
                 break;
 
@@ -2335,7 +2305,7 @@ hint_take(int show, int did_take)
 }
 
 extern void
-hint_move(char *sz, gboolean show, procrecorddata *procdatarec)
+hint_move(char *sz, gboolean show, procrecorddata * procdatarec)
 {
     unsigned int i;
     char szBuf[1024];
@@ -2346,7 +2316,7 @@ hint_move(char *sz, gboolean show, procrecorddata *procdatarec)
     int hist;
     movelist ml;
     findData fd;
-    ssize_t fSaveShowProg = fShowProgress;
+    int fSaveShowProg = fShowProgress;
 
     if (!ms.anDice[0])
         return;
@@ -2365,11 +2335,11 @@ hint_move(char *sz, gboolean show, procrecorddata *procdatarec)
         fd.pci = &ci;
         fd.pec = &GetEvalChequer()->ec;
         fd.aamf = *GetEvalMoveFilter();
-        if (procdatarec){
+        if (procdatarec) {
             show = FALSE;
-            fShowProgress = (ssize_t)procdatarec->avInputData[PROCREC_HINT_ARGIN_SHOWPROGRESS];
+            fShowProgress = (procdatarec->avInputData[PROCREC_HINT_ARGIN_SHOWPROGRESS] != NULL);
         }
-        if ((RunAsyncProcess((AsyncFun) asyncFindMove, &fd, _("Considering move...")) != 0) || fInterrupt){
+        if ((RunAsyncProcess((AsyncFun) asyncFindMove, &fd, _("Considering move...")) != 0) || fInterrupt) {
             fShowProgress = fSaveShowProg;
             return;
         }
@@ -2417,19 +2387,19 @@ hint_move(char *sz, gboolean show, procrecorddata *procdatarec)
         return;
     }
 
-    if (procdatarec){
-        procdatarec->avOutputData[PROCREC_HINT_ARGOUT_MATCHSTATE] = (void *)&ms;
-        procdatarec->avOutputData[PROCREC_HINT_ARGOUT_CUBEINFO] = (void *)&ci;
-        procdatarec->avOutputData[PROCREC_HINT_ARGOUT_MOVELIST] = (void *)&pmr->ml;
-        procdatarec->avOutputData[PROCREC_HINT_ARGOUT_MOVERECORD] = (void *)&pmr;
+    if (procdatarec) {
+        procdatarec->avOutputData[PROCREC_HINT_ARGOUT_MATCHSTATE] = (void *) &ms;
+        procdatarec->avOutputData[PROCREC_HINT_ARGOUT_CUBEINFO] = (void *) &ci;
+        procdatarec->avOutputData[PROCREC_HINT_ARGOUT_MOVELIST] = (void *) &pmr->ml;
+        procdatarec->avOutputData[PROCREC_HINT_ARGOUT_MOVERECORD] = (void *) &pmr;
     }
 
     n = MIN(pmr->ml.cMoves, n);
     for (i = 0; i < n; i++) {
         if (show)
             output(FormatMoveHint(szBuf, &ms, &pmr->ml, i, TRUE, TRUE, TRUE));
-        else if (procdatarec && procdatarec->pfProcessRecord){
-            procdatarec->avOutputData[PROCREC_HINT_ARGOUT_INDEX] = (void *)(long)i;
+        else if (procdatarec && procdatarec->pfProcessRecord) {
+            procdatarec->avOutputData[PROCREC_HINT_ARGOUT_INDEX] = (void *) (long) i;
             if (!procdatarec->pfProcessRecord(procdatarec))
                 break;
         }
@@ -2439,10 +2409,24 @@ hint_move(char *sz, gboolean show, procrecorddata *procdatarec)
 extern void
 CommandHint(char *sz)
 {
+    listOLD *pl;
+    moverecord *pmr;
 
     if (ms.gs != GAME_PLAYING) {
         outputl(_("You must set up a board first."));
 
+        return;
+    }
+
+    /* The code further below handles only the case of asking a hint
+     * on a resignation by gnubg while playing against it. When
+     * clicking on a "resign" entry in the moves panel while reviewing
+     * a game, the match state ms is not up to date and we have to
+     * look at the moves list */
+
+    pl = plLastMove->plNext;
+    if ((pmr = pl->p) && pmr->mt == MOVE_RESIGN) {
+        HintResigned();
         return;
     }
 
@@ -2712,8 +2696,8 @@ CommandLoadCommands(char *sz)
      * to allow proper support for filenames with spaces */
     char *szQuoted = NULL;
     char *szQuotedTemp = NULL;
-    if (sz[0] != '"' && sz[0] != '\'') {
-        szQuoted = szQuotedTemp = g_strdup_printf("'%s'", sz);
+    if (sz[0] != '"') {
+        szQuoted = szQuotedTemp = g_strdup_printf("\"%s\"", sz);
         sz = NextToken(&szQuoted);
     } else
         sz = NextToken(&sz);
@@ -2788,7 +2772,7 @@ CommandCopy(char *UNUSED(sz))
                 cch = 20;
 
             sprintf(szCube, "%c: %*s (%s: %d)", ms.fCubeOwner ? 'X' :
-                    'O', (int)cch, ap[ms.fCubeOwner].szName, _("Cube"), ms.nCube);
+                    'O', (int) cch, ap[ms.fCubeOwner].szName, _("Cube"), ms.nCube);
 
             aps[ms.fCubeOwner ? 6 : 0] = szCube;
 
@@ -2803,7 +2787,18 @@ CommandCopy(char *UNUSED(sz))
         SwapSides(anBoardTemp);
 
     DrawBoard(szOut, (ConstTanBoard) anBoardTemp, ms.fMove, aps, MatchIDFromMatchState(&ms), anChequers[ms.bgv]);
-    strcat(szOut, "\n");
+
+    {
+        unsigned int anPips[2];
+        char szPipCount[32];
+
+        PipCount((ConstTanBoard) anBoardTemp, anPips);
+        sprintf(szPipCount, "Pip counts : O %u, X %u\n", anPips[0], anPips[1]);
+
+        strcat(szOut, "                    ");
+        strcat(szOut, szPipCount);
+    }
+
     TextToClipboard(szOut);
 }
 
@@ -2815,7 +2810,7 @@ LoadRCFiles(void)
     loading_rc = TRUE;
     outputoff();
     sz = g_build_filename(szHomeDirectory, "gnubgautorc", NULL);
-    szz = g_strdup_printf("'%s'", sz);
+    szz = g_strdup_printf("\"%s\"", sz);
     if (g_file_test(sz, G_FILE_TEST_EXISTS))
         CommandLoadCommands(szz);
 
@@ -2824,7 +2819,7 @@ LoadRCFiles(void)
     g_free(szz);
 
     sz = g_build_filename(szHomeDirectory, "gnubgrc", NULL);
-    szz = g_strdup_printf("'%s'", sz);
+    szz = g_strdup_printf("\"%s\"", sz);
     if (g_file_test(sz, G_FILE_TEST_EXISTS))
         CommandLoadCommands(szz);
     g_free(sz);
@@ -2900,7 +2895,7 @@ SaveEvalSettings(FILE * pf, const char *sz, evalcontext * pec)
 
     gchar buf[G_ASCII_DTOSTR_BUF_SIZE];
     gchar *szNoise = g_ascii_formatd(buf, G_ASCII_DTOSTR_BUF_SIZE, "%0.3f", pec->rNoise);
-    fprintf(pf, "%s plies %d\n"
+    fprintf(pf, "%s plies %u\n"
             "%s prune %s\n"
             "%s cubeful %s\n"
             "%s noise %s\n"
@@ -2934,15 +2929,15 @@ SaveRolloutSettings(FILE * pf, const char *sz, rolloutcontext * prc)
             "%s bearofftruncation onesided %s\n"
             "%s later enable %s\n"
             "%s later plies %d\n"
-            "%s trials %d\n"
+            "%s trials %u\n"
             "%s cube-equal-chequer %s\n"
             "%s players-are-same %s\n"
             "%s truncate-equal-player0 %s\n"
             "%s limit enable %s\n"
-            "%s limit minimumgames %d\n"
+            "%s limit minimumgames %u\n"
             "%s limit maxerror %s\n"
             "%s jsd stop %s\n"
-            "%s jsd minimumgames %d\n"
+            "%s jsd minimumgames %u\n"
             "%s jsd limit %s\n",
             sz, prc->fCubeful ? "on" : "off",
             sz, prc->fVarRedn ? "on" : "off",
@@ -3082,7 +3077,7 @@ SaveImportExportSettings(FILE * pf)
     else if (exsExport.fSide)
         fprintf(pf, "set export show player %d\n", exsExport.fSide - 1);
 
-    fprintf(pf, "set export move number %d\n", exsExport.nMoves);
+    fprintf(pf, "set export move number %u\n", exsExport.nMoves);
     fprintf(pf, "set export moves parameters evaluation %s\n", exsExport.afMovesParameters[0] ? "yes" : "no");
     fprintf(pf, "set export moves parameters rollout %s\n", exsExport.afMovesParameters[1] ? "yes" : "no");
     fprintf(pf, "set export moves probabilities %s\n", exsExport.fMovesDetailProb ? "yes" : "no");
@@ -3185,7 +3180,11 @@ SavePlayerSettings(FILE * pf)
 {
     int i;
     char szTemp[4096];
+
     fprintf(pf, "set defaultnames \"%s\" \"%s\"\n", default_names[0], default_names[1]);
+    if (strlen(player1aliases) > 0)
+        fprintf(pf, "set aliases %s\n", player1aliases);
+
     for (i = 0; i < 2; i++) {
         fprintf(pf, "set player %d name %s\n", i, ap[i].szName);
 
@@ -3381,10 +3380,10 @@ CommandSaveSettings(char *szParam)
     else {
         outputf(_("Settings saved to %s."), (!strcmp(szFile, "-")) ? _("standard output stream") : szFile);
         output("\n");
-        if(cOutputPostponed){
+        if (cOutputPostponed) {
             outputresume();
             outputx();
-            outputpostpone();            
+            outputpostpone();
         }
     }
     g_free(szFile);
@@ -4319,7 +4318,7 @@ setup_readline(void)
     gnubg_histfile = g_build_filename(szHomeDirectory, "history", NULL);
     rl_readline_name = "gnubg";
     rl_basic_word_break_characters = rl_filename_quote_characters = szCommandSeparators;
-    rl_completer_quote_characters = "\"'";
+    rl_completer_quote_characters = "\"";
     /* assume readline 4.2 or later */
     rl_completion_entry_function = NullGenerator;
     rl_attempted_completion_function = CompleteKeyword;
@@ -4533,9 +4532,6 @@ getDiceRandomDotOrg(void)
     }
 
 }
-
-#else
-static int (*getRandomDiceDotOrg) (void) = NULL;
 #endif                          /* HAVE_SOCKETS */
 
 static void
@@ -4578,17 +4574,17 @@ matchfile_from_argv(char *sz)
     gchar *utf8fn;
 
     if (g_path_is_absolute(sz))
-        pchMatch = g_strdup_printf("'%s'", sz);
+        pchMatch = g_strdup_printf("\"%s\"", sz);
     else {
         char *tmp = g_build_filename(g_get_current_dir(), sz, NULL);
-        pchMatch = g_strdup_printf("'%s'", tmp);
+        pchMatch = g_strdup_printf("\"%s\"", tmp);
         g_free(tmp);
     }
     utf8fn = g_locale_to_utf8(pchMatch, -1, &br, &bw, NULL);
     g_free(pchMatch);
     pchMatch = utf8fn;
 #else
-    pchMatch = g_strdup_printf("'%s'", sz);
+    pchMatch = g_strdup_printf("\"%s\"", sz);
 #endif
     return pchMatch;
 }
@@ -4640,8 +4636,7 @@ main(int argc, char *argv[])
     char *met = NULL;
 
     static char *pchCommands = NULL, *pchPythonScript = NULL, *lang = NULL;
-    static int fNoBearoff = FALSE, fNoX = FALSE, fSplash = FALSE, fNoTTY =
-        FALSE, show_version = FALSE, debug = FALSE;
+    static int fNoBearoff = FALSE, fNoX = FALSE, fSplash = FALSE, fNoTTY = FALSE, show_version = FALSE, debug = FALSE;
     GOptionEntry ao[] = {
         {"no-bearoff", 'b', 0, G_OPTION_ARG_NONE, &fNoBearoff,
          N_("Do not use bearoff database"), NULL},
@@ -4689,6 +4684,10 @@ main(int argc, char *argv[])
     putenv("LIBOVERLAY_SCROLLBAR=0");
 #endif
 
+#if ! GLIB_CHECK_VERSION(2,36,0)
+    g_type_init();
+#endif
+    
     output_initialize();
 
     /* set language */
@@ -4720,10 +4719,9 @@ main(int argc, char *argv[])
     if (!debug)
         g_log_set_handler(NULL, G_LOG_LEVEL_DEBUG, &null_debug, NULL);
 
-    if (prefsdir){
+    if (prefsdir) {
         szHomeDirectory = prefsdir;
     }
-
 #ifdef WIN32
     /* data directory: initialise to the path where gnubg is installed */
     {
@@ -4783,6 +4781,7 @@ main(int argc, char *argv[])
     init_nets(fNoBearoff);
 
     PushSplash(pwSplash, _("Initialising"), _("initialising thread data"));
+    glib_ext_init();
     MT_InitThreads();
 
 #if defined(WIN32) && HAVE_SOCKETS
@@ -4791,7 +4790,7 @@ main(int argc, char *argv[])
 #endif
 
 #if USE_PYTHON
-    PushSplash(pwSplash, _("Initialising"), _("Python"));
+    PushSplash(pwSplash, _("Initialising"), "Python");
     PythonInitialise(argv[0]);
 #endif
 
@@ -4885,7 +4884,7 @@ CommandEq2MWC(char *sz)
     }
 
 
-    rEq = (float) ParseReal(&sz);
+    rEq = ParseReal(&sz);
 
     if (rEq == ERR_VAL)
         rEq = 0.0;
@@ -4929,13 +4928,13 @@ CommandMWC2Eq(char *sz)
 
     GetMatchStateCubeInfo(&ci, &ms);
 
-    rMwc = (float) ParseReal(&sz);
+    rMwc = ParseReal(&sz);
 
     if (rMwc == ERR_VAL)
         rMwc = eq2mwc(0.0, &ci);
 
-    if (rMwc > 1.0)
-        rMwc /= 100.0;
+    if (rMwc > 1.0f)
+        rMwc /= 100.0f;
 
     outputf("%s = %6.2f%%: %+6.3f\n", _("Equity for MWC"), 100.0 * eq2mwc(-1.0, &ci), -1.0);
     outputf("%s = %6.2f%%: %+6.3f\n", _("Equity for MWC"), 100.0 * eq2mwc(+1.0, &ci), +1.0);
@@ -5228,7 +5227,7 @@ CommandDiceRolls(char *sz)
         while (n-- > 0) {
             RollDice(anDice, &rngCurrent, rngctxCurrent);
 
-            printf("%d %d\n", anDice[0], anDice[1]);
+            printf("%u %u\n", anDice[0], anDice[1]);
 
         }
 
@@ -5440,6 +5439,16 @@ SetupLanguage(const char *newLangCode)
     return (result);
 }
 #endif
+
+void
+asyncFindBestMoves(findData * pfd)
+{
+    if (FindnSaveBestMoves(pfd->pml, pfd->anDice[0], pfd->anDice[1], pfd->pboard,
+                           pfd->keyMove, pfd->rThr, pfd->pci, pfd->pec, pfd->aamf) < 0)
+        MT_SetResultFailed();
+        
+    RefreshMoveList (pfd->pml, NULL);
+}
 
 void
 asyncFindMove(findData * pfd)

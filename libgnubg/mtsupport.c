@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
- * $Id: mtsupport.c,v 1.1 2013/07/10 13:54:27 mdpetch Exp $
+ * $Id: mtsupport.c,v 1.6 2014/07/27 01:28:30 mdpetch Exp $
  */
 
 #include "config.h"
@@ -43,14 +43,14 @@ SSE_ALIGN(ThreadData td);
 extern ThreadLocalData *
 MT_CreateThreadLocalData(int id)
 {
-    ThreadLocalData *tld = (ThreadLocalData *)malloc(sizeof(ThreadLocalData));
+    ThreadLocalData *tld = (ThreadLocalData *) malloc(sizeof(ThreadLocalData));
     tld->id = id;
-    tld->pnnState = (NNState *)malloc(sizeof(NNState)*3);
-    memset(tld->pnnState, 0, sizeof(NNState)*3);
+    tld->pnnState = (NNState *) malloc(sizeof(NNState) * 3);
+    memset(tld->pnnState, 0, sizeof(NNState) * 3);
     tld->pnnState[CLASS_RACE - CLASS_RACE].savedBase = malloc(nnRace.cHidden * sizeof(float));
     memset(tld->pnnState[CLASS_RACE - CLASS_RACE].savedBase, 0, nnRace.cHidden * sizeof(float));
     tld->pnnState[CLASS_RACE - CLASS_RACE].savedIBase = malloc(nnRace.cInput * sizeof(float));
-    memset(tld->pnnState[CLASS_RACE - CLASS_RACE].savedIBase, 0,  nnRace.cInput * sizeof(float));
+    memset(tld->pnnState[CLASS_RACE - CLASS_RACE].savedIBase, 0, nnRace.cInput * sizeof(float));
     tld->pnnState[CLASS_CRASHED - CLASS_RACE].savedBase = malloc(nnCrashed.cHidden * sizeof(float));
     memset(tld->pnnState[CLASS_CRASHED - CLASS_RACE].savedBase, 0, nnCrashed.cHidden * sizeof(float));
     tld->pnnState[CLASS_CRASHED - CLASS_RACE].savedIBase = malloc(nnCrashed.cInput * sizeof(float));
@@ -60,19 +60,16 @@ MT_CreateThreadLocalData(int id)
     tld->pnnState[CLASS_CONTACT - CLASS_RACE].savedIBase = malloc(nnContact.cInput * sizeof(float));
     memset(tld->pnnState[CLASS_CONTACT - CLASS_RACE].savedIBase, 0, nnContact.cInput * sizeof(float));
 
-    tld->aMoves = (move *)malloc(sizeof(move)*MAX_INCOMPLETE_MOVES);
-    memset (tld->aMoves, 0, sizeof(move)*MAX_INCOMPLETE_MOVES);
+    tld->aMoves = (move *) malloc(sizeof(move) * MAX_INCOMPLETE_MOVES);
+    memset(tld->aMoves, 0, sizeof(move) * MAX_INCOMPLETE_MOVES);
     return tld;
 }
 
 #if USE_MULTITHREAD
 
-#define UI_UPDATETIME 250
-
 #if defined(DEBUG_MULTITHREADED) && defined(WIN32)
 unsigned int mainThreadID;
 #endif
-
 
 #ifdef GLIB_THREADS
 #if GLIB_CHECK_VERSION (2,32,0)
@@ -87,7 +84,7 @@ GAsyncQueue *async_queue = NULL;        /* Needed for async waiting */
 
 #if GLIB_CHECK_VERSION (2,32,0)
 /* Dynamic allocation of GPrivate is deprecated */
-GPrivate private_item;
+GPrivate private_item = G_PRIVATE_INIT (free);
 
 extern void
 TLSCreate(TLSItem * pItem)
@@ -120,7 +117,7 @@ TLSSetValue(TLSItem pItem, size_t value)
 extern void
 InitManualEvent(ManualEvent * pME)
 {
-    ManualEvent pNewME = malloc(sizeof(*pNewME));
+    ManualEvent pNewME = g_malloc(sizeof(*pNewME));
 #if GLIB_CHECK_VERSION (2,32,0)
     g_cond_init(&pNewME->cond);
 #else
@@ -138,7 +135,7 @@ FreeManualEvent(ManualEvent ME)
 #else
     g_cond_free(ME->cond);
 #endif
-    free(ME);
+    g_free(ME);
 }
 
 extern void
@@ -221,9 +218,9 @@ InitMutex(Mutex * pMutex)
 }
 
 extern void
-FreeMutex(Mutex mutex)
+FreeMutex(Mutex * mutex)
 {
-    g_mutex_clear(&mutex);
+    g_mutex_clear(mutex);
 }
 #else
 extern void
@@ -233,14 +230,14 @@ InitMutex(Mutex * pMutex)
 }
 
 extern void
-FreeMutex(Mutex mutex)
+FreeMutex(Mutex * mutex)
 {
-    g_mutex_free(mutex);
+    g_mutex_free(*mutex);
 }
 #endif
 
 extern void
-Mutex_Lock(Mutex mutex, const char *reason)
+Mutex_Lock(Mutex *mutex, const char *reason)
 {
 #ifdef DEBUG_MULTITHREADED
     multi_debug(reason);
@@ -248,22 +245,22 @@ Mutex_Lock(Mutex mutex, const char *reason)
     (void) reason;
 #endif
 #if GLIB_CHECK_VERSION (2,32,0)
-    g_mutex_lock(&mutex);
-#else
     g_mutex_lock(mutex);
+#else
+    g_mutex_lock(*mutex);
 #endif
 }
 
 extern void
-Mutex_Release(Mutex mutex)
+Mutex_Release(Mutex *mutex)
 {
 #ifdef DEBUG_MULTITHREADED
     multi_debug("Releasing lock");
 #endif
 #if GLIB_CHECK_VERSION (2,32,0)
-    g_mutex_unlock(&mutex);
-#else
     g_mutex_unlock(mutex);
+#else
+    g_mutex_unlock(*mutex);
 #endif
 }
 
@@ -318,9 +315,9 @@ InitMutex(Mutex * pMutex)
 }
 
 extern void
-FreeMutex(Mutex mutex)
+FreeMutex(Mutex * mutex)
 {
-    CloseHandle(mutex);
+    CloseHandle(*mutex);
 }
 
 #ifdef DEBUG_MULTITHREADED
@@ -358,13 +355,12 @@ MT_InitThreads(void)
         g_thread_init(NULL);
     g_assert(g_thread_supported());
 #endif
-
     td.tasks = NULL;
     td.doneTasks = td.addedTasks = 0;
     td.totalTasks = -1;
     InitManualEvent(&td.activity);
     TLSCreate(&td.tlsItem);
-    TLSSetValue(td.tlsItem, (size_t)MT_CreateThreadLocalData(0)); /* Main thread shares id 0 */
+    TLSSetValue(td.tlsItem, (size_t) MT_CreateThreadLocalData(0));      /* Main thread shares id 0 */
 
 #if defined(DEBUG_MULTITHREADED) && defined(WIN32)
     mainThreadID = GetCurrentThreadId();
@@ -384,16 +380,20 @@ extern void
 CloseThread(void *UNUSED(unused))
 {
     int i;
-    NNState *pnnState = ((ThreadLocalData *)TLSGet(td.tlsItem))->pnnState;
+    NNState *pnnState = ((ThreadLocalData *) TLSGet(td.tlsItem))->pnnState;
 
     g_assert(td.closingThreads);
-    free(((ThreadLocalData *)TLSGet(td.tlsItem))->aMoves);
+
+    ThreadLocalData *pTLD = (ThreadLocalData *) TLSGet(td.tlsItem);
+    if (pTLD->aMoves)
+        free(pTLD->aMoves);
+
     for (i = 0; i < 3; i++) {
         free(pnnState[i].savedBase);
         free(pnnState[i].savedIBase);
     }
-    free(((ThreadLocalData *)TLSGet(td.tlsItem))->pnnState);
-    free((void *)TLSGet(td.tlsItem));
+    free(((ThreadLocalData *) TLSGet(td.tlsItem))->pnnState);
+    free((void *) TLSGet(td.tlsItem));
     MT_SafeInc(&td.result);
 }
 
@@ -415,24 +415,23 @@ MT_Close(void)
     MT_CloseThreads();
 
     FreeManualEvent(td.activity);
-    FreeMutex(td.multiLock);
-    FreeMutex(td.queueLock);
+    FreeMutex(&td.multiLock);
+    FreeMutex(&td.queueLock);
 
     FreeManualEvent(td.syncStart);
     FreeManualEvent(td.syncEnd);
-    TLSFree(td.tlsItem);
 }
 
 extern void
 MT_Exclusive(void)
 {
-    Mutex_Lock(td.multiLock, "Exclusive lock");
+    Mutex_Lock(&td.multiLock, "Exclusive lock");
 }
 
 extern void
 MT_Release(void)
 {
-    Mutex_Release(td.multiLock);
+    Mutex_Release(&td.multiLock);
 }
 
 #ifdef DEBUG_MULTITHREADED
@@ -496,14 +495,12 @@ multi_debug(const char *str, ...)
 #include <gtkgame.h>
 #endif
 
-#define UI_UPDATETIME 250
-
 SSE_ALIGN(ThreadData td);
 
 extern void
 MT_InitThreads(void)
 {
-    td.tld = MT_CreateThreadLocalData(0); /* Main thread shares id 0 */
+    td.tld = MT_CreateThreadLocalData(0);       /* Main thread shares id 0 */
 }
 
 extern void
@@ -526,5 +523,3 @@ MT_Close(void)
 }
 
 #endif
-
-

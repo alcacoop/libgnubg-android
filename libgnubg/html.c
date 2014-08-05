@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: html.c,v 1.231 2013/06/16 02:16:17 mdpetch Exp $
+ * $Id: html.c,v 1.235 2014/02/12 21:12:36 plm Exp $
  */
 
 #include "config.h"
@@ -119,12 +119,6 @@ static const char *aaszStyleSheetClasses[NUM_CLASSES][2] = {
     {"boardimage", "vertical-align: top"}
 };
 
-#define FORMATHTMLPROB(f) \
-( ( f ) < 1.0f ) ? "&nbsp;" : "", \
-( ( f ) < 0.1f ) ? "&nbsp;" : "", \
-( f ) * 100.0f
-
-
 const char *aszHTMLExportType[NUM_HTML_EXPORT_TYPES] = {
     "gnu",
     "bbs",
@@ -167,7 +161,7 @@ WriteStyleSheet(FILE * pf, const htmlexportcss hecss)
 
         fputs("\n"
               "/* CSS Stylesheet for " VERSION_STRING " */\n"
-              "/* $Id: html.c,v 1.231 2013/06/16 02:16:17 mdpetch Exp $ */\n", pf);
+              "/* $Id: html.c,v 1.235 2014/02/12 21:12:36 plm Exp $ */\n", pf);
 
     fputs("/* This file is distributed as a part of the "
           "GNU Backgammon program. */\n"
@@ -529,7 +523,7 @@ printHTMLBoardBBS(FILE * pf, matchstate * pms, int fTurn,
 
     /* Begin table  and print for player 0 */
     fprintf(pf,
-            "<table style=\"page-break-inside: avoid\"><tr><th align=\"left\">%s</th><th align=\"right\">%d</th></tr>",
+            "<table style=\"page-break-inside: avoid\"><tr><th align=\"left\">%s</th><th align=\"right\">%u</th></tr>",
             ap[0].szName, anPips[1]);
 
     /* avoid page break when printing */
@@ -646,7 +640,7 @@ printHTMLBoardBBS(FILE * pf, matchstate * pms, int fTurn,
     fputs("</td></tr>\n", pf);
 
     fprintf(pf,
-            "<tr><th align=\"left\">%s</th><th align=\"right\">%d</th><th align=\"center\" colspan=\"2\"></th></tr>",
+            "<tr><th align=\"left\">%s</th><th align=\"right\">%u</th><th align=\"center\" colspan=\"2\"></th></tr>",
             ap[1].szName, anPips[0]);
 
     /* pip counts */
@@ -1584,7 +1578,7 @@ HTMLEpilogue(FILE * pf, const matchstate * UNUSED(pms), char *aszLinks[4], const
     int fFirst;
     int i;
 
-    const char szVersion[] = "$Revision: 1.231 $";
+    const char szVersion[] = "$Revision: 1.235 $";
     int iMajor, iMinor;
 
     iMajor = atoi(strchr(szVersion, ' '));
@@ -1654,7 +1648,7 @@ HTMLEpilogueComment(FILE * pf)
 
     time_t t;
 
-    const char szVersion[] = "$Revision: 1.231 $";
+    const char szVersion[] = "$Revision: 1.235 $";
     int iMajor, iMinor;
     char *pc;
 
@@ -2207,7 +2201,7 @@ HTMLPrintMoveAnalysis(FILE * pf, matchstate * pms, moverecord * pmr,
                 fprintf(pf, "<td %s>n/a</td>\n", GetStyle(CLASS_MOVEPLY, hecss));
                 break;
             case EVAL_EVAL:
-                fprintf(pf, "<td %s>%d</td>\n", GetStyle(CLASS_MOVEPLY, hecss), pmr->ml.amMoves[i].esMove.ec.nPlies);
+                fprintf(pf, "<td %s>%u</td>\n", GetStyle(CLASS_MOVEPLY, hecss), pmr->ml.amMoves[i].esMove.ec.nPlies);
                 break;
             case EVAL_ROLLOUT:
                 fprintf(pf, "<td %s>R</td>\n", GetStyle(CLASS_MOVEPLY, hecss));
@@ -3140,7 +3134,6 @@ static void
 ExportPositionGammOnLine(FILE * pf)
 {
     int fHistory;
-    int iMove;
     moverecord *pmr = get_current_moverecord(&fHistory);
 
     if (!pmr) {
@@ -3152,37 +3145,22 @@ ExportPositionGammOnLine(FILE * pf)
 
     fputs("<strong>", pf);
 
-    fprintf(pf,
-            ngettext("The score (after %d game) is: %s %d, %s %d",
-                     "The score (after %d games) is: %s %d, %s %d",
-                     ms.cGames), ms.cGames, ap[0].szName, ms.anScore[0], ap[1].szName, ms.anScore[1]);
-
-    if (ms.nMatchTo > 0)
+    if (ms.nMatchTo > 1)
         fprintf(pf,
-                ngettext(" (match to %d point%s)",
-                         " (match to %d points%s)",
-                         ms.nMatchTo),
-                ms.nMatchTo, ms.fCrawford ? _(", Crawford game") : (ms.fPostCrawford ? _(", post-Crawford play") : ""));
+                gettext("Match to %d points - %s %d, %s %d%s"),
+                ms.nMatchTo,
+                ap[0].szName, ms.anScore[0], ap[1].szName, ms.anScore[1],
+                ms.fCrawford ? _(", Crawford game") : (ms.fPostCrawford ? _(", post-Crawford play") : ""));
+    else if (ms.nMatchTo == 1)
+        fprintf(pf, _("Match to 1 point"));
+    else
+        fprintf(pf, gettext("Unlimited game, %s"), ms.fJacoby ? _("Jacoby rule") : _("without Jacoby rule"));
+
     fputs("</strong>\n", pf);
 
     fputs("\n<!-- End Score -->\n\n", pf);
 
-
-    if (fHistory)
-        iMove = getMoveNumber(plGame, pmr) - 1;
-    else if (plLastMove)
-        iMove = getMoveNumber(plGame, plLastMove->p);
-    else
-        iMove = -1;
-    HTMLBoardHeader(pf, &ms, HTML_EXPORT_TYPE_BBS, HTML_EXPORT_CSS_INLINE, getGameNumber(plGame), iMove, FALSE);
-
-    printHTMLBoard(pf, &ms, ms.fTurn,
-#ifdef GAMMONLINE_TEST
-                   "http://www.gammonline.com/demo/Images/",
-#else
-                   "../Images/",
-#endif
-                   "gif", HTML_EXPORT_TYPE_BBS, HTML_EXPORT_CSS_INLINE);
+    printHTMLBoard(pf, &ms, ms.fTurn, "../Images/", "gif", HTML_EXPORT_TYPE_BBS, HTML_EXPORT_CSS_INLINE);
 
     if (pmr) {
         HTMLAnalysis(pf, &ms, pmr, "../Images/", "gif", HTML_EXPORT_TYPE_BBS, HTML_EXPORT_CSS_INLINE);

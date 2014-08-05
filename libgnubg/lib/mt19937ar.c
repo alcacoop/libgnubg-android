@@ -44,7 +44,7 @@
  * 
  * (1) #UNDEF main(), and other unused functions.
  * (2) make mt and mti parameters
- * $Id: mt19937ar.c,v 1.8 2013/06/16 02:16:24 mdpetch Exp $
+ * $Id: mt19937ar.c,v 1.9 2014/05/11 15:41:28 plm Exp $
  */
 
 /* No configuration used in this file
@@ -155,7 +155,7 @@ genrand_int32(int *mti, unsigned long mt[N])
     return y;
 }
 
-#ifdef UNDEF
+#if 0
 
 /* generates a random number on [0,0x7fffffff]-interval */
 long
@@ -219,4 +219,4 @@ main(void)
     return 0;
 }
 
-#endif                          /* UNDEF */
+#endif

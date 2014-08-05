@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: rollout.h,v 1.37 2013/06/16 02:16:20 mdpetch Exp $
+ * $Id: rollout.h,v 1.38 2014/05/04 20:15:16 plm Exp $
  */
 
 #ifndef ROLLOUT_H
@@ -89,7 +89,7 @@ GeneralEvaluation(float arOutput[NUM_ROLLOUT_OUTPUTS],
                   float arStdDev[NUM_ROLLOUT_OUTPUTS],
                   rolloutstat arsStatistics[2],
                   TanBoard anBoard,
-                  const cubeinfo * pci, const evalsetup * pes,
+                  cubeinfo * const pci, const evalsetup * pes,
                   rolloutprogressfunc * pfRolloutProgress, void *pUserData);
 
 extern int
@@ -130,7 +130,7 @@ extern int
 
 
 getResignation(float arResign[NUM_ROLLOUT_OUTPUTS],
-               TanBoard anBoard, const cubeinfo * pci, const evalsetup * pesResign);
+               TanBoard anBoard, cubeinfo * const pci, const evalsetup * pesResign);
 
 extern void
  getResignEquities(float arResign[NUM_ROLLOUT_OUTPUTS], cubeinfo * pci, int nResigned, float *prBefore, float *prAfter);

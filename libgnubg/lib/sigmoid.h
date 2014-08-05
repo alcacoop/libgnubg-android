@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: sigmoid.h,v 1.4 2013/06/16 02:16:25 mdpetch Exp $
+ * $Id: sigmoid.h,v 1.5 2014/06/28 22:31:24 plm Exp $
  */
 
 #ifndef SIGMOID_H
@@ -125,6 +125,14 @@ static float e[101] = {
     1993.0370438230298f,
     1993.0370438230298f         /* one extra :-) */
 };
+
+/* signbit() is used below in a somewhat performance sensitive place
+ * If HAVE_DECL_SIGNBIT is false, maybe we should juste compare to 0
+ * instead of using this */
+#if !HAVE_DECL_SIGNBIT
+/* copysign() caters for special IEEE 754 numbers */
+#define signbit(x) (copysign(1, (x)) < 0)
+#endif
 
 /* Calculate an approximation to the sigmoid function 1 / ( 1 + e^x ).
  * This is executed very frequently during neural net evaluation, so

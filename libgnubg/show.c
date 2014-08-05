@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: show.c,v 1.271 2013/06/16 02:16:20 mdpetch Exp $
+ * $Id: show.c,v 1.278 2014/07/27 16:01:21 plm Exp $
  */
 
 #include "config.h"
@@ -516,6 +516,12 @@ CommandShowDelay(char *UNUSED(sz))
 }
 
 extern void
+CommandShowAliases(char *UNUSED(sz))
+{
+    outputf(_("Aliases for player 1 when importing MAT files is set to \"%s\".\n "), player1aliases);
+}
+
+extern void
 CommandShowCache(char *UNUSED(sz))
 {
 
@@ -524,12 +530,10 @@ CommandShowCache(char *UNUSED(sz))
 
     EvalCacheStats(&c, &cLookup, &cHit);
 
-    outputf(_("%d cache entries have been used.  %d lookups, %d hits"), c, cLookup, cHit);
+    outputf(_("%d cache entries have been used. %d lookups, %d hits"), c, cLookup, cHit);
 
-    if (cLookup > 0x01000000)   /* calculate carefully to avoid overflow */
-        outputf(" (%d%%).", (cHit + (cLookup / 200)) / (cLookup / 100));
-    else if (cLookup)
-        outputf(" (%d%%).", (cHit * 100 + cLookup / 2) / cLookup);
+    if (cLookup)
+        outputf(" (%4.1f%%).", (float)cHit * 100.0f / (float)cLookup);
     else
         outputc('.');
 
@@ -1519,15 +1523,15 @@ CommandShowMarketWindow(char *sz)
 
     /* see if ratios are given on command line */
 
-    aarRates[0][0] = (float) ParseReal(&sz);
+    aarRates[0][0] = ParseReal(&sz);
 
     if (aarRates[0][0] >= 0) {
 
         /* read the others */
 
-        aarRates[1][0] = ((r = (float) ParseReal(&sz)) > 0.0f) ? r : 0.0f;
-        aarRates[0][1] = ((r = (float) ParseReal(&sz)) > 0.0f) ? r : 0.0f;
-        aarRates[1][1] = ((r = (float) ParseReal(&sz)) > 0.0f) ? r : 0.0f;
+        aarRates[1][0] = ((r = ParseReal(&sz)) > 0.0f) ? r : 0.0f;
+        aarRates[0][1] = ((r = ParseReal(&sz)) > 0.0f) ? r : 0.0f;
+        aarRates[1][1] = ((r = ParseReal(&sz)) > 0.0f) ? r : 0.0f;
 
         /* If one of the ratios are larger than 1 we assume the user
          * has entered 25.1 instead of 0.251 */
@@ -1785,7 +1789,7 @@ CommandShowExport(char *UNUSED(sz))
     output(_("\n"
              "Export settings: \n\n"
              "WARNING: not all settings are honoured in the export!\n"
-             "         Do not expect to much!\n\n" "Include: \n\n"));
+             "         Do not expect too much!\n\n" "Include: \n\n"));
 
     output(_("- annotations"));
     outputf("\r\t\t\t\t\t\t: %s\n", exsExport.fIncludeAnnotation ? _("yes") : _("no"));
@@ -1886,7 +1890,7 @@ CommandShowExport(char *UNUSED(sz))
     outputf(_("- URL to pictures used in export\n"
               "\t%s\n"), exsExport.szHTMLPictureURL ? exsExport.szHTMLPictureURL : _("not defined"));
 
-    outputf(_("- size of exported Html pictures: %dx%d\n"),
+    outputf(_("- size of exported HTML pictures: %dx%d\n"),
             exsExport.nHtmlSize * BOARD_WIDTH, exsExport.nHtmlSize * BOARD_HEIGHT);
 
     /* PNG options */
@@ -2068,6 +2072,12 @@ CommandShowCheat(char *UNUSED(sz))
         PrintCheatRoll(1, afCheatRoll[1]);
     }
 
+}
+
+extern void
+CommandShowRatingOffset(char *UNUSED(sz))
+{
+    outputf(_("The rating offset for estimating absolute ratings is: %.1f\n"), rRatingOffset);
 }
 
 

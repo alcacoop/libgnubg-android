@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: set.c,v 1.374 2013/06/16 02:16:20 mdpetch Exp $
+ * $Id: set.c,v 1.387 2014/07/28 21:24:55 plm Exp $
  */
 
 #include "config.h"
@@ -80,9 +80,6 @@
 #include "sound.h"
 #include "openurl.h"
 
-
-#include "sound.h"
-
 #if USE_BOARD3D
 #include "fun3d.h"
 #endif
@@ -99,8 +96,6 @@ static evalsetup *pesSet;
 
 static rng *rngSet;
 static rngcontext *rngctxSet;
-
-movefilter *aamfSet[MAX_FILTER_PLIES][MAX_FILTER_PLIES];
 
 static void
 SetSeed(const rng rngx, void *rngctx, char *sz)
@@ -276,7 +271,7 @@ SetMoveFilter(char *sz, movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES])
         return;
     }
 
-    if (((extras = ParseNumber(&sz)) < 0) || ((tolerance = (float) ParseReal(&sz)) < 0.0)) {
+    if (((extras = ParseNumber(&sz)) < 0) || ((tolerance = ParseReal(&sz)) < 0.0)) {
         outputf(_("You must set a count of extra moves and a search tolerance "
                   "(see `help set %s movefilter')."), szSetCommand);
         return;
@@ -334,16 +329,16 @@ static void
 SetLuckThreshold(lucktype lt, char *sz)
 {
 
-    double r = ParseReal(&sz);
+    float r = ParseReal(&sz);
     char *szCommand = gettext(aszLuckTypeCommand[lt]);
 
-    if (r <= 0.0) {
+    if (r <= 0.0f) {
         outputf(_("You must specify a positive number for the threshold (see "
                   "`help set analysis\nthreshold %s').\n"), szCommand);
         return;
     }
 
-    arLuckLevel[lt] = (float) r;
+    arLuckLevel[lt] = r;
 
     outputf(_("`%s' threshold set to %.3f.\n"), szCommand, r);
 }
@@ -352,16 +347,16 @@ static void
 SetSkillThreshold(skilltype lt, char *sz)
 {
 
-    double r = ParseReal(&sz);
+    float r = ParseReal(&sz);
     char *szCommand = gettext(aszSkillTypeCommand[lt]);
 
-    if (r < 0.0) {
+    if (r < 0.0f) {
         outputf(_("You must specify a semi-positive number for the threshold (see "
                   "`help set analysis\nthreshold %s').\n"), szCommand);
         return;
     }
 
-    arSkillLevel[lt] = (float) r;
+    arSkillLevel[lt] = r;
 
     outputf(_("`%s' threshold set to %.3f.\n"), szCommand, r);
 }
@@ -431,7 +426,7 @@ CommandSetStyledGameList(char *sz)
 extern void
 CommandSetFullScreen(char *sz)
 {
-    int newValue;
+    int newValue = fFullScreen;
     SetToggle("fullscreen", &newValue, sz, _("Show board in full screen mode"), _("Show board in normal screen mode."));
 
     if (newValue != fFullScreen) {      /* Value has changed */
@@ -681,7 +676,7 @@ CommandSetCalibration(char *sz)
         return;
     }
 
-    if ((r = (float) ParseReal(&sz)) <= 2.0f) {
+    if ((r = ParseReal(&sz)) <= 2.0f) {
         outputl(_("If you give a parameter to `set calibration', it must "
                   "be a legal number of evaluations per second."));
         return;
@@ -795,7 +790,6 @@ CommandSetCubeCentre(char *UNUSED(sz))
 extern void
 CommandSetCubeOwner(char *sz)
 {
-
     moverecord *pmr;
 
     int i;
@@ -1036,15 +1030,15 @@ extern void
 CommandSetEvalNoise(char *sz)
 {
 
-    double r = ParseReal(&sz);
+    float r = ParseReal(&sz);
 
-    if (r < 0.0) {
+    if (r < 0.0f) {
         outputf(_("You must specify a valid amount of noise to use " "(see `help set\n%s noise').\n"), szSetCommand);
 
         return;
     }
 
-    pecSet->rNoise = (float) r;
+    pecSet->rNoise = r;
 
     if (pecSet->rNoise)
         outputf(_("%s will use noise with standard deviation %5.3f.\n"), szSet, pecSet->rNoise);
@@ -1615,6 +1609,19 @@ CommandSetDefaultNames(char *sz)
 }
 
 extern void
+CommandSetAliases(char *sz)
+{
+    if (strlen(sz) >= sizeof(player1aliases))
+        outputf("%s %lu %s.\n", _("Aliases list limited to"), (long unsigned int) (sizeof(player1aliases) - 1),
+                _("characters, truncating"));
+
+    strncpy(player1aliases, sz, sizeof(player1aliases) - 1);
+
+    outputf(_("Aliases for player 1 when importing MAT files set to \"%s\".\n "), player1aliases);
+}
+
+
+extern void
 CommandSetPrompt(char *szParam)
 {
 
@@ -1833,9 +1840,9 @@ extern void
 CommandSetRolloutMaxError(char *sz)
 {
 
-    double r = ParseReal(&sz);
+    float r = ParseReal(&sz);
 
-    if (r < 0.0001) {
+    if (r < 0.0001f) {
         outputl(_("You must set a valid fraction for the ratio "
                   "STD/value where rollouts can stop " "(see `help set rollout limit maxerror')."));
         return;
@@ -1888,9 +1895,9 @@ extern void
 CommandSetRolloutJsdLimit(char *sz)
 {
 
-    double r = ParseReal(&sz);
+    float r = ParseReal(&sz);
 
-    if (r < 0.0001) {
+    if (r < 0.0001f) {
         outputl(_("You must set a number of joint standard deviations for the equity"
                   " difference with the best move being rolled out " "(see `help set rollout jsd limit')."));
         return;
@@ -2435,12 +2442,11 @@ extern void
 CommandSetScore(char *sz)
 {
 
-    long int n0, n1;
     moverecord *pmr;
     xmovegameinfo *pmgi;
     const char *pch0, *pch1;
     char *pchEnd0, *pchEnd1;
-    int fCrawford0, fCrawford1, fPostCrawford0, fPostCrawford1;
+    int n0, n1, fCrawford0, fCrawford1, fPostCrawford0, fPostCrawford1;
 
     if ((pch0 = NextToken(&sz)) == 0)
         pch0 = "";
@@ -2448,11 +2454,11 @@ CommandSetScore(char *sz)
     if ((pch1 = NextToken(&sz)) == 0)
         pch1 = "";
 
-    n0 = strtol(pch0, &pchEnd0, 10);
+    n0 = (int) strtol(pch0, &pchEnd0, 10);
     if (pch0 == pchEnd0)
         n0 = INT_MIN;
 
-    n1 = strtol(pch1, &pchEnd1, 10);
+    n1 = (int) strtol(pch1, &pchEnd1, 10);
     if (pch1 == pchEnd1)
         n1 = INT_MIN;
 
@@ -2607,6 +2613,37 @@ CommandSetToolbar(char *sz)
 }
 
 extern void
+SetTurn(int i)
+{
+    if (ms.fTurn != i)
+        SwapSides(ms.anBoard);
+
+    ms.fTurn = ms.fMove = i;
+    CancelCubeAction();
+    pmr_hint_destroy();
+    fNextTurn = FALSE;
+#if USE_GTK
+    if (fX) {
+
+        BoardData *bd = BOARD(pwBoard)->board_data;
+        bd->diceRoll[0] = bd->diceRoll[1] = -1;
+        fJustSwappedPlayers = TRUE;
+    }
+#endif
+    ms.anDice[0] = ms.anDice[1] = 0;
+
+
+    UpdateSetting(&ms.fTurn);
+
+#if USE_GTK
+    if (fX)
+        ShowBoard();
+#endif                          /* USE_GTK */
+
+    return;
+}
+
+extern void
 CommandSetTurn(char *sz)
 {
 
@@ -2643,30 +2680,7 @@ CommandSetTurn(char *sz)
         return;
     }
 
-    if (ms.fTurn != i)
-        SwapSides(ms.anBoard);
-
-    ms.fTurn = ms.fMove = i;
-    CancelCubeAction();
-    pmr_hint_destroy();
-    fNextTurn = FALSE;
-#if USE_GTK
-    if (fX) {
-
-        BoardData *bd = BOARD(pwBoard)->board_data;
-        bd->diceRoll[0] = bd->diceRoll[1] = -1;
-        fJustSwappedPlayers = TRUE;
-    }
-#endif
-    ms.anDice[0] = ms.anDice[1] = 0;
-
-
-    UpdateSetting(&ms.fTurn);
-
-#if USE_GTK
-    if (fX)
-        ShowBoard();
-#endif                          /* USE_GTK */
+    SetTurn(i);
 
     outputf(_("`%s' is now on roll.\n"), ap[i].szName);
 }
@@ -2950,12 +2964,6 @@ CommandSetMET(char *sz)
 extern void
 CommandSetEvalParamType(char *sz)
 {
-    const char *aszEvalType[] = {
-        N_("No evaluation"),
-        N_("Neural net evaluation"),
-        N_("Rollout")
-    };
-
     switch (sz[0]) {
 
     case 'r':
@@ -2969,7 +2977,6 @@ CommandSetEvalParamType(char *sz)
     default:
         outputf(_("Unknown evaluation type: %s (see\n" "`help set %s type').\n"), sz, szSetCommand);
         return;
-        break;
 
     }
 
@@ -4104,7 +4111,7 @@ CommandSetExportHtmlSize(char *sz)
 
     exsExport.nHtmlSize = n;
 
-    outputf(_("Size of generated Html images are %dx%d pixels\n"), n * BOARD_WIDTH, n * BOARD_HEIGHT);
+    outputf(_("Size of generated HTML images is %dx%d pixels\n"), n * BOARD_WIDTH, n * BOARD_HEIGHT);
 
 
 }
@@ -4202,7 +4209,7 @@ static void
 SetEfficiency(const char *szText, char *sz, float *prX)
 {
 
-    float r = (float) ParseReal(&sz);
+    float r = ParseReal(&sz);
 
     if (r >= 0.0f && r <= 1.0f) {
         *prX = r;
@@ -4240,7 +4247,7 @@ extern void
 CommandSetCubeEfficiencyRaceFactor(char *sz)
 {
 
-    float r = (float) ParseReal(&sz);
+    float r = ParseReal(&sz);
 
     if (r >= 0) {
         rRaceFactorX = r;
@@ -4270,7 +4277,7 @@ extern void
 CommandSetCubeEfficiencyRaceCoefficient(char *sz)
 {
 
-    float r = (float) ParseReal(&sz);
+    float r = ParseReal(&sz);
 
     if (r >= 0) {
         rRaceCoefficientX = r;
@@ -4285,7 +4292,7 @@ extern void
 CommandSetRatingOffset(char *sz)
 {
 
-    float r = (float) ParseReal(&sz);
+    float r = ParseReal(&sz);
 
     if (r < 0) {
         outputl(_("Please provide a positive rating offset\n"));
@@ -4336,7 +4343,7 @@ extern void
 CommandSetOutputErrorRateFactor(char *sz)
 {
 
-    float r = (float) ParseReal(&sz);
+    float r = ParseReal(&sz);
 
     if (r < 0) {
         outputl(_("Please provide a positive number\n"));
@@ -4419,40 +4426,11 @@ SetXGID(char *sz)
         return 1;
     }
 
-    for (i = 0; i < 26; i++) {
-        int p0, p1;
-
-        if (i == 0) {
-            p0 = 24;
-            p1 = -1;
-        } else if (i == 25) {
-            p0 = -1;
-            p1 = 24;
-        } else {
-            p0 = 24 - i;
-            p1 = i - 1;
-        }
-
-        if (pos[i] >= 'A' && pos[i] <= 'P') {
-            if (p0 > -1)
-                anBoard[0][p0] = 0;
-            anBoard[1][p1] = pos[i] - 'A' + 1;
-        } else if (pos[i] >= 'a' && pos[i] <= 'p') {
-            anBoard[0][p0] = pos[i] - 'a' + 1;
-            if (p1 > -1)
-                anBoard[1][p1] = 0;
-        } else if (pos[i] == '-') {
-            if (p0 > -1)
-                anBoard[0][p0] = 0;
-            if (p1 > -1)
-                anBoard[1][p1] = 0;
-        } else {
-            g_free(s);
-            return 1;
-        }
-    }
-
-    g_free(s);
+    if (PositionFromXG(anBoard, pos)) {
+        g_free(s);
+        return 1;
+    } else
+        g_free(s);
 
     /* atoi(v[0]) is a maximum (money) cube value, unused in gnubg */
 

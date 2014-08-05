@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: bearoff.c,v 1.92 2013/06/16 02:16:09 mdpetch Exp $
+ * $Id: bearoff.c,v 1.97 2014/01/09 22:15:10 plm Exp $
  */
 #include "config.h"
 /*must be first here because of strange warning from mingw */
@@ -161,7 +161,7 @@ HeuristicBearoff(unsigned int anBoard[6], const unsigned int anRoll[2])
             }
 
             nTotal = anDice[i] - 1;
-            for (j = i + 1; j < c; j++) {
+            for (n = -1, j = i + 1; j < c; j++) {
                 nTotal += anDice[j];
                 if (nTotal < 6 && anBoard[nTotal]) {
                     /* there's a chequer we can bear off with subsequent dice;
@@ -170,6 +170,8 @@ HeuristicBearoff(unsigned int anBoard[6], const unsigned int anRoll[2])
                     break;
                 }
             }
+            if (n >= 0)
+                break;
 
             for (n = -1, iSearch = anDice[i]; iSearch <= nMax; iSearch++) {
                 if (anBoard[iSearch] >= 2 &&    /* at least 2 on source point */
@@ -294,14 +296,12 @@ ReadTwoSidedBearoff(const bearoffcontext * pbc, const unsigned int iPos, float a
     /* add to cache */
 
     for (i = 0; i < k; ++i) {
-        us = pc[2 * i] | (pc[2 * i + 1]) << 8;
+        us = pc[2 * i] | (unsigned short) (pc[2 * i + 1] << 8);
         if (aus)
             aus[i] = us;
         if (ar)
             ar[i] = us / 32767.5f - 1.0f;
     }
-
-    ++((bearoffcontext *) pbc)->nReads; /* nReads only used for stats info */
 }
 
 extern int
@@ -363,8 +363,6 @@ ReadHypergammon(const bearoffcontext * pbc, const unsigned int iPos, float arOut
             us = pc[15 + 3 * i] | (pc[15 + 3 * i + 1]) << 8 | (pc[15 + 3 * i + 2]) << 16;
             arEquity[i] = (us / 16777215.0f - 0.5f) * 6.0f;
         }
-
-    ++((bearoffcontext *) pbc)->nReads; /* nReads only used for stats info */
 
     return 0;
 
@@ -541,8 +539,7 @@ BearoffStatus(const bearoffcontext * pbc, char *sz)
     default:
         break;
     }
-    sprintf(buf, _("number of reads: %lu"), pbc->nReads);
-    sprintf(sz, "   - %s\n", buf);
+    sprintf(sz, "\n");
 }
 
 static int
@@ -669,8 +666,8 @@ BearoffDumpOneSided(const bearoffcontext * pbc, const TanBoard anBoard, char *sz
     sz += sprintf(sz, "%s\t%7.3f\t%7.3f\n%s\t%7.3f\t%7.3f\n\n", _("EPC"),
                   ar[0][0] * x, ar[1][0] * x, _("Wastage"), ar[0][0] * x - anPips[1], ar[1][0] * x - anPips[0]);
 
-    sz += sprintf(sz, "%s = %5.3f * %s\n%s = %s - %s\n\n",
-                  _("EPC"), x, _("Average rolls"), _("Wastage"), _("EPC"), _("pips"));
+    sprintf(sz, "%s = %5.3f * %s\n%s = %s - %s\n\n",
+            _("EPC"), x, _("Average rolls"), _("Wastage"), _("EPC"), _("pips"));
 
     return 0;
 
@@ -959,7 +956,7 @@ fnd(const float x, const float mu, const float sigma)
 
         float xm = (x - mu) / sigma;
 
-        return 1.0f / ((sigma * sqrtf(2.0 * G_PI)) * ((float) (exp(-xm * xm / 2.0))));
+        return 1.0f / (sigma * sqrtf(2.0f * (float) G_PI) * expf(-xm * xm / 2.0f));
 
     }
 
@@ -1005,8 +1002,6 @@ ReadBearoffOneSidedND(const bearoffcontext * pbc,
 
     if (ar)
         memcpy(ar, arx, 16);
-
-    ++((bearoffcontext *) pbc)->nReads; /* nReads only used for stats info */
 
     return 0;
 
@@ -1060,10 +1055,10 @@ CopyBytes(unsigned short int aus[64],
     i = 0;
     memset(aus, 0, 64 * sizeof(unsigned short int));
     for (j = 0; j < nz; ++j, i += 2)
-        aus[ioff + j] = ac[i] | ac[i + 1] << 8;
+        aus[ioff + j] = ac[i] | (unsigned short int) (ac[i + 1] << 8);
 
     for (j = 0; j < nzg; ++j, i += 2)
-        aus[32 + ioffg + j] = ac[i] | ac[i + 1] << 8;
+        aus[32 + ioffg + j] = (unsigned short int) (ac[i] | ac[i + 1] << 8);
 }
 
 static unsigned short int *
@@ -1184,8 +1179,6 @@ ReadBearoffOneSidedExact(const bearoffcontext * pbc, const unsigned int nPosID,
     }
 
     AssignOneSided(arProb, arGammonProb, ar, ausProb, ausGammonProb, pus, pus + 32);
-
-    ++((bearoffcontext *) pbc)->nReads; /* nReads only used for stats info */
 
     return 0;
 }

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: render.c,v 1.94 2013/06/16 02:16:20 mdpetch Exp $
+ * $Id: render.c,v 1.99 2014/07/20 22:03:41 plm Exp $
  */
 
 #include "config.h"
@@ -37,6 +37,7 @@
 #include "render.h"
 #include "renderprefs.h"
 #include "boarddim.h"
+#include "boardpos.h"
 #include "backgammon.h"
 #include "util.h"
 
@@ -51,9 +52,13 @@
 static randctx rc;
 #define RAND irand( &rc )
 
+#if HAVE_FREETYPE
 #define FONT_VERA "fonts/Vera.ttf"
 #define FONT_VERA_SERIF_BOLD "fonts/VeraSeBd.ttf"
+#if 0 /* unused for now */
 #define FONT_VERA_BOLD "fonts/VeraBd.ttf"
+#endif
+#endif
 
 /* aaanPositions[Clockwise][x][point number][x, y. deltay] */
 int positions[2][30][3] = { {
@@ -122,10 +127,10 @@ int positions[2][30][3] = { {
 };
 
 #if HAVE_FREETYPE
-FT_Library ftl;
+static FT_Library ftl;
 #endif
 
-renderdata rdDefault = {
+static renderdata rdDefault = {
     WOOD_ALDER,                 /* wt */
     {{0xF1 / 255.0, 0x25 / 255.0, 0x25 / 255.0, 0.9}, {0, 0, 0xB / 255.0, 0.5}},        /* aarColour */
     {{0xF1 / 255.0, 0x25 / 255.0, 0x25 / 255.0, 0.9}, {0, 0, 0xB / 255.0, 0.5}},        /* aarDiceColour */
@@ -196,15 +201,15 @@ renderdata rdDefault = {
 };
 
 static inline unsigned char
-clamp(int n)
+clamp(float f)
 {
 
-    if (n < 0)
+    if (f < 0.0f)
         return 0;
-    else if (n > 0xFF)
+    else if (f > 255.0f)
         return 0xFF;
     else
-        return n;
+        return (unsigned char) f;
 }
 
 static int
@@ -214,11 +219,10 @@ intersects(int x0, int y0, int cx0, int cy0, int x1, int y1, int cx1, int cy1)
     return (y1 + cy1 > y0) && (y1 < y0 + cy0) && (x1 + cx1 > x0) && (x1 < x0 + cx0);
 }
 
-static inline double
-ssqrt(double x)
+static inline float
+ssqrt(float x)
 {
-
-    return x < 0.0 ? 0.0 : sqrt(x);
+    return x < 0.0f ? 0.0f : sqrtf(x);
 }
 
 extern void
@@ -648,11 +652,11 @@ RenderFramePainted(renderdata * prd, unsigned char *puch, int nStride)
 {
     int i;
     unsigned int ix;
-    float x, z, cos_theta, diffuse, specular;
+    float cos_theta, diffuse, specular;
     unsigned char *colours = (unsigned char *) g_alloca(4 * 3 * prd->nSize * sizeof(unsigned char));
 
     diffuse = 0.8f * prd->arLight[2] + 0.2f;
-    specular = pow(prd->arLight[2], 20) * 0.6f;
+    specular = powf(prd->arLight[2], 20) * 0.6f;
 
     /* fill whole board area with flat colour */
     FillArea(puch, nStride, prd->nSize * BOARD_WIDTH, prd->nSize * (BOARD_HEIGHT - 1),
@@ -662,16 +666,16 @@ RenderFramePainted(renderdata * prd, unsigned char *puch, int nStride)
                    diffuse * prd->aanBoardColour[1][1]), clamp(specular * 0x100 + diffuse * prd->aanBoardColour[1][2]));
 
     for (ix = 0; ix < prd->nSize; ix++) {
-        x = 1.0 - ((float) ix / prd->nSize);
-        z = ssqrt(1.0 - x * x);
+        float x = 1.0f - ((float) ix / prd->nSize);
+        float z = ssqrt(1.0f - x * x);
 
         for (i = 0; i < 4; i++) {
             cos_theta = prd->arLight[2] * z + prd->arLight[i & 1] * x;
             if (cos_theta < 0)
                 cos_theta = 0;
-            diffuse = 0.8 * cos_theta + 0.2;
+            diffuse = 0.8f * cos_theta + 0.2f;
             cos_theta = 2 * z * cos_theta - prd->arLight[2];
-            specular = pow(cos_theta, 20) * 0.6;
+            specular = powf(cos_theta, 20) * 0.6f;
 
             COLOURS(ix, i, 0) = clamp(specular * 0x100 + diffuse * prd->aanBoardColour[1][0]);
             COLOURS(ix, i, 1) = clamp(specular * 0x100 + diffuse * prd->aanBoardColour[1][1]);
@@ -719,9 +723,9 @@ WoodHash(float r)
     if (!r)
         return 0;
 
-    x = frexp(r, &n);
+    x = frexpf(r, &n);
 
-    return fabs(frexp(x * 131073.1294427 + n, &n)) * 2 - 1;
+    return fabsf(frexpf(x * 131073.1294427f + n, &n)) * 2 - 1;
 }
 
 static void
@@ -730,7 +734,7 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
     float r;
     int grain, figure;
 
-    r = sqrt(x * x + y * y);
+    r = sqrtf(x * x + y * y);
     r -= z / 60;
 
     switch (wt) {
@@ -739,20 +743,20 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
         grain = ((int) r % 60);
 
         if (grain < 10) {
-            auch[0] = 230 - grain * 2;
-            auch[1] = 100 - grain;
-            auch[2] = 20 - grain / 2;
+            auch[0] = (unsigned char) (230 - grain * 2);
+            auch[1] = (unsigned char) (100 - grain);
+            auch[2] = (unsigned char) (20 - grain / 2);
         } else if (grain < 20) {
-            auch[0] = 210 + (grain - 10) * 2;
-            auch[1] = 90 + (grain - 10);
-            auch[2] = 15 + (grain - 10) / 2;
+            auch[0] = (unsigned char) (210 + (grain - 10) * 2);
+            auch[1] = (unsigned char) (90 + (grain - 10));
+            auch[2] = (unsigned char) (15 + (grain - 10) / 2);
         } else {
-            auch[0] = 230 + (grain % 3);
-            auch[1] = 100 + (grain % 3);
-            auch[2] = 20 + (grain % 3);
+            auch[0] = (unsigned char) (230 + (grain % 3));
+            auch[1] = (unsigned char) (100 + (grain % 3));
+            auch[2] = (unsigned char) (20 + (grain % 3));
         }
 
-        figure = r / 29 + x / 15 + y / 17 + z / 29;
+        figure = (int) (r / 29 + x / 15 + y / 17 + z / 29);
 
         if (figure % 3 == (grain / 3) % 3) {
             auch[0] -= WoodHash(figure + grain) * 8;
@@ -771,11 +775,11 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
 
         grain *= WoodHash((int) r / 60) * 0.7 + 0.3;
 
-        auch[0] = 230 - grain;
-        auch[1] = 125 - grain / 2;
-        auch[2] = 20 - grain / 8;
+        auch[0] = (unsigned char) (230 - grain);
+        auch[1] = (unsigned char) (125 - grain / 2);
+        auch[2] = (unsigned char) (20 - grain / 8);
 
-        figure = r / 53 + x / 5 + y / 7 + z / 50;
+        figure = (int) (r / 53 + x / 5 + y / 7 + z / 50);
 
         if (figure % 3 == (grain / 3) % 3) {
             auch[0] -= WoodHash(figure + grain) * 16;
@@ -798,9 +802,9 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
         else
             grain = 0;
 
-        auch[0] = 230 - grain;
-        auch[1] = 205 - grain;
-        auch[2] = 150 - grain;
+        auch[0] = (unsigned char) (230 - grain);
+        auch[1] = (unsigned char) (205 - grain);
+        auch[2] = (unsigned char) (150 - grain);
 
         break;
 
@@ -811,11 +815,11 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
         if (grain > 40)
             grain = 120 - 2 * grain;
 
-        auch[0] = 230 - grain;
-        auch[1] = 125 - grain / 2;
-        auch[2] = 20 - grain / 8;
+        auch[0] = (unsigned char) (230 - grain);
+        auch[1] = (unsigned char) (125 - grain / 2);
+        auch[2] = (unsigned char) (20 - grain / 8);
 
-        figure = r / 29 + x / 15 + y / 17 + z / 29;
+        figure = (int) (r / 29 + x / 15 + y / 17 + z / 29);
 
         if (figure % 3 == (grain / 3) % 3) {
             auch[0] -= WoodHash(figure + grain) * 16;
@@ -830,21 +834,21 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
         grain = ((int) r % 60);
 
         if (grain < 10) {
-            auch[0] = 230 + grain;
-            auch[1] = 135 + grain;
-            auch[2] = 85 + grain / 2;
+            auch[0] = (unsigned char) (230 + grain);
+            auch[1] = (unsigned char) (135 + grain);
+            auch[2] = (unsigned char) (85 + grain / 2);
         } else if (grain < 20) {
-            auch[0] = 240 - (grain - 10) * 3;
-            auch[1] = 145 - (grain - 10) * 3;
-            auch[2] = 90 - (grain - 10) * 3 / 2;
+            auch[0] = (unsigned char) (240 - (grain - 10) * 3);
+            auch[1] = (unsigned char) (145 - (grain - 10) * 3);
+            auch[2] = (unsigned char) (90 - (grain - 10) * 3 / 2);
         } else if (grain < 30) {
-            auch[0] = 200 + grain;
-            auch[1] = 105 + grain;
-            auch[2] = 70 + grain / 2;
+            auch[0] = (unsigned char) (200 + grain);
+            auch[1] = (unsigned char) (105 + grain);
+            auch[2] = (unsigned char) (70 + grain / 2);
         } else {
-            auch[0] = 230 + (grain % 3);
-            auch[1] = 135 + (grain % 3);
-            auch[2] = 85 + (grain % 3);
+            auch[0] = (unsigned char) (230 + (grain % 3));
+            auch[1] = (unsigned char) (135 + (grain % 3));
+            auch[2] = (unsigned char) (85 + (grain % 3));
         }
 
         break;
@@ -856,8 +860,8 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
         if (grain > 40)
             grain = 120 - 2 * grain;
 
-        auch[0] = 30 + grain / 4;
-        auch[1] = 10 + grain / 8;
+        auch[0] = (unsigned char) (30 + grain / 4);
+        auch[1] = (unsigned char) (10 + grain / 8);
         auch[2] = 0;
 
         break;
@@ -867,21 +871,21 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
         grain = ((int) r % 60);
 
         if (grain < 10) {
-            auch[0] = 230 - grain * 2 + grain % 3 * 3;
-            auch[1] = 100 - grain * 2 + grain % 3 * 3;
-            auch[2] = 20 - grain + grain % 3 * 3;
+            auch[0] = (unsigned char) (230 - grain * 2 + grain % 3 * 3);
+            auch[1] = (unsigned char) (100 - grain * 2 + grain % 3 * 3);
+            auch[2] = (unsigned char) (20 - grain + grain % 3 * 3);
         } else if (grain < 30) {
-            auch[0] = 210 + grain % 3 * 3;
-            auch[1] = 80 + grain % 3 * 3;
-            auch[2] = 10 + grain % 3 * 3;
+            auch[0] = (unsigned char) (210 + grain % 3 * 3);
+            auch[1] = (unsigned char) (80 + grain % 3 * 3);
+            auch[2] = (unsigned char) (10 + grain % 3 * 3);
         } else if (grain < 40) {
-            auch[0] = 210 + (grain - 30) * 2 + grain % 3 * 3;
-            auch[1] = 80 + (grain - 30) * 2 + grain % 3 * 3;
-            auch[2] = 10 + (grain - 30) + grain % 3 * 3;
+            auch[0] = (unsigned char) (210 + (grain - 30) * 2 + grain % 3 * 3);
+            auch[1] = (unsigned char) (80 + (grain - 30) * 2 + grain % 3 * 3);
+            auch[2] = (unsigned char) (10 + (grain - 30) + grain % 3 * 3);
         } else {
-            auch[0] = 230 + grain % 3 * 5;
-            auch[1] = 100 + grain % 3 * 5;
-            auch[2] = 20 + grain % 3 * 5;
+            auch[0] = (unsigned char) (230 + grain % 3 * 5);
+            auch[1] = (unsigned char) (100 + grain % 3 * 5);
+            auch[2] = (unsigned char) (20 + grain % 3 * 5);
         }
 
         break;
@@ -891,21 +895,21 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
         grain = ((int) r % 60);
 
         if (grain < 10) {
-            auch[0] = 230 - grain * 2 + grain % 3;
-            auch[1] = 180 - grain * 2 + grain % 3;
-            auch[2] = 50 - grain + grain % 3;
+            auch[0] = (unsigned char) (230 - grain * 2 + grain % 3);
+            auch[1] = (unsigned char) (180 - grain * 2 + grain % 3);
+            auch[2] = (unsigned char) (50 - grain + grain % 3);
         } else if (grain < 20) {
-            auch[0] = 210 + grain % 3;
-            auch[1] = 160 + grain % 3;
-            auch[2] = 40 + grain % 3;
+            auch[0] = (unsigned char) (210 + grain % 3);
+            auch[1] = (unsigned char) (160 + grain % 3);
+            auch[2] = (unsigned char) (40 + grain % 3);
         } else if (grain < 30) {
-            auch[0] = 210 + (grain - 20) * 2 + grain % 3;
-            auch[1] = 160 + (grain - 20) * 2 + grain % 3;
-            auch[2] = 40 + (grain - 20) + grain % 3;
+            auch[0] = (unsigned char) (210 + (grain - 20) * 2 + grain % 3);
+            auch[1] = (unsigned char) (160 + (grain - 20) * 2 + grain % 3);
+            auch[2] = (unsigned char) (40 + (grain - 20) + grain % 3);
         } else {
-            auch[0] = 230 + grain % 3;
-            auch[1] = 180 + grain % 3;
-            auch[2] = 50 + grain % 3;
+            auch[0] = (unsigned char) (230 + grain % 3);
+            auch[1] = (unsigned char) (180 + grain % 3);
+            auch[2] = (unsigned char) (50 + grain % 3);
         }
 
         break;
@@ -919,11 +923,11 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
 
         grain *= WoodHash((int) r / 60) * 0.7 + 0.3;
 
-        auch[0] = 230 + grain / 2;
-        auch[1] = 125 + grain / 3;
-        auch[2] = 20 + grain / 8;
+        auch[0] = (unsigned char) (230 + grain / 2);
+        auch[1] = (unsigned char) (125 + grain / 3);
+        auch[2] = (unsigned char) (20 + grain / 8);
 
-        figure = r / 53 + x / 5 + y / 7 + z / 30;
+        figure = (int) (r / 53 + x / 5 + y / 7 + z / 30);
 
         if (figure % 3 == (grain / 3) % 3) {
             auch[0] -= WoodHash(figure + grain) * 32;
@@ -938,21 +942,21 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
         grain = ((int) r % 60);
 
         if (grain < 10) {
-            auch[0] = 230 + grain * 2 + grain % 3 * 3;
-            auch[1] = 160 + grain * 2 + grain % 3 * 3;
-            auch[2] = 50 + grain + grain % 3 * 3;
+            auch[0] = (unsigned char) (230 + grain * 2 + grain % 3 * 3);
+            auch[1] = (unsigned char) (160 + grain * 2 + grain % 3 * 3);
+            auch[2] = (unsigned char) (50 + grain + grain % 3 * 3);
         } else if (grain < 20) {
-            auch[0] = 250 + grain % 3;
-            auch[1] = 180 + grain % 3;
-            auch[2] = 60 + grain % 3;
+            auch[0] = (unsigned char) (250 + grain % 3);
+            auch[1] = (unsigned char) (180 + grain % 3);
+            auch[2] = (unsigned char) (60 + grain % 3);
         } else if (grain < 30) {
-            auch[0] = 250 - (grain - 20) * 2 + grain % 3;
-            auch[1] = 180 - (grain - 20) * 2 + grain % 3;
-            auch[2] = 50 - (grain - 20) + grain % 3;
+            auch[0] = (unsigned char) (250 - (grain - 20) * 2 + grain % 3);
+            auch[1] = (unsigned char) (180 - (grain - 20) * 2 + grain % 3);
+            auch[2] = (unsigned char) (50 - (grain - 20) + grain % 3);
         } else {
-            auch[0] = 230 + grain % 3 * 3;
-            auch[1] = 160 + grain % 3 * 3;
-            auch[2] = 50 + grain % 3 * 3;
+            auch[0] = (unsigned char) (230 + grain % 3 * 3);
+            auch[1] = (unsigned char) (160 + grain % 3 * 3);
+            auch[2] = (unsigned char) (50 + grain % 3 * 3);
         }
 
         break;
@@ -964,9 +968,9 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
         if (grain > 40)
             grain = 120 - 2 * grain;
 
-        auch[0] = 220 - grain;
-        auch[1] = 70 - grain / 2;
-        auch[2] = 40 - grain / 4;
+        auch[0] = (unsigned char) (220 - grain);
+        auch[1] = (unsigned char) (70 - grain / 2);
+        auch[2] = (unsigned char) (40 - grain / 4);
 
         break;
 
@@ -979,9 +983,9 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
 
         grain *= WoodHash((int) r / 60) * 0.7 + 0.3;
 
-        auch[0] = 80 + (grain * 3 / 2);
-        auch[1] = 40 + grain;
-        auch[2] = grain / 2;
+        auch[0] = (unsigned char) (80 + (grain * 3 / 2));
+        auch[1] = (unsigned char) (40 + grain);
+        auch[2] = (unsigned char) (grain / 2);
 
         break;
 
@@ -992,11 +996,11 @@ WoodPixel(float x, float y, float z, unsigned char auch[3], woodtype wt)
         if (grain > 40)
             grain = 120 - 2 * grain;
 
-        auch[0] = 230 + grain / 3;
-        auch[1] = 100 + grain / 5;
-        auch[2] = 20 + grain / 10;
+        auch[0] = (unsigned char) (230 + grain / 3);
+        auch[1] = (unsigned char) (100 + grain / 5);
+        auch[2] = (unsigned char) (20 + grain / 10);
 
-        figure = r / 60 + z / 30;
+        figure = (int) (r / 60 + z / 30);
 
         if (figure % 3 == (grain / 3) % 3) {
             auch[0] -= WoodHash(figure + grain) * 16;
@@ -1023,7 +1027,7 @@ RenderFrameWood(renderdata * prd, unsigned char *puch, int nStride)
 
     int i, x, y, nSpecularTop, nSpecular, s = prd->nSize;
     unsigned char a[3];
-    float rx, rz, cos_theta, rDiffuseTop, rHeight, rDiffuse;
+    float cos_theta, rDiffuseTop, rHeight, rDiffuse;
     int *anSpecular[4], *anSpecularData = g_alloca(4 * s * sizeof(int));
     float *arDiffuse[4], *arDiffuseData = g_alloca(4 * s * sizeof(float));
     float *arHeight = g_alloca(s * sizeof(float));
@@ -1037,21 +1041,21 @@ RenderFrameWood(renderdata * prd, unsigned char *puch, int nStride)
     arDiffuse[3] = arDiffuseData + 3 * s;
 
 
-    nSpecularTop = pow(prd->arLight[2], 20) * 0.6 * 0x100;
-    rDiffuseTop = 0.8 * prd->arLight[2] + 0.2;
+    nSpecularTop = (int) (powf(prd->arLight[2], 20) * 0.6f * 0x100);
+    rDiffuseTop = 0.8f * prd->arLight[2] + 0.2f;
 
     for (x = 0; x < s; x++) {
-        rx = 1.0 - ((float) x / s);
-        rz = ssqrt(1.0 - rx * rx);
+        float rx = 1.0f - ((float) x / s);
+        float rz = ssqrt(1.0f - rx * rx);
         arHeight[x] = rz * s;
 
         for (i = 0; i < 4; i++) {
             cos_theta = prd->arLight[2] * rz + prd->arLight[i & 1] * rx;
             if (cos_theta < 0)
                 cos_theta = 0;
-            arDiffuse[i][x] = 0.8 * cos_theta + 0.2;
+            arDiffuse[i][x] = 0.8f * cos_theta + 0.2f;
             cos_theta = 2 * rz * cos_theta - prd->arLight[2];
-            anSpecular[i][x] = pow(cos_theta, 20) * 0.6 * 0x100;
+            anSpecular[i][x] = (int) (powf(cos_theta, 20) * 0.6f * 0x100);
 
             if (!(i & 1))
                 rx = -rx;
@@ -1075,12 +1079,12 @@ RenderFrameWood(renderdata * prd, unsigned char *puch, int nStride)
                 rHeight = arHeight[3 * s - y - 1];
             }
 
-            WoodPixel(100 - y * 0.85 + x * 0.1, rHeight - x * 0.11, 200 + x * 0.93 + y * 0.16, a, prd->wt);
+            WoodPixel(100 - y * 0.85f + x * 0.1f, rHeight - x * 0.11f, 200 + x * 0.93f + y * 0.16f, a, prd->wt);
 
             for (i = 0; i < 3; i++)
                 BUF(y, x, i) = clamp(a[i] * rDiffuse + nSpecular);
 
-            WoodPixel(123 + y * 0.87 - x * 0.08, rHeight + x * 0.06, -100 - x * 0.94 - y * 0.11, a, prd->wt);
+            WoodPixel(123 + y * 0.87f - x * 0.08f, rHeight + x * 0.06f, -100 - x * 0.94f - y * 0.11f, a, prd->wt);
 
             for (i = 0; i < 3; i++)
                 BUF(y + (BOARD_HEIGHT - BORDER_HEIGHT) * s, x, i) = clamp(a[i] * rDiffuse + nSpecular);
@@ -1103,13 +1107,13 @@ RenderFrameWood(renderdata * prd, unsigned char *puch, int nStride)
                 rHeight = arHeight[3 * s - x - 1];
             }
 
-            WoodPixel(300 + x * 0.9 + y * 0.1, rHeight + y * 0.06, 200 - y * 0.9 + x * 0.1, a, prd->wt);
+            WoodPixel(300 + x * 0.9f + y * 0.1f, rHeight + y * 0.06f, 200 - y * 0.9f + x * 0.1f, a, prd->wt);
 
             if (x < y && x + y < s * BOARD_HEIGHT)
                 for (i = 0; i < 3; i++)
                     BUF(y, x, i) = clamp(a[i] * rDiffuse + nSpecular);
 
-            WoodPixel(-100 - x * 0.86 + y * 0.13, rHeight - y * 0.07, 300 + y * 0.92 + x * 0.08, a, prd->wt);
+            WoodPixel(-100 - x * 0.86f + y * 0.13f, rHeight - y * 0.07f, 300 + y * 0.92f + x * 0.08f, a, prd->wt);
 
             if (s * 3 - x <= y && s * 3 - x + y < s * BOARD_HEIGHT)
                 for (i = 0; i < 3; i++)
@@ -1142,14 +1146,14 @@ RenderFrameWood(renderdata * prd, unsigned char *puch, int nStride)
                 rHeight = arHeight[6 * s - x - 1];
             }
 
-            WoodPixel(100 - x * 0.88 + y * 0.08, 50 + rHeight - y * 0.1, -200 + y * 0.99 - x * 0.12, a, prd->wt);
+            WoodPixel(100 - x * 0.88f + y * 0.08f, 50 + rHeight - y * 0.10f, -200 + y * 0.99f - x * 0.12f, a, prd->wt);
 
             if (y + x >= s * BORDER_HEIGHT && y - x <= s * (BOARD_HEIGHT - BORDER_HEIGHT))
                 for (i = 0; i < 3; i++)
                     BUF(y, x + (BOARD_WIDTH - BAR_WIDTH) / 2 * s, i)
                         = clamp(a[i] * rDiffuse + nSpecular);
 
-            WoodPixel(100 - x * 0.86 + y * 0.02, 50 + rHeight - y * 0.07, 200 - y * 0.92 + x * 0.03, a, prd->wt);
+            WoodPixel(100 - x * 0.86f + y * 0.02f, 50 + rHeight - y * 0.07f, 200 - y * 0.92f + x * 0.03f, a, prd->wt);
 
             if (y + s * BAR_WIDTH / 2 - x >= s * BORDER_WIDTH &&
                 y - s * BAR_WIDTH / 2 + x <= s * (BOARD_HEIGHT - BORDER_HEIGHT))
@@ -1176,12 +1180,12 @@ RenderFrameWood(renderdata * prd, unsigned char *puch, int nStride)
                     rHeight = arHeight[3 * s - x - 1];
                 }
 
-                WoodPixel(-300 - x * 0.91 + y * 0.1, rHeight + y * 0.02, -200 + y * 0.94 - x * 0.06, a, prd->wt);
+                WoodPixel(-300 - x * 0.91f + y * 0.10f, rHeight + y * 0.02f, -200 + y * 0.94f - x * 0.06f, a, prd->wt);
 
                 for (i = 0; i < 3; i++)
                     BUF(y + 2 * s, x + (BEAROFF_WIDTH - BORDER_WIDTH) * s, i) = clamp(a[i] * rDiffuse + nSpecular);
 
-                WoodPixel(100 - x * 0.89 - y * 0.07, rHeight + y * 0.05, 300 - y * 0.94 + x * 0.11, a, prd->wt);
+                WoodPixel(100 - x * 0.89f - y * 0.07f, rHeight + y * 0.05f, 300 - y * 0.94f + x * 0.11f, a, prd->wt);
 
                 for (i = 0; i < 3; i++)
                     BUF(y + 2 * s, x + (BOARD_WIDTH - BEAROFF_WIDTH) * s, i) = clamp(a[i] * rDiffuse + nSpecular);
@@ -1206,13 +1210,13 @@ RenderFrameWood(renderdata * prd, unsigned char *puch, int nStride)
                     rHeight = arHeight[6 * s - y - 1];
                 }
 
-                WoodPixel(-100 - y * 0.85 + x * 0.11, rHeight - x * 0.04, -100 - x * 0.93 + y * 0.08, a, prd->wt);
+                WoodPixel(-100 - y * 0.85f + x * 0.11f, rHeight - x * 0.04f, -100 - x * 0.93f + y * 0.08f, a, prd->wt);
 
                 for (i = 0; i < 3; i++)
                     BUF(y + (BOARD_HEIGHT - BEAROFF_DIVIDER_HEIGHT) / 2 * s,
                         x + (BORDER_WIDTH - 1) * s, i) = clamp(a[i] * rDiffuse + nSpecular);
 
-                WoodPixel(-123 - y * 0.93 - x * 0.12, rHeight + x * 0.11, -150 + x * 0.88 - y * 0.07, a, prd->wt);
+                WoodPixel(-123 - y * 0.93f - x * 0.12f, rHeight + x * 0.11f, -150 + x * 0.88f - y * 0.07f, a, prd->wt);
 
                 for (i = 0; i < 3; i++)
                     BUF(y + (BOARD_HEIGHT - BEAROFF_DIVIDER_HEIGHT) / 2 * s,
@@ -1227,8 +1231,8 @@ HingePixel(renderdata * prd, float xNorm, float yNorm, float xEye, float yEye, u
 {
 
     float arReflection[3], arAuxLight[2][3] = {
-        {0.6, 0.7, 0.5},
-        {0.5, -0.6, 0.7}
+        {0.6f, 0.7f, 0.5f},
+        {0.5f, -0.6f, 0.7f}
     };
     float zNorm, zEye;
     float diffuse, specular = 0, cos_theta;
@@ -1239,12 +1243,12 @@ HingePixel(renderdata * prd, float xNorm, float yNorm, float xEye, float yEye, u
     arLight[1] = arAuxLight[0];
     arLight[2] = arAuxLight[1];
 
-    zNorm = ssqrt(1.0 - xNorm * xNorm - yNorm * yNorm);
+    zNorm = ssqrt(1.0f - xNorm * xNorm - yNorm * yNorm);
 
     if ((cos_theta = xNorm * arLight[0][0] + yNorm * arLight[0][1] + zNorm * arLight[0][2]) < 0)
-        diffuse = 0.2;
+        diffuse = 0.2f;
     else {
-        diffuse = cos_theta * 0.8 + 0.2;
+        diffuse = cos_theta * 0.8f + 0.2f;
 
         for (i = 0; i < 3; i++) {
             if ((cos_theta = xNorm * arLight[i][0] + yNorm * arLight[i][1] + zNorm * arLight[i][2]) < 0)
@@ -1254,14 +1258,14 @@ HingePixel(renderdata * prd, float xNorm, float yNorm, float xEye, float yEye, u
             arReflection[1] = arLight[i][1] - 2 * yNorm * cos_theta;
             arReflection[2] = arLight[i][2] - 2 * zNorm * cos_theta;
 
-            l = sqrt(arReflection[0] * arReflection[0] +
-                     arReflection[1] * arReflection[1] + arReflection[2] * arReflection[2]);
+            l = sqrtf(arReflection[0] * arReflection[0] +
+                      arReflection[1] * arReflection[1] + arReflection[2] * arReflection[2]);
 
             arReflection[0] /= l;
             arReflection[1] /= l;
             arReflection[2] /= l;
 
-            zEye = ssqrt(1.0 - xEye * xEye - yEye * yEye);
+            zEye = ssqrt(1.0f - xEye * xEye - yEye * yEye);
             cos_theta = arReflection[0] * xEye + arReflection[1] * yEye + arReflection[2] * zEye;
 
             specular += pow(cos_theta, 30) * 0.7;
@@ -1285,13 +1289,13 @@ RenderHinges(renderdata * prd, unsigned char *puch, int nStride)
             if (s < 5 && y && !(y % (2 * s)))
                 yNorm = 0.5;
             else if (y % (2 * s) < s / 5)
-                yNorm = (s / 5 - y % (2 * s)) * (2.5 / s);
+                yNorm = (s / 5 - y % (2 * s)) * (2.5f / s);
             else if (y % (2 * s) >= (2 * s - s / 5))
-                yNorm = (y % (2 * s) - (2 * s - s / 5 - 1)) * (-2.5 / s);
+                yNorm = (y % (2 * s) - (2 * s - s / 5 - 1)) * (-2.5f / s);
             else
                 yNorm = 0;
 
-            xNorm = (x - s) / (float) s *(1.0 - yNorm * yNorm);
+            xNorm = (x - s) / (float) s *(1.0f - yNorm * yNorm);
 
             HingePixel(prd, xNorm, yNorm,
                        (s - x) / (40 * s), (y - 20 * s) / (40 * s),
@@ -1412,14 +1416,17 @@ RenderGlyph(unsigned char *puch, int nStride, FT_Glyph pftg,
 
     for (y = y0; y < pb->rows; y++) {
         for (x = x0; x < pb->width; x++) {
-            *puch = (*puch * (pb->num_grays -
-                              pb->buffer[y * pb->pitch + x]) + r * pb->buffer[y * pb->pitch + x]) / pb->num_grays;
+            *puch = (unsigned char) ((*puch * (pb->num_grays -
+                                               pb->buffer[y * pb->pitch + x]) + r * pb->buffer[y * pb->pitch +
+                                                                                               x]) / pb->num_grays);
             puch++;
-            *puch = (*puch * (pb->num_grays -
-                              pb->buffer[y * pb->pitch + x]) + g * pb->buffer[y * pb->pitch + x]) / pb->num_grays;
+            *puch = (unsigned char) ((*puch * (pb->num_grays -
+                                               pb->buffer[y * pb->pitch + x]) + g * pb->buffer[y * pb->pitch +
+                                                                                               x]) / pb->num_grays);
             puch++;
-            *puch = (*puch * (pb->num_grays -
-                              pb->buffer[y * pb->pitch + x]) + b * pb->buffer[y * pb->pitch + x]) / pb->num_grays;
+            *puch = (unsigned char) ((*puch * (pb->num_grays -
+                                               pb->buffer[y * pb->pitch + x]) + b * pb->buffer[y * pb->pitch +
+                                                                                               x]) / pb->num_grays);
             puch++;
         }
         puch += nStride;
@@ -1515,7 +1522,7 @@ BoardPixel(renderdata * prd, int i, int antialias, int j)
                   (20 - antialias) +
                   ((int) prd->aanBoardColour[i][j] -
                    (int) prd->aSpeckle[i] / 2 +
-                   (int) rand2 % (prd->aSpeckle[i] + 1)) * antialias) * (prd->arLight[2] * 0.8 + 0.2) / 20);
+                   (int) rand2 % (prd->aSpeckle[i] + 1)) * antialias) * (prd->arLight[2] * 0.8f + 0.2f) / 20);
 }
 
 extern void
@@ -1545,7 +1552,7 @@ RenderBoard(renderdata * prd, unsigned char *puch, int nStride)
         for (ix = 0; ix < CHEQUER_WIDTH * prd->nSize; ix++) {
             /* <= 0 is board; >= 20 is on a point; interpolate in between */
             antialias = 2 * (DISPLAY_POINT_HEIGHT * prd->nSize - iy)
-                + 1 - (BEAROFF_WIDTH + 2 * CHEQUER_WIDTH - 1) * abs(BORDER_WIDTH * prd->nSize - ix);
+                + 1 - (BEAROFF_WIDTH + 2 * CHEQUER_WIDTH - 1) * abs(BORDER_WIDTH * (int)prd->nSize - (int)ix);
 
             if (antialias < 0)
                 antialias = 0;
@@ -1653,18 +1660,18 @@ RenderChequers(renderdata * prd, unsigned char *puch0,
                 fx = 0;
                 x = x_loop;
                 do {
-                    r = sqrt(x * x + y * y);
+                    r = sqrtf(x * x + y * y);
                     if (r < prd->rRound)
                         x1 = y1 = 0.0;
                     else {
                         x1 = x * (r / (1 - prd->rRound) - 1 / (1 - prd->rRound) + 1);
                         y1 = y * (r / (1 - prd->rRound) - 1 / (1 - prd->rRound) + 1);
                     }
-                    if ((z = 1.0 - x1 * x1 - y1 * y1) > 0.0) {
+                    if ((z = 1.0f - x1 * x1 - y1 * y1) > 0.0f) {
                         in++;
-                        diffuse += 0.3;
-                        z = sqrt(z) * 1.5;
-                        len = sqrt(x1 * x1 + y1 * y1 + z * z);
+                        diffuse += 0.3f;
+                        z = sqrtf(z) * 1.5f;
+                        len = sqrtf(x1 * x1 + y1 * y1 + z * z);
                         if ((cos_theta = (prd->arLight[0] * x1 + prd->arLight[1] * -y1 + prd->arLight[2] * z) / len)
                             > 0) {
                             diffuse += cos_theta;
@@ -1684,15 +1691,15 @@ RenderChequers(renderdata * prd, unsigned char *puch0,
                 for (i = 0; i < 3; i++)
                     BUFX(iy, ix, i) = BUFO(iy, ix, i) = 0;
 
-                *psRefract0++ = *psRefract1++ = (iy << 8) | ix;
+                *psRefract0++ = *psRefract1++ = (unsigned short) ((iy << 8) | ix);
 
                 BUFX(iy, ix, 3) = BUFO(iy, ix, 3) = 0xFF;
             } else {
                 /* pixel is inside chequer */
-                float r, s, r1, s1, theta, a, b, p, q;
+                float r, s, r1, s1, theta;
                 int f;
 
-                r = sqrt(x_loop * x_loop + y_loop * y_loop);
+                r = sqrtf(x_loop * x_loop + y_loop * y_loop);
                 if (r < prd->rRound)
                     r1 = 0.0;
                 else
@@ -1705,10 +1712,10 @@ RenderChequers(renderdata * prd, unsigned char *puch0,
                     theta = 0;
 
                 for (f = 0; f < 2; f++) {
-                    b = asinf(sinf(theta) / prd->arRefraction[f]);
-                    a = theta - b;
-                    p = r - s * tanf(a);
-                    q = p / r;
+                    float b = asinf(sinf(theta) / prd->arRefraction[f]);
+                    float a = theta - b;
+                    float p = r - s * tanf(a);
+                    float q = p / r;
 
                     /* write the comparison this strange way to pick up
                      * NaNs as well */
@@ -1716,19 +1723,26 @@ RenderChequers(renderdata * prd, unsigned char *puch0,
                         q = 1.0f;
 
                     *(f ? psRefract1++ : psRefract0++) =
-                        (lrint(iy * q + size / 2 * (1.0 - q)) << 8) | lrint(ix * q + size / 2 * (1.0 - q));
+                        (unsigned short) ((lrintf(iy * q + size / 2 * (1.0f - q)) << 8) |
+                                          lrintf(ix * q + size / 2 * (1.0f - q)));
                 }
 
-                BUFX(iy, ix, 0) = clamp((diffuse * prd->aarColour[0][0] * prd->aarColour[0][3] + specular_x) * 64.0);
-                BUFX(iy, ix, 1) = clamp((diffuse * prd->aarColour[0][1] * prd->aarColour[0][3] + specular_x) * 64.0);
-                BUFX(iy, ix, 2) = clamp((diffuse * prd->aarColour[0][2] * prd->aarColour[0][3] + specular_x) * 64.0);
+                BUFX(iy, ix, 0) =
+                    clamp((diffuse * (float) prd->aarColour[0][0] * (float) prd->aarColour[0][3] + specular_x) * 64.0f);
+                BUFX(iy, ix, 1) =
+                    clamp((diffuse * (float) prd->aarColour[0][1] * (float) prd->aarColour[0][3] + specular_x) * 64.0f);
+                BUFX(iy, ix, 2) =
+                    clamp((diffuse * (float) prd->aarColour[0][2] * (float) prd->aarColour[0][3] + specular_x) * 64.0f);
 
-                BUFO(iy, ix, 0) = clamp((diffuse * prd->aarColour[1][0] * prd->aarColour[1][3] + specular_o) * 64.0);
-                BUFO(iy, ix, 1) = clamp((diffuse * prd->aarColour[1][1] * prd->aarColour[1][3] + specular_o) * 64.0);
-                BUFO(iy, ix, 2) = clamp((diffuse * prd->aarColour[1][2] * prd->aarColour[1][3] + specular_o) * 64.0);
+                BUFO(iy, ix, 0) =
+                    clamp((diffuse * (float) prd->aarColour[1][0] * (float) prd->aarColour[1][3] + specular_o) * 64.0f);
+                BUFO(iy, ix, 1) =
+                    clamp((diffuse * (float) prd->aarColour[1][1] * (float) prd->aarColour[1][3] + specular_o) * 64.0f);
+                BUFO(iy, ix, 2) =
+                    clamp((diffuse * (float) prd->aarColour[1][2] * (float) prd->aarColour[1][3] + specular_o) * 64.0f);
 
-                BUFX(iy, ix, 3) = clamp(0xFF * 0.25 * ((4 - in) + ((1.0 - prd->aarColour[0][3]) * diffuse)));
-                BUFO(iy, ix, 3) = clamp(0xFF * 0.25 * ((4 - in) + ((1.0 - prd->aarColour[1][3]) * diffuse)));
+                BUFX(iy, ix, 3) = clamp(0xFF * 0.25f * ((4 - in) + ((1.0f - (float) prd->aarColour[0][3]) * diffuse)));
+                BUFO(iy, ix, 3) = clamp(0xFF * 0.25f * ((4 - in) + ((1.0f - (float) prd->aarColour[1][3]) * diffuse)));
             }
             x_loop += 2.0 / (size);
         }
@@ -1837,29 +1851,29 @@ RenderBasicCube(const float arLight[3], const int nSize, const double arColour[4
                 fx = 0;
                 x = x_loop;
                 do {
-                    if (fabs(x) < 7.0 / 8.0 && fabs(y) < 7.0 / 8.0) {
+                    if (fabsf(x) < 7.0f / 8.0f && fabsf(y) < 7.0f / 8.0f) {
                         /* flat surface */
                         in++;
                         diffuse += arLight[2] * 0.8 + 0.2;
                         specular += pow(arLight[2], 10) * 0.4;
                     } else {
-                        if (fabs(x) < 7.0 / 8.0) {
+                        if (fabsf(x) < 7.0f / 8.0f) {
                             /* top/bottom edge */
                             x_norm = 0.0;
-                            y_norm = -7.0 * y - (y > 0.0 ? -6.0 : 6.0);
-                            z_norm = ssqrt(1.0 - y_norm * y_norm);
-                        } else if (fabs(y) < 7.0 / 8.0) {
+                            y_norm = -7.0f * y - (y > 0.0f ? -6.0f : 6.0f);
+                            z_norm = ssqrt(1.0f - y_norm * y_norm);
+                        } else if (fabsf(y) < 7.0f / 8.0f) {
                             /* left/right edge */
-                            x_norm = 7.0 * x + (x > 0.0 ? -6.0 : 6.0);
+                            x_norm = 7.0f * x + (x > 0.0f ? -6.0f : 6.0f);
                             y_norm = 0.0;
-                            z_norm = ssqrt(1.0 - x_norm * x_norm);
+                            z_norm = ssqrt(1.0f - x_norm * x_norm);
                         } else {
                             /* corner */
-                            x_norm = 7.0 * x + (x > 0.0 ? -6.0 : 6.0);
-                            y_norm = -7.0 * y - (y > 0.0 ? -6.0 : 6.0);
+                            x_norm = 7.0f * x + (x > 0.0f ? -6.0f : 6.0f);
+                            y_norm = -7.0f * y - (y > 0.0f ? -6.0f : 6.0f);
                             if ((z_norm = 1 - x_norm * x_norm - y_norm * y_norm) < 0.0)
                                 goto missed;
-                            z_norm = sqrt(z_norm);
+                            z_norm = sqrtf(z_norm);
                         }
 
                         in++;
@@ -1877,9 +1891,9 @@ RenderBasicCube(const float arLight[3], const int nSize, const double arColour[4
             } while (!fy++);
 
             for (i = 0; i < 3; i++)
-                *puch++ = clamp((diffuse * arColour[i] + specular) * 64.0);
+                *puch++ = clamp((diffuse * (float) arColour[i] + specular) * 64.0f);
 
-            *puch++ = 255 * (4 - in) / 4;       /* alpha channel */
+            *puch++ = (unsigned char) (255 * (4 - in) / 4);     /* alpha channel */
 
             x_loop += 2.0 / (CUBE_WIDTH * nSize);
         }
@@ -2027,7 +2041,7 @@ RenderResignFaces(renderdata * prd, unsigned char *puch, int nStride, unsigned c
 
 #if HAVE_FREETYPE
         if (fFreetype)
-            RenderNumber(puch, nStride, aftg, i + 1, 2 * prd->nSize, 3.5 * prd->nSize, 0, 0, 0x80);
+            RenderNumber(puch, nStride, aftg, i + 1, 2 * prd->nSize, (7 * prd->nSize) / 2, 0, 0, 0x80);
         else
 #endif
             RenderBasicNumber(puch, nStride, 4 * prd->nSize, i + 1, 3 * prd->nSize, 5 * prd->nSize, 0, 0, 0x80);
@@ -2089,8 +2103,8 @@ RenderDice(renderdata * prd, unsigned char *puch0, unsigned char *puch1, int nSt
                         specular_o += pow(prd->arLight[2], arDiceExponent[1]) * arDiceCoefficient[1];
                     } else {
                         /* corner */
-                        x_norm = 0.707 * x;     /* - ( x > 0.0 ? 1.0 : 1.0);  */
-                        y_norm = -0.707 * y;    /* - ( y > 0.0 ? 1.0 : 1.0 ); */
+                        x_norm = 0.707f * x;    /* - ( x > 0.0 ? 1.0 : 1.0);  */
+                        y_norm = -0.707f * y;   /* - ( y > 0.0 ? 1.0 : 1.0 ); */
                         z_norm = 1 - x_norm * x_norm - y_norm * y_norm;
                         z_norm = ssqrt(z_norm);
 
@@ -2111,14 +2125,14 @@ RenderDice(renderdata * prd, unsigned char *puch0, unsigned char *puch1, int nSt
             } while (!fy++);
 
             for (i = 0; i < 3; i++)
-                *puch0++ = clamp((diffuse * aarDiceColour[0][i] + specular_x) * 64.0);
+                *puch0++ = clamp((diffuse * (float) aarDiceColour[0][i] + specular_x) * 64.0f);
             if (alpha)
-                *puch0++ = 255 * (4 - in) / 4;  /* alpha channel */
+                *puch0++ = (unsigned char) (255 * (4 - in) / 4);        /* alpha channel */
 
             for (i = 0; i < 3; i++)
-                *puch1++ = clamp((diffuse * aarDiceColour[1][i] + specular_o) * 64.0);
+                *puch1++ = clamp((diffuse * (float) aarDiceColour[1][i] + specular_o) * 64.0f);
             if (alpha)
-                *puch1++ = 255 * (4 - in) / 4;  /* alpha channel */
+                *puch1++ = (unsigned char) (255 * (4 - in) / 4);        /* alpha channel */
 
             x_loop += 2.0 / (DIE_WIDTH * prd->nSize);
         }
@@ -2153,15 +2167,15 @@ RenderPips(renderdata * prd, unsigned char *puch0, unsigned char *puch1, int nSt
             arDiceExponent[i] = prd->arDiceExponent[i];
         }
 
-    diffuse = prd->arLight[2] * 0.8 + 0.2;
-    specular_x = pow(prd->arLight[2], arDiceExponent[0]) * arDiceCoefficient[0];
-    specular_o = pow(prd->arLight[2], arDiceExponent[1]) * arDiceCoefficient[1];
-    dice_top[0][0] = (diffuse * aarDiceColour[0][0] + specular_x) * 64.0;
-    dice_top[0][1] = (diffuse * aarDiceColour[0][1] + specular_x) * 64.0;
-    dice_top[0][2] = (diffuse * aarDiceColour[0][2] + specular_x) * 64.0;
-    dice_top[1][0] = (diffuse * aarDiceColour[1][0] + specular_o) * 64.0;
-    dice_top[1][1] = (diffuse * aarDiceColour[1][1] + specular_o) * 64.0;
-    dice_top[1][2] = (diffuse * aarDiceColour[1][2] + specular_o) * 64.0;
+    diffuse = prd->arLight[2] * 0.8f + 0.2f;
+    specular_x = powf(prd->arLight[2], arDiceExponent[0]) * arDiceCoefficient[0];
+    specular_o = powf(prd->arLight[2], arDiceExponent[1]) * arDiceCoefficient[1];
+    dice_top[0][0] = (diffuse * (float) aarDiceColour[0][0] + specular_x) * 64.0f;
+    dice_top[0][1] = (diffuse * (float) aarDiceColour[0][1] + specular_x) * 64.0f;
+    dice_top[0][2] = (diffuse * (float) aarDiceColour[0][2] + specular_x) * 64.0f;
+    dice_top[1][0] = (diffuse * (float) aarDiceColour[1][0] + specular_o) * 64.0f;
+    dice_top[1][1] = (diffuse * (float) aarDiceColour[1][1] + specular_o) * 64.0f;
+    dice_top[1][2] = (diffuse * (float) aarDiceColour[1][2] + specular_o) * 64.0f;
 
     for (iy = 0, y_loop = -1.0; iy < prd->nSize; iy++) {
         for (ix = 0, x_loop = -1.0; ix < prd->nSize; ix++) {
@@ -2173,13 +2187,13 @@ RenderPips(renderdata * prd, unsigned char *puch0, unsigned char *puch1, int nSt
                 fx = 0;
                 x = x_loop;
                 do {
-                    if ((z = 1.0 - x * x - y * y) > 0.0) {
+                    if ((z = 1.0f - x * x - y * y) > 0.0f) {
                         in++;
                         diffuse += 0.2;
-                        z = sqrt(z) * 5;
+                        z = sqrtf(z) * 5.0f;
                         if ((cos_theta = (-prd->arLight[0] * x +
                                           prd->arLight[1] * y +
-                                          prd->arLight[2] * z) / sqrt(x * x + y * y + z * z)) > 0) {
+                                          prd->arLight[2] * z) / sqrtf(x * x + y * y + z * z)) > 0) {
                             diffuse += cos_theta * 0.8;
                             if ((cos_theta = 2 * z / 5 * cos_theta - prd->arLight[2]) > 0.0) {
                                 specular_x += pow(cos_theta, arDiceExponent[0]) * arDiceCoefficient[0];
@@ -2194,11 +2208,13 @@ RenderPips(renderdata * prd, unsigned char *puch0, unsigned char *puch1, int nSt
 
             for (i = 0; i < 3; i++)
                 *puch0++ =
-                    clamp((diffuse * prd->aarDiceDotColour[0][i] + specular_x) * 64.0 + (4 - in) * dice_top[0][i]);
+                    clamp((diffuse * (float) prd->aarDiceDotColour[0][i] + specular_x) * 64.0f +
+                          (4 - in) * dice_top[0][i]);
 
             for (i = 0; i < 3; i++)
                 *puch1++ =
-                    clamp((diffuse * prd->aarDiceDotColour[1][i] + specular_o) * 64.0 + (4 - in) * dice_top[1][i]);
+                    clamp((diffuse * (float) prd->aarDiceDotColour[1][i] + specular_o) * 64.0f +
+                          (4 - in) * dice_top[1][i]);
 
             x_loop += 2.0 / (prd->nSize);
         }
@@ -2298,24 +2314,6 @@ RenderArrows(renderdata * prd, unsigned char *puch0, unsigned char *puch1, int U
     RenderArrow(puch1, prd->aarColour[1], prd->nSize, fClockwise);
 }
 #endif
-
-static void
-PointArea(renderdata * prd, int n, int *px, int *py, int *pcx, int *pcy)
-{
-
-    int c = (!n || n == 25) ? 3 : 5;
-
-    *px = positions[prd->fClockwise][n][0] * prd->nSize;
-    *py = positions[prd->fClockwise][n][1] * prd->nSize;
-    *pcx = CHEQUER_WIDTH * prd->nSize;
-    *pcy = positions[prd->fClockwise][n][2] * prd->nSize;
-
-    if (*pcy > 0) {
-        *pcy = *pcy * (c - 1) + CHEQUER_HEIGHT * prd->nSize;
-        *py += CHEQUER_HEIGHT * prd->nSize - *pcy;
-    } else
-        *pcy = -*pcy * (c - 1) + CHEQUER_HEIGHT * prd->nSize;
-}
 
 static void
 DrawChequers(renderdata * prd, unsigned char *puch, int nStride,
@@ -2429,7 +2427,7 @@ CalculateArea(renderdata * prd, unsigned char *puch, int nStride,
     /* draw points */
 
     for (i = 0; i < 28; i++) {
-        PointArea(prd, i, &xPoint, &yPoint, &cxPoint, &cyPoint);
+        PointArea(prd->fClockwise, prd->nSize, i, &xPoint, &yPoint, &cxPoint, &cyPoint);
         if (intersects(x, y, cx, cy, xPoint, yPoint, cxPoint, cyPoint)) {
             switch (i) {
             case 0:
@@ -2485,9 +2483,9 @@ CalculateArea(renderdata * prd, unsigned char *puch, int nStride,
             for (iy = 0; iy < 3; iy++)
                 for (ix = 0; ix < 3; ix++)
                     if (afPip[iy * 3 + ix])
-                        CopyAreaClip(puch, nStride, (anDicePosition[i][0] + 1.5 + 1.5 * ix)
-                                     * prd->nSize - x, (anDicePosition[i][1] + 1.5 + 1.5 * iy)
-                                     * prd->nSize - y,
+                        CopyAreaClip(puch, nStride,
+                                     (2 * anDicePosition[i][0] + 3 + 3 * ix) * prd->nSize / 2 - x,
+                                     (2 * anDicePosition[i][1] + 3 + 3 * iy) * prd->nSize / 2 - y,
                                      cx, cy, pri->achPip[fDiceColour], prd->nSize * 3, 0, 0, prd->nSize, prd->nSize);
         }
 
@@ -2702,7 +2700,7 @@ ColourCompare(double c1[4], double c2[4])
 
 #if USE_BOARD3D
 
-int
+extern int
 MaterialCompare(Material * pMat1, Material * pMat2)
 {
     return TolComp(pMat1->ambientColour[0], pMat2->ambientColour[0]) &&

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: relational.c,v 1.70 2013/06/16 02:16:20 mdpetch Exp $
+ * $Id: relational.c,v 1.71 2013/09/05 18:49:33 plm Exp $
  */
 
 #include "config.h"
@@ -603,28 +603,28 @@ relational_player_stats_get(const char *player0, const char *player1)
         g_free(buf);
         if ((!rs) || !strtol(rs->data[1][0], NULL, 0))
             return NULL;
-        psc->anTotalMoves[i] = strtol(rs->data[1][0], NULL, 0);
-        psc->anUnforcedMoves[i] = strtol(rs->data[1][1], NULL, 0);
-        psc->anTotalCube[i] = strtol(rs->data[1][2], NULL, 0);
-        psc->anCloseCube[i] = strtol(rs->data[1][3], NULL, 0);
-        psc->anDouble[i] = strtol(rs->data[1][4], NULL, 0);
-        psc->anTake[i] = strtol(rs->data[1][5], NULL, 0);
-        psc->anPass[i] = strtol(rs->data[1][6], NULL, 0);
-        psc->anMoves[i][SKILL_VERYBAD] = strtol(rs->data[1][7], NULL, 0);
-        psc->anMoves[i][SKILL_BAD] = strtol(rs->data[1][8], NULL, 0);
-        psc->anMoves[i][SKILL_DOUBTFUL] = strtol(rs->data[1][9], NULL, 0);
-        psc->anMoves[i][SKILL_NONE] = strtol(rs->data[1][10], NULL, 0);
-        psc->anLuck[i][LUCK_VERYBAD] = strtol(rs->data[1][11], NULL, 0);
-        psc->anLuck[i][LUCK_BAD] = strtol(rs->data[1][12], NULL, 0);
-        psc->anLuck[i][LUCK_NONE] = strtol(rs->data[1][13], NULL, 0);
-        psc->anLuck[i][LUCK_GOOD] = strtol(rs->data[1][14], NULL, 0);
-        psc->anLuck[i][LUCK_VERYGOOD] = strtol(rs->data[1][15], NULL, 0);
-        psc->anCubeMissedDoubleDP[i] = strtol(rs->data[1][16], NULL, 0);
-        psc->anCubeMissedDoubleTG[i] = strtol(rs->data[1][17], NULL, 0);
-        psc->anCubeWrongDoubleDP[i] = strtol(rs->data[1][18], NULL, 0);
-        psc->anCubeWrongDoubleTG[i] = strtol(rs->data[1][19], NULL, 0);
-        psc->anCubeWrongTake[i] = strtol(rs->data[1][20], NULL, 0);
-        psc->anCubeWrongPass[i] = strtol(rs->data[1][21], NULL, 0);
+        psc->anTotalMoves[i] = (int) strtol(rs->data[1][0], NULL, 0);
+        psc->anUnforcedMoves[i] = (int) strtol(rs->data[1][1], NULL, 0);
+        psc->anTotalCube[i] = (int) strtol(rs->data[1][2], NULL, 0);
+        psc->anCloseCube[i] = (int) strtol(rs->data[1][3], NULL, 0);
+        psc->anDouble[i] = (int) strtol(rs->data[1][4], NULL, 0);
+        psc->anTake[i] = (int) strtol(rs->data[1][5], NULL, 0);
+        psc->anPass[i] = (int) strtol(rs->data[1][6], NULL, 0);
+        psc->anMoves[i][SKILL_VERYBAD] = (int) strtol(rs->data[1][7], NULL, 0);
+        psc->anMoves[i][SKILL_BAD] = (int) strtol(rs->data[1][8], NULL, 0);
+        psc->anMoves[i][SKILL_DOUBTFUL] = (int) strtol(rs->data[1][9], NULL, 0);
+        psc->anMoves[i][SKILL_NONE] = (int) strtol(rs->data[1][10], NULL, 0);
+        psc->anLuck[i][LUCK_VERYBAD] = (int) strtol(rs->data[1][11], NULL, 0);
+        psc->anLuck[i][LUCK_BAD] = (int) strtol(rs->data[1][12], NULL, 0);
+        psc->anLuck[i][LUCK_NONE] = (int) strtol(rs->data[1][13], NULL, 0);
+        psc->anLuck[i][LUCK_GOOD] = (int) strtol(rs->data[1][14], NULL, 0);
+        psc->anLuck[i][LUCK_VERYGOOD] = (int) strtol(rs->data[1][15], NULL, 0);
+        psc->anCubeMissedDoubleDP[i] = (int) strtol(rs->data[1][16], NULL, 0);
+        psc->anCubeMissedDoubleTG[i] = (int) strtol(rs->data[1][17], NULL, 0);
+        psc->anCubeWrongDoubleDP[i] = (int) strtol(rs->data[1][18], NULL, 0);
+        psc->anCubeWrongDoubleTG[i] = (int) strtol(rs->data[1][19], NULL, 0);
+        psc->anCubeWrongTake[i] = (int) strtol(rs->data[1][20], NULL, 0);
+        psc->anCubeWrongPass[i] = (int) strtol(rs->data[1][21], NULL, 0);
         psc->arErrorCheckerplay[i][0] = (float) g_ascii_strtod(rs->data[1][22], NULL);
         psc->arErrorMissedDoubleDP[i][0] = (float) g_ascii_strtod(rs->data[1][23], NULL);
         psc->arErrorMissedDoubleTG[i][0] = (float) g_ascii_strtod(rs->data[1][24], NULL);

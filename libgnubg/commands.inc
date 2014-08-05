@@ -1,4 +1,4 @@
-/* $Id: commands.inc,v 1.35 2012/10/15 21:10:11 plm Exp $ */
+/* $Id: commands.inc,v 1.42 2014/07/09 21:00:07 plm Exp $ */
 
 /* All the commands are in this file */
 
@@ -270,8 +270,6 @@ command cER = {
 }, acImport[] = {
     { "auto", CommandImportAuto, N_("Import from any known format"),
       szFILENAME, &cFilename },
-    { "bkg", CommandImportBKG, N_("Import from Hans Berliner's BKG format"),
-      szFILENAME, &cFilename },
     { "mat", CommandImportMat, N_("Import a Jellyfish match"), szFILENAME,
       &cFilename },
     { "gam", CommandImportMat, N_("Import a Jellyfish game"), szFILENAME,
@@ -282,7 +280,7 @@ command cER = {
       szFILENAME, &cFilename },
     { "party", CommandImportParty, N_("Import a PartyGammon game file"),
       szFILENAME, &cFilename },
-    { "bgroom", CommandImportBGRoom, N_("Import a BackGammonRoom game file"),
+    { "bgroom", CommandImportBGRoom, N_("Import a BGRoom game file"),
       szFILENAME, &cFilename },
     { "pos", CommandImportJF, 
       N_("Import a Jellyfish position file"), szFILENAME,
@@ -849,7 +847,7 @@ command cER = {
     N_("set type of HTML boards used in HTML export"), NULL, 
     acSetExportHTMLType },
   { "size", CommandSetExportHtmlSize, 
-      N_("Set size of board for Html image export"), 
+      N_("Set size of board for HTML image export"), 
       szVALUE, NULL },
   { NULL, NULL, NULL, NULL, NULL }    
 }, acSetExportMovesDisplay[] = {
@@ -1141,6 +1139,7 @@ command cER = {
       "money games"), szONOFF, &cOnOff },
     { "defaultnames", CommandSetDefaultNames, N_("Set default names for players"),
 	  szNAME, NULL },
+    { "aliases", CommandSetAliases, N_("Set aliases for player 1 when importing MAT files"), szNAME, NULL },
     { "lang", CommandSetLang, N_("Set your language preference"),
       szLANG, NULL },
     { "matchequitytable", CommandSetMET,
@@ -1227,6 +1226,7 @@ command cER = {
       NULL, NULL },
     { NULL, NULL, NULL, NULL, NULL }
 }, acShow[] = {
+    { "aliases", CommandShowAliases, N_("Show aliases for player 1 when importing MAT files"), NULL, NULL }, 
     { "analysis", CommandShowAnalysis, N_("Show parameters used for analysing "
       "moves"), NULL, NULL },
     { "autosave", CommandShowAutoSave, N_("Show parameters used for autosaving"), NULL, NULL },
@@ -1327,6 +1327,8 @@ command cER = {
       N_("See if this is post-Crawford play"), NULL, NULL },
     { "prompt", CommandShowPrompt, N_("Show the prompt that will be printed "
       "when ready for commands"), NULL, NULL },
+    { "ratingoffset", CommandShowRatingOffset, N_("Show the rating offset "
+      "used for estimating abs. rating"), NULL, NULL },
     { "rng", CommandShowRNG, N_("Display which random number generator "
       "is being used"), NULL, NULL },
     { "rollout", CommandShowRollout, N_("Display the evaluation settings used "

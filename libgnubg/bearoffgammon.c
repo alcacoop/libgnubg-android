@@ -12,7 +12,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
 
- * $Id: bearoffgammon.c,v 1.11 2013/06/16 02:16:10 mdpetch Exp $ */
+ * $Id: bearoffgammon.c,v 1.13 2014/07/20 21:34:34 plm Exp $ */
 
 #include "config.h"
 #include "bearoffgammon.h"
@@ -7080,7 +7080,7 @@ static unsigned char x55[] = {
     3,
 };
 
-struct GroupInfo info[63] = {
+static struct GroupInfo info[63] = {
     /*  1 100000 */
     {{0, 0, 0, 36}, 0, 0, 0},
     /*  2 010000 */
@@ -7255,7 +7255,7 @@ getBearoffGammonProbs(const unsigned int board[6])
 
 /* race BG part */
 
-static long y1[6][RBG_NPROBS] = {
+static long ya1[6][RBG_NPROBS] = {
     {36, 0, 0, 0, 0,},
     {36, 0, 0, 0, 0,},
     {6, 1080, 0, 0, 0,},
@@ -7264,7 +7264,7 @@ static long y1[6][RBG_NPROBS] = {
     {0, 396, 32400, 0, 0,},
 };
 
-static long y2[6][RBG_NPROBS] = {
+static long ya2[6][RBG_NPROBS] = {
     {36, 0, 0, 0, 0,},
     {26, 360, 0, 0, 0,},
     {5, 1116, 0, 0, 0,},
@@ -7273,7 +7273,7 @@ static long y2[6][RBG_NPROBS] = {
     {0, 235, 17666, 739080, 0,},
 };
 
-static long y3[15][RBG_NPROBS] = {
+static long ya3[15][RBG_NPROBS] = {
     {36, 0, 0, 0, 0,},
     {6, 1080, 0, 0, 0,},
     {5, 1116, 0, 0, 0,},
@@ -7291,7 +7291,7 @@ static long y3[15][RBG_NPROBS] = {
     {0, 335, 27296, 262800, 0,},
 };
 
-static long y4[6][RBG_NPROBS] = {
+static long ya4[6][RBG_NPROBS] = {
     {36, 0, 0, 0, 0,},
     {17, 684, 0, 0, 0,},
     {4, 999, 5508, 0, 0,},
@@ -7300,7 +7300,7 @@ static long y4[6][RBG_NPROBS] = {
     {0, 120, 11765, 983521, 4213260,},
 };
 
-static long y5[15][RBG_NPROBS] = {
+static long ya5[15][RBG_NPROBS] = {
     {34, 72, 0, 0, 0,},
     {5, 1116, 0, 0, 0,},
     {4, 1148, 144, 0, 0,},
@@ -7318,7 +7318,7 @@ static long y5[15][RBG_NPROBS] = {
     {0, 256, 15488, 772640, 634752,},
 };
 
-static long y6[15][RBG_NPROBS] = {
+static long ya6[15][RBG_NPROBS] = {
     {25, 396, 0, 0, 0,},
     {5, 1112, 144, 0, 0,},
     {4, 1112, 1440, 0, 0,},
@@ -7336,7 +7336,7 @@ static long y6[15][RBG_NPROBS] = {
     {0, 184, 14192, 886751, 1565604,},
 };
 
-static long y7[20][RBG_NPROBS] = {
+static long ya7[20][RBG_NPROBS] = {
     {5, 1116, 0, 0, 0,},
     {4, 1148, 144, 0, 0,},
     {4, 1048, 3744, 0, 0,},
@@ -7359,7 +7359,7 @@ static long y7[20][RBG_NPROBS] = {
     {0, 272, 24281, 450484, 90144,},
 };
 
-static long y8[6][RBG_NPROBS] = {
+static long ya8[6][RBG_NPROBS] = {
     {34, 72, 0, 0, 0,},
     {11, 880, 720, 0, 0,},
     {3, 751, 15482, 9000, 0,},
@@ -7368,7 +7368,7 @@ static long y8[6][RBG_NPROBS] = {
     {0, 57, 8951, 767859, 18563364,},
 };
 
-static long y9[15][RBG_NPROBS] = {
+static long ya9[15][RBG_NPROBS] = {
     {29, 252, 0, 0, 0,},
     {5, 1116, 0, 0, 0,},
     {3, 1115, 2628, 0, 0,},
@@ -7386,7 +7386,7 @@ static long y9[15][RBG_NPROBS] = {
     {0, 165, 8770, 941530, 7506936,},
 };
 
-static long y10[15][RBG_NPROBS] = {
+static long ya10[15][RBG_NPROBS] = {
     {23, 468, 0, 0, 0,},
     {5, 1086, 1080, 0, 0,},
     {3, 1043, 5212, 288, 0,},
@@ -7404,7 +7404,7 @@ static long y10[15][RBG_NPROBS] = {
     {0, 129, 9184, 920983, 9389700,},
 };
 
-static long y11[20][RBG_NPROBS] = {
+static long ya11[20][RBG_NPROBS] = {
     {5, 1112, 144, 0, 0,},
     {3, 1144, 1584, 0, 0,},
     {3, 1055, 4788, 0, 0,},
@@ -7427,7 +7427,7 @@ static long y11[20][RBG_NPROBS] = {
     {0, 207, 15791, 778381, 2321532,},
 };
 
-static long y12[15][RBG_NPROBS] = {
+static long ya12[15][RBG_NPROBS] = {
     {17, 680, 144, 0, 0,},
     {4, 983, 6076, 288, 0,},
     {3, 923, 9488, 1872, 0,},
@@ -7445,7 +7445,7 @@ static long y12[15][RBG_NPROBS] = {
     {0, 93, 9540, 858470, 12858408,},
 };
 
-static long y13[20][RBG_NPROBS] = {
+static long ya13[20][RBG_NPROBS] = {
     {4, 1132, 720, 0, 0,},
     {3, 1091, 3484, 288, 0,},
     {3, 775, 14808, 2160, 0,},
@@ -7468,7 +7468,7 @@ static long y13[20][RBG_NPROBS] = {
     {0, 195, 13487, 839379, 3671460,},
 };
 
-static long y14[20][RBG_NPROBS] = {
+static long ya14[20][RBG_NPROBS] = {
     {4, 1089, 2268, 0, 0,},
     {3, 647, 19404, 2592, 0,},
     {3, 559, 22396, 8928, 0,},
@@ -7491,7 +7491,7 @@ static long y14[20][RBG_NPROBS] = {
     {0, 141, 12630, 886913, 5590332,},
 };
 
-static long y15[15][RBG_NPROBS] = {
+static long ya15[15][RBG_NPROBS] = {
     {3, 1019, 6076, 288, 0,},
     {0, 355, 33824, 1872, 0,},
     {0, 331, 34492, 8928, 0,},
@@ -7509,7 +7509,7 @@ static long y15[15][RBG_NPROBS] = {
     {0, 207, 23447, 546031, 763956,},
 };
 
-static long y16[6][RBG_NPROBS] = {
+static long ya16[6][RBG_NPROBS] = {
     {31, 180, 0, 0, 0,},
     {6, 975, 3772, 288, 0,},
     {2, 466, 25089, 78660, 18144,},
@@ -7518,7 +7518,7 @@ static long y16[6][RBG_NPROBS] = {
     {0, 18, 6042, 425561, 36475740,},
 };
 
-static long y17[15][RBG_NPROBS] = {
+static long ya17[15][RBG_NPROBS] = {
     {23, 468, 0, 0, 0,},
     {4, 1148, 144, 0, 0,},
     {2, 995, 8200, 1584, 0,},
@@ -7536,7 +7536,7 @@ static long y17[15][RBG_NPROBS] = {
     {0, 70, 5652, 775017, 21974652,},
 };
 
-static long y18[15][RBG_NPROBS] = {
+static long ya18[15][RBG_NPROBS] = {
     {19, 608, 144, 0, 0,},
     {4, 1065, 3132, 0, 0,},
     {2, 884, 12012, 8208, 0,},
@@ -7554,7 +7554,7 @@ static long y18[15][RBG_NPROBS] = {
     {0, 62, 5739, 706619, 24697476,},
 };
 
-static long y19[20][RBG_NPROBS] = {
+static long ya19[20][RBG_NPROBS] = {
     {4, 1130, 792, 0, 0,},
     {2, 1063, 5796, 0, 0,},
     {2, 991, 8364, 864, 0,},
@@ -7577,7 +7577,7 @@ static long y19[20][RBG_NPROBS] = {
     {0, 124, 7589, 978016, 9636912,},
 };
 
-static long y20[15][RBG_NPROBS] = {
+static long ya20[15][RBG_NPROBS] = {
     {14, 776, 576, 0, 0,},
     {4, 913, 8552, 1872, 0,},
     {2, 767, 15983, 16868, 576,},
@@ -7595,7 +7595,7 @@ static long y20[15][RBG_NPROBS] = {
     {0, 52, 6032, 616407, 28031940,},
 };
 
-static long y21[20][RBG_NPROBS] = {
+static long ya21[20][RBG_NPROBS] = {
     {4, 1099, 1908, 0, 0,},
     {2, 1019, 7348, 1152, 0,},
     {2, 751, 16778, 9000, 0,},
@@ -7618,7 +7618,7 @@ static long y21[20][RBG_NPROBS] = {
     {0, 128, 6962, 908191, 12776580,},
 };
 
-static long y22[20][RBG_NPROBS] = {
+static long ya22[20][RBG_NPROBS] = {
     {4, 1035, 4204, 288, 0,},
     {2, 642, 20738, 7704, 0,},
     {2, 555, 23523, 20180, 576,},
@@ -7641,7 +7641,7 @@ static long y22[20][RBG_NPROBS] = {
     {0, 92, 7533, 877093, 14835708,},
 };
 
-static long y23[15][RBG_NPROBS] = {
+static long ya23[15][RBG_NPROBS] = {
     {2, 963, 9344, 1872, 0,},
     {0, 331, 34550, 6840, 0,},
     {0, 311, 34757, 25292, 576,},
@@ -7659,7 +7659,7 @@ static long y23[15][RBG_NPROBS] = {
     {0, 140, 15529, 836357, 3699900,},
 };
 
-static long y24[15][RBG_NPROBS] = {
+static long ya24[15][RBG_NPROBS] = {
     {10, 887, 1764, 0, 0,},
     {3, 719, 16407, 17156, 576,},
     {2, 641, 19951, 37220, 4032,},
@@ -7677,7 +7677,7 @@ static long y24[15][RBG_NPROBS] = {
     {0, 36, 6082, 562587, 30651156,},
 };
 
-static long y25[20][RBG_NPROBS] = {
+static long ya25[20][RBG_NPROBS] = {
     {3, 1079, 3916, 288, 0,},
     {2, 887, 11834, 10728, 0,},
     {2, 476, 25507, 51044, 4032,},
@@ -7700,7 +7700,7 @@ static long y25[20][RBG_NPROBS] = {
     {0, 100, 6941, 887101, 14869404,},
 };
 
-static long y26[20][RBG_NPROBS] = {
+static long ya26[20][RBG_NPROBS] = {
     {3, 985, 7264, 1584, 0,},
     {2, 595, 21997, 23276, 576,},
     {2, 395, 27547, 82204, 17568,},
@@ -7723,7 +7723,7 @@ static long y26[20][RBG_NPROBS] = {
     {0, 88, 6944, 797786, 18640728,},
 };
 
-static long y27[15][RBG_NPROBS] = {
+static long ya27[15][RBG_NPROBS] = {
     {2, 850, 13146, 11448, 0,},
     {0, 310, 34855, 23044, 1152,},
     {0, 296, 34455, 55420, 7200,},
@@ -7741,7 +7741,7 @@ static long y27[15][RBG_NPROBS] = {
     {0, 136, 13415, 872781, 5315004,},
 };
 
-static long y28[20][RBG_NPROBS] = {
+static long ya28[20][RBG_NPROBS] = {
     {3, 876, 11070, 5832, 0,},
     {2, 355, 29081, 78820, 17568,},
     {2, 312, 28766, 144712, 59904,},
@@ -7764,7 +7764,7 @@ static long y28[20][RBG_NPROBS] = {
     {0, 64, 7347, 721049, 22000716,},
 };
 
-static long y29[15][RBG_NPROBS] = {
+static long ya29[15][RBG_NPROBS] = {
     {2, 711, 17893, 20684, 576,},
     {0, 277, 35301, 49644, 5184,},
     {0, 250, 32889, 169600, 72432,},
@@ -7782,7 +7782,7 @@ static long y29[15][RBG_NPROBS] = {
     {0, 132, 11813, 863857, 7899084,},
 };
 
-static long y30[15][RBG_NPROBS] = {
+static long ya30[15][RBG_NPROBS] = {
     {2, 537, 23595, 40820, 4032,},
     {0, 260, 32786, 160172, 78768,},
     {0, 239, 29984, 285233, 187740,},
@@ -7800,7 +7800,7 @@ static long y30[15][RBG_NPROBS] = {
     {0, 96, 11075, 873594, 10184616,},
 };
 
-static long y31[6][RBG_NPROBS] = {
+static long ya31[6][RBG_NPROBS] = {
     {0, 278, 34449, 78676, 17568,},
     {0, 196, 34220, 190904, 99936,},
     {0, 195, 29493, 359469, 204444,},
@@ -7812,8 +7812,8 @@ static long y31[6][RBG_NPROBS] = {
 typedef long T[RBG_NPROBS];
 
 static T *y[] = {
-    y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15, y16,
-    y17, y18, y19, y20, y21, y22, y23, y24, y25, y26, y27, y28, y29, y30, y31
+    ya1, ya2, ya3, ya4, ya5, ya6, ya7, ya8, ya9, ya10, ya11, ya12, ya13, ya14, ya15, ya16,
+    ya17, ya18, ya19, ya20, ya21, ya22, ya23, ya24, ya25, ya26, ya27, ya28, ya29, ya30, ya31
 };
 
 extern long *

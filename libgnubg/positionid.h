@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: positionid.h,v 1.36 2013/06/16 02:16:19 mdpetch Exp $
+ * $Id: positionid.h,v 1.37 2014/01/12 20:02:54 plm Exp $
  */
 
 #ifndef POSITIONID_H
@@ -29,6 +29,8 @@
 extern void PositionKey(const TanBoard anBoard, positionkey * pkey);
 extern char *PositionID(const TanBoard anBoard);
 extern char *PositionIDFromKey(const positionkey * pkey);
+
+extern int PositionFromXG(TanBoard anBoard, const char * pos);
 
 extern
 unsigned int PositionBearoff(const unsigned int anBoard[], unsigned int nPoints, unsigned int nChequers);

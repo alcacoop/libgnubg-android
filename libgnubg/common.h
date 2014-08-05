@@ -12,7 +12,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: common.h,v 1.27 2013/06/16 02:16:10 mdpetch Exp $
+ * $Id: common.h,v 1.29 2014/06/28 22:31:24 plm Exp $
  */
 
 /*! \file common.h
@@ -56,7 +56,6 @@ typedef void (*psighandler) (int);
 /* abs returns unsigned int by definition */
 #define Abs(a) ((unsigned int)abs(a))
 
-
 /* Do we need to use g_utf8_casefold() for utf8 anywhere? */
 #define StrCaseCmp(s1, s2) g_ascii_strcasecmp(s1, s2)
 #define StrNCaseCmp(s1, s2, n) g_ascii_strncasecmp(s1, s2, (gsize)n)
@@ -64,7 +63,7 @@ typedef void (*psighandler) (int);
 #define strcasecmp strcasecmp_error_use_StrCaseCmp
 #define strncasecmp strncasecmp_error_use_StrNCaseCmp
 
-/* Macro to mark paramaters that aren't used in the function */
+/* Macro to mark parameters that aren't used in the function */
 #ifdef UNUSED
 #elif defined(__GNUC__)
 #define UNUSED(x) UNUSED_ ## x __attribute__((unused))
@@ -73,4 +72,14 @@ typedef void (*psighandler) (int);
 #else
 #define UNUSED(x) _unused_##x
 #endif
+
+/* Helper macros for __builtin_expect */
+#ifdef HAVE_BUILTIN_EXPECT
+#define likely(expression)	__builtin_expect(!!(expression), 1)
+#define unlikely(expression)	__builtin_expect(!!(expression), 0)
+#else
+#define likely(expression)	(expression)
+#define unlikely(expression)	(expression)
+#endif
+
 #endif

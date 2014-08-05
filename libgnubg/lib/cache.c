@@ -15,7 +15,7 @@
  * cache.c
  *
  * by Gary Wong, 1997-2000
- * $Id: cache.c,v 1.35 2013/06/16 02:16:23 mdpetch Exp $
+ * $Id: cache.c,v 1.36 2014/07/16 06:52:59 plm Exp $
  */
 
 #include "config.h"
@@ -336,8 +336,8 @@ CacheFlush(const evalCache * pc)
 {
     unsigned int k;
     for (k = 0; k < pc->size / 2; ++k) {
-        pc->entries[k].nd_primary.nEvalContext = -1;
-        pc->entries[k].nd_secondary.nEvalContext = -1;
+        pc->entries[k].nd_primary.key.data[0] = -1;
+        pc->entries[k].nd_secondary.key.data[0] = -1;
 #if USE_MULTITHREAD
         pc->entries[k].lock = 0;
 #endif

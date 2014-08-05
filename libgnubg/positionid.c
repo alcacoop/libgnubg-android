@@ -34,7 +34,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: positionid.c,v 1.52 2013/06/16 02:16:19 mdpetch Exp $
+ * $Id: positionid.c,v 1.53 2014/01/12 20:02:54 plm Exp $
  */
 
 #include "config.h"
@@ -210,6 +210,45 @@ PositionID(const TanBoard anBoard)
     oldPositionKey(anBoard, &key);
 
     return oldPositionIDFromKey(&key);
+}
+
+extern int
+PositionFromXG(TanBoard anBoard, const char *pos)
+{
+    int i;
+
+    for (i = 0; i < 26; i++) {
+        int p0, p1;
+
+        if (i == 0) {
+            p0 = 24;
+            p1 = -1;
+        } else if (i == 25) {
+            p0 = -1;
+            p1 = 24;
+        } else {
+            p0 = 24 - i;
+            p1 = i - 1;
+        }
+
+        if (pos[i] >= 'A' && pos[i] <= 'P') {
+            if (p0 > -1)
+                anBoard[0][p0] = 0;
+            anBoard[1][p1] = pos[i] - 'A' + 1;
+        } else if (pos[i] >= 'a' && pos[i] <= 'p') {
+            anBoard[0][p0] = pos[i] - 'a' + 1;
+            if (p1 > -1)
+                anBoard[1][p1] = 0;
+        } else if (pos[i] == '-') {
+            if (p0 > -1)
+                anBoard[0][p0] = 0;
+            if (p1 > -1)
+                anBoard[1][p1] = 0;
+        } else {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 extern int

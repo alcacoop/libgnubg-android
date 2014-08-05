@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: analysis.c,v 1.239 2013/07/18 02:01:23 mdpetch Exp $
+ * $Id: analysis.c,v 1.240 2014/07/27 01:28:30 mdpetch Exp $
  */
 
 #include "config.h"
@@ -416,16 +416,16 @@ updateStatcontext(statcontext * psc, const moverecord * pmr, const matchstate * 
             ApplyMove(anBoardMove, pmr->n.anMove, FALSE);
             PositionKey((ConstTanBoard) anBoardMove, &key);
             rChequerSkill = 0.0f;
+            if (pmr->ml.amMoves) {
+                for (i = 0; i < pmr->ml.cMoves; i++)
 
-            for (i = 0; i < pmr->ml.cMoves; i++)
+                    if (EqualKeys(key, pmr->ml.amMoves[i].key)) {
 
-                if (EqualKeys(key, pmr->ml.amMoves[i].key)) {
+                        rChequerSkill = pmr->ml.amMoves[i].rScore - pmr->ml.amMoves[0].rScore;
 
-                    rChequerSkill = pmr->ml.amMoves[i].rScore - pmr->ml.amMoves[0].rScore;
-
-                    break;
-                }
-
+                        break;
+                    }
+            }
             /* update statistics */
 
             rCost = pms->nMatchTo ? eq2mwc(rChequerSkill, &ci) - eq2mwc(0.0f, &ci) : pms->nCube * rChequerSkill;
@@ -672,8 +672,10 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
 
             if (cmp_evalsetup(pesChequer, &pmr->esChequer) > 0) {
 
-                if (pmr->ml.cMoves)
+                if (pmr->ml.cMoves) {
                     free(pmr->ml.amMoves);
+                    pmr->ml.amMoves = NULL;
+                }
 
                 /* find best moves */
 

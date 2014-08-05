@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: matchid.h,v 1.14 2013/06/16 02:16:18 mdpetch Exp $
+ * $Id: matchid.h,v 1.16 2013/11/20 23:04:14 plm Exp $
  */
 
 #ifndef MATCHID_H
@@ -33,7 +33,7 @@ typedef struct {
 } posinfo;
 
 extern int
- LogCube(const int n);
+ LogCube(int n);
 
 extern char *MatchID(const unsigned int anDice[2],
                      const int fTurn,
@@ -42,37 +42,24 @@ extern char *MatchID(const unsigned int anDice[2],
                      const int fMove,
                      const int fCubeOwner,
                      const int fCrawford, const int nMatchTo, const int anScore[2], const int nCube,
-#if USE_EXTENDEDMATCHID
-                     const int fJacoby,
-#endif
-                     const gamestate gs);
+                     const int fJacoby, const gamestate gs);
 
 extern char *MatchIDFromKey(unsigned char auchKey[9]);
 
 extern int
-
-
 MatchFromID(unsigned int anDice[2],
             int *pfTurn,
             int *pfResigned,
             int *pfDoubled, int *pfMove, int *pfCubeOwner, int *pfCrawford, int *pnMatchTo, int anScore[2], int *pnCube,
-#if USE_EXTENDEDMATCHID
-            int *pfJacoby,
-#endif
-            gamestate * pgs, const char *szMatchID);
+            int *pfJacoby, gamestate * pgs, const char *szMatchID);
 
 extern int
-
-
 MatchFromKey(int anDice[2],
              int *pfTurn,
              int *pfResigned,
              int *pfDoubled,
              int *pfMove, int *pfCubeOwner, int *pfCrawford, int *pnMatchTo, int anScore[2], int *pnCube,
-#if USE_EXTENDEDMATCHID
-             int *pfJacoby,
-#endif
-             gamestate * pgs, const unsigned char *auchKey);
+             int *pfJacoby, gamestate * pgs, const unsigned char *auchKey);
 
 extern char *MatchIDFromMatchState(const matchstate * pms);
 

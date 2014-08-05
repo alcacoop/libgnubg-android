@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: speed.c,v 1.30 2013/06/16 02:16:21 mdpetch Exp $
+ * $Id: speed.c,v 1.31 2014/07/20 21:25:48 plm Exp $
  */
 
 #include "config.h"
@@ -38,8 +38,8 @@
 
 #define EVALS_PER_ITERATION 1024
 
-randctx rc;
-double timeTaken;
+static randctx rc;
+static double timeTaken;
 
 extern void
 RunEvals(void *UNUSED(notused))

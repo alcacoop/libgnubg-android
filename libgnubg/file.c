@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: file.c,v 1.25 2013/06/16 02:16:12 mdpetch Exp $
+ * $Id: file.c,v 1.31 2014/03/09 23:34:17 plm Exp $
  */
 
 #include "config.h"
@@ -25,10 +25,10 @@
 #include <stdlib.h>
 
 ExportFormat export_format[] = {
-    {EXPORT_SGF, ".sgf", N_("Gnu Backgammon File"), "sgf", {TRUE, TRUE, TRUE}
+    {EXPORT_SGF, ".sgf", N_("GNU Backgammon File"), "sgf", {TRUE, TRUE, TRUE}
      }
     ,                           /*must be the first element */
-    {EXPORT_HTML, ".html", N_("HTML"), "html", {TRUE, TRUE, TRUE}
+    {EXPORT_HTML, ".html", "HTML", "html", {TRUE, TRUE, TRUE}
      }
     ,
     {EXPORT_GAM, ".gam", N_("Jellyfish Game"), "gam", {FALSE, TRUE, FALSE}
@@ -40,11 +40,11 @@ ExportFormat export_format[] = {
     {EXPORT_POS, ".pos", N_("Jellyfish Position"), "pos", {FALSE, FALSE, TRUE}
      }
     ,
-    {EXPORT_LATEX, ".tex", N_("LaTeX"), "latex", {TRUE, TRUE, FALSE}
+    {EXPORT_LATEX, ".tex", "LaTeX", "latex", {TRUE, TRUE, FALSE}
      }
     ,
 #if HAVE_PANGOCAIRO
-    {EXPORT_PDF, ".pdf", N_("PDF"), "pdf", {TRUE, TRUE, TRUE}
+    {EXPORT_PDF, ".pdf", "PDF", "pdf", {TRUE, TRUE, TRUE}
      }
     ,
 #endif
@@ -52,12 +52,12 @@ ExportFormat export_format[] = {
      }
     ,
 #if HAVE_LIBPNG
-    {EXPORT_PNG, ".png", N_("Portable Network Graphics"), "png", {FALSE, FALSE, TRUE}
+    {EXPORT_PNG, ".png", "PNG", "png", {FALSE, FALSE, TRUE}
      }
     ,
 #endif
 #if HAVE_PANGOCAIRO
-    {EXPORT_PS, ".ps", N_("Postscript"), "ps", {TRUE, TRUE, TRUE}
+    {EXPORT_PS, ".ps", "PostScript", "ps", {TRUE, TRUE, TRUE}
      }
     ,
 #endif
@@ -65,18 +65,16 @@ ExportFormat export_format[] = {
      }
     ,
 #if HAVE_PANGOCAIRO
-    {EXPORT_SVG, ".svg", N_("SVG"), "svg", {FALSE, FALSE, TRUE}
+    {EXPORT_SVG, ".svg", "SVG", "svg", {FALSE, FALSE, TRUE}
      }
     ,
 #endif
 };
 
 ImportFormat import_format[] = {
-    {IMPORT_SGF, ".sgf", N_("Gnu Backgammon File"), "sgf"}
+    {IMPORT_SGF, ".sgf", N_("GNU Backgammon File"), "sgf"}
     ,                           /*must be the first element */
-    {IMPORT_SGG, ".sgg", N_("Gamesgrid Save Game"), "sgg"}
-    ,
-    {IMPORT_BKG, ".bkg", N_("Hans Berliner's BKG Format"), "bkg"}
+    {IMPORT_SGG, ".sgg", N_("GamesGrid Save Game"), "sgg"}
     ,
     {IMPORT_MAT, ".mat", N_("Jellyfish Match"), "mat"}
     ,
@@ -86,13 +84,13 @@ ImportFormat import_format[] = {
     ,
     {IMPORT_SNOWIETXT, ".txt", N_("Snowie Text"), "snowietxt"}
     ,
-    {IMPORT_TMG, ".tmg", N_("True Moneygames"), "tmg"}
+    {IMPORT_TMG, ".tmg", N_("TrueMoneyGames"), "tmg"}
     ,
     {IMPORT_EMPIRE, ".gam", N_("GammonEmpire Game"), "empire"}
     ,
     {IMPORT_PARTY, ".gam", N_("PartyGammon Game"), "party"}
     ,
-    {IMPORT_BGROOM, ".bgf", N_("BackGammonRoom Game"), "bgroom"}
+    {IMPORT_BGROOM, ".bgf", N_("BGRoom Game"), "bgroom"}
     ,
     {N_IMPORT_TYPES, NULL, N_("Unknown file format"), NULL}
 };
@@ -309,7 +307,16 @@ IsMATFile(FileHelper * fh)
         char c;
         fhSkipWS(fh);
         c = fhPeekNextChar(fh);
-        if (g_ascii_isdigit(c)) {
+
+        /* XG-style comment at the top of a mat file.
+         * Backgammon NJ can add so many of them that the real MAT pattern
+         * further below is pushed beyond the horizon of our probing. */
+        /* FIXME ? Check for all comments (';' and anything after that) */
+        if (c == ';') {
+            fhReadNextChar(fh);
+            if (fhReadNextChar(fh) == ' ' && fhReadNextChar(fh) == '[')
+                return TRUE;
+        } else if (g_ascii_isdigit(c)) {
             if (fhReadNumber(fh)) {
                 fhSkipWS(fh);
                 if (fhReadStringNC(fh, "point")) {
@@ -372,21 +379,6 @@ IsJFPFile(FileHelper * fh)
         return TRUE;
     else
         return FALSE;
-}
-
-static int
-IsBKGFile(FileHelper * fh)
-{
-    fhReset(fh);
-    fhSkipWS(fh);
-    if (fhReadString(fh, "Black"))
-        return TRUE;
-    fhReset(fh);
-    fhSkipWS(fh);
-    if (fhReadString(fh, "White"))
-        return TRUE;
-
-    return FALSE;
 }
 
 static int
@@ -461,8 +453,6 @@ ReadFilePreview(const char *filename)
         fpd->type = IMPORT_MAT;
     else if (IsJFPFile(fh))
         fpd->type = IMPORT_POS;
-    else if (IsBKGFile(fh))
-        fpd->type = IMPORT_BKG;
     else if (IsGAMFile(fh))
         fpd->type = IMPORT_EMPIRE;
     else if (IsPARFile(fh))
@@ -477,14 +467,16 @@ ReadFilePreview(const char *filename)
 extern char *
 GetFilename(int CheckForCurrent, ExportType type)
 {
-    char *sz, tstr[15];
+    char *sz;
     time_t t;
 
     if (CheckForCurrent && szCurrentFileName && *szCurrentFileName)
         sz = g_strdup_printf("%s%s", szCurrentFileName, export_format[type].extension);
     else {
+        char tstr[15];
+
         if (mi.nYear)
-            sprintf(tstr, "%04d-%02d-%02d", mi.nYear, mi.nMonth, mi.nDay);
+            sprintf(tstr, "%04u-%02u-%02u", mi.nYear, mi.nMonth, mi.nDay);
         else {
             t = time(NULL);
             if (strftime(tstr, 14, "%Y-%m-%d-%H%M", localtime(&t)) == 0)

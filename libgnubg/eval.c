@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: eval.c,v 1.431 2013/07/23 19:39:19 plm Exp $
+ * $Id: eval.c,v 1.442 2014/07/29 14:52:46 plm Exp $
  */
 
 #include "config.h"
@@ -26,7 +26,6 @@
 #include <locale.h>
 #include <string.h>
 #include <errno.h>
-#include <cache.h>
 #include <fcntl.h>
 #include "isaac.h"
 #include <md5.h>
@@ -40,44 +39,8 @@
 #include "util.h"
 #include "lib/simd.h"
 
-typedef int (*classevalfunc) (const TanBoard anBoard, float arOutput[], const bgvariation bgv, NNState * nnStates);
-
 typedef void (*classstatusfunc) (char *szOutput);
 typedef int (*cfunc) (const void *, const void *);
-
-#if !LOCKING_VERSION
-
-f_FindnSaveBestMoves FindnSaveBestMoves = FindnSaveBestMovesNoLocking;
-f_FindBestMove FindBestMove = FindBestMoveNoLocking;
-f_EvaluatePosition EvaluatePosition = EvaluatePositionNoLocking;
-f_ScoreMove ScoreMove = ScoreMoveNoLocking;
-f_GeneralCubeDecisionE GeneralCubeDecisionE = GeneralCubeDecisionENoLocking;
-f_GeneralEvaluationE GeneralEvaluationE = GeneralEvaluationENoLocking;
-
-#define FindnSaveBestMoves FindnSaveBestMovesNoLocking
-#define FindBestMove FindBestMoveNoLocking
-#define EvaluatePosition EvaluatePositionNoLocking
-#define ScoreMove ScoreMoveNoLocking
-#define GeneralCubeDecisionE GeneralCubeDecisionENoLocking
-#define GeneralEvaluationE GeneralEvaluationENoLocking
-#define EvaluatePositionCache EvaluatePositionCacheNoLocking
-#define FindBestMovePlied FindBestMovePliedNoLocking
-#define GeneralEvaluationEPlied GeneralEvaluationEPliedNoLocking
-#define EvaluatePositionCubeful3 EvaluatePositionCubeful3NoLocking
-#define ScoreMoves ScoreMovesNoLocking
-#define ScoreMovesPruned ScoreMovesPrunedNoLocking
-#define FindBestMoveInEval FindBestMoveInEvalNoLocking
-#define GeneralEvaluationEPliedCubeful GeneralEvaluationEPliedCubefulNoLocking
-#define EvaluatePositionCubeful4 EvaluatePositionCubeful4NoLocking
-#define CacheAdd CacheAddNoLocking
-#define CacheLookup CacheLookupNoLocking
-
-static int EvaluatePositionCache(NNState * nnStates, const TanBoard anBoard, float arOutput[],
-                                 const cubeinfo * pci, const evalcontext * pecx, int nPlies, positionclass pc);
-
-static int FindBestMovePlied(int anMove[8], int nDice0, int nDice1,
-                             TanBoard anBoard, const cubeinfo * pci,
-                             const evalcontext * pec, int nPlies, movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES]);
 
 /* Race inputs */
 enum {
@@ -233,6 +196,41 @@ enum {
 #define NUM_RACE_INPUTS ( HALF_RACE_INPUTS * 2 )
 #define NUM_PRUNING_INPUTS (25 * MINPPERPOINT * 2)
 
+
+#if !LOCKING_VERSION
+
+f_FindnSaveBestMoves FindnSaveBestMoves = FindnSaveBestMovesNoLocking;
+f_FindBestMove FindBestMove = FindBestMoveNoLocking;
+f_EvaluatePosition EvaluatePosition = EvaluatePositionNoLocking;
+f_ScoreMove ScoreMove = ScoreMoveNoLocking;
+f_GeneralCubeDecisionE GeneralCubeDecisionE = GeneralCubeDecisionENoLocking;
+f_GeneralEvaluationE GeneralEvaluationE = GeneralEvaluationENoLocking;
+
+#define FindnSaveBestMoves FindnSaveBestMovesNoLocking
+#define FindBestMove FindBestMoveNoLocking
+#define EvaluatePosition EvaluatePositionNoLocking
+#define ScoreMove ScoreMoveNoLocking
+#define GeneralCubeDecisionE GeneralCubeDecisionENoLocking
+#define GeneralEvaluationE GeneralEvaluationENoLocking
+#define EvaluatePositionCache EvaluatePositionCacheNoLocking
+#define FindBestMovePlied FindBestMovePliedNoLocking
+#define GeneralEvaluationEPlied GeneralEvaluationEPliedNoLocking
+#define EvaluatePositionCubeful3 EvaluatePositionCubeful3NoLocking
+#define ScoreMoves ScoreMovesNoLocking
+#define ScoreMovesPruned ScoreMovesPrunedNoLocking
+#define FindBestMoveInEval FindBestMoveInEvalNoLocking
+#define GeneralEvaluationEPliedCubeful GeneralEvaluationEPliedCubefulNoLocking
+#define EvaluatePositionCubeful4 EvaluatePositionCubeful4NoLocking
+#define CacheAdd CacheAddNoLocking
+#define CacheLookup CacheLookupNoLocking
+
+static int EvaluatePositionCache(NNState * nnStates, const TanBoard anBoard, float arOutput[],
+                                 cubeinfo * const pci, const evalcontext * pecx, int nPlies, positionclass pc);
+
+static int FindBestMovePlied(int anMove[8], int nDice0, int nDice1,
+                             TanBoard anBoard, const cubeinfo * pci,
+                             const evalcontext * pec, int nPlies, movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES]);
+
 static int anEscapes[0x1000];
 static int anEscapes1[0x1000];
 
@@ -369,7 +367,7 @@ const char *aszDoubleTypes[NUM_DOUBLE_TYPES] = {
 
 /* parameters for EvalEfficiency */
 
-float rTSCubeX = 0.6f;          /* for match play only */
+static float rTSCubeX = 0.6f;          /* for match play only */
 float rOSCubeX = 0.6f;
 float rRaceFactorX = 0.00125f;
 float rRaceCoefficientX = 0.55f;
@@ -377,7 +375,6 @@ float rRaceMax = 0.7f;
 float rRaceMin = 0.6f;
 float rCrashedX = 0.68f;
 float rContactX = 0.68f;
-
 
 static void
 ComputeTable0(void)
@@ -572,7 +569,7 @@ EvalInitialise(char *szWeights, char *szWeightsBinary, int fNoBearoff, void (*pf
         result = SIMD_Supported();
         switch (result) {
         case -1:
-            outputerrf(_("Can't check for SIMD support - non pentium cpu\n"));
+            outputerrf(_("Can't check for SIMD support\n"));
             break;
         case -2:
             outputerrf(_("No cpuid check available\n"));
@@ -621,10 +618,6 @@ EvalInitialise(char *szWeights, char *szWeightsBinary, int fNoBearoff, void (*pf
     }
 
     if (!fNoBearoff) {
-#ifdef USE_BUILTIN_BEAROFF
-        /* read one-sided db from gnubg.bd */
-        pbc1 = BearoffInitBuiltin();
-#endif
         gnubg_bearoff_os = BuildFilename("gnubg_os0.bd");
         if (!pbc1)
             pbc1 = BearoffInit(gnubg_bearoff_os, (int) BO_IN_MEMORY, NULL);
@@ -1512,7 +1505,7 @@ CalculateContactInputs(const TanBoard anBoard, float arInput[])
     baseInputs(anBoard, arInput);
 
     {
-        float *b = arInput + 4 * 25 * 2;
+        float *b = arInput + MINPPERPOINT * 25 * 2;
 
         /* I accidentally switched sides (0 and 1) when I trained the net */
         menOffNonCrashed(anBoard[0], b + I_OFF1);
@@ -1521,7 +1514,7 @@ CalculateContactInputs(const TanBoard anBoard, float arInput[])
     }
 
     {
-        float *b = arInput + (4 * 25 * 2 + MORE_INPUTS);
+        float *b = arInput + (MINPPERPOINT * 25 * 2 + MORE_INPUTS);
 
         menOffNonCrashed(anBoard[1], b + I_OFF1);
 
@@ -1537,7 +1530,7 @@ CalculateCrashedInputs(const TanBoard anBoard, float arInput[])
     baseInputs(anBoard, arInput);
 
     {
-        float *b = arInput + 4 * 25 * 2;
+        float *b = arInput + MINPPERPOINT * 25 * 2;
 
         menOffAll(anBoard[1], b + I_OFF1);
 
@@ -1545,7 +1538,7 @@ CalculateCrashedInputs(const TanBoard anBoard, float arInput[])
     }
 
     {
-        float *b = arInput + (4 * 25 * 2 + MORE_INPUTS);
+        float *b = arInput + (MINPPERPOINT * 25 * 2 + MORE_INPUTS);
 
         menOffAll(anBoard[0], b + I_OFF1);
 
@@ -1607,9 +1600,9 @@ SanityCheck(const TanBoard anBoard, float arOutput[])
 {
     int i, j, nciq, ac[2], anBack[2], anCross[2], anGammonCross[2], anBackgammonCross[2], anMaxTurns[2], fContact;
 
-    if (arOutput[OUTPUT_WIN] < 0.0f)
+    if (unlikely(arOutput[OUTPUT_WIN] < 0.0f))
         arOutput[OUTPUT_WIN] = 0.0f;
-    else if (arOutput[OUTPUT_WIN] > 1.0f)
+    else if (unlikely(arOutput[OUTPUT_WIN] > 1.0f))
         arOutput[OUTPUT_WIN] = 1.0f;
 
     ac[0] = ac[1] = anBack[0] = anBack[1] = anCross[0] = anCross[1] = anBackgammonCross[0] = anBackgammonCross[1] = 0;
@@ -1662,26 +1655,26 @@ SanityCheck(const TanBoard anBoard, float arOutput[])
 
     fContact = anBack[0] + anBack[1] >= 24;
 
-    if (!fContact) {
+    if (unlikely(!fContact)) {
         for (i = 0; i < 2; i++)
             if (anBack[i] < 6 && pbc1)
                 anMaxTurns[i] = MaxTurns(PositionBearoff(anBoard[i], pbc1->nPoints, pbc1->nChequers));
             else
                 anMaxTurns[i] = anCross[i] * 2;
 
-        if (!anMaxTurns[1])
+        if (unlikely(!anMaxTurns[1]))
             anMaxTurns[1] = 1;
 
     }
 
-    if (!fContact && anCross[0] > 4 * (anMaxTurns[1] - 1))
+    if (unlikely(!fContact) && anCross[0] > 4 * (anMaxTurns[1] - 1))
         /* Certain win */
         arOutput[OUTPUT_WIN] = 1.0f;
 
-    if (ac[0] < 15)
+    if (unlikely(ac[0] < 15))
         /* Opponent has borne off; no gammons or backgammons possible */
         arOutput[OUTPUT_WINGAMMON] = arOutput[OUTPUT_WINBACKGAMMON] = 0.0f;
-    else if (!fContact) {
+    else if (unlikely(!fContact)) {
         if (anCross[1] > 8 * anGammonCross[0])
             /* Gammon impossible */
             arOutput[OUTPUT_WINGAMMON] = 0.0f;
@@ -1697,14 +1690,14 @@ SanityCheck(const TanBoard anBoard, float arOutput[])
             arOutput[OUTPUT_WINGAMMON] = arOutput[OUTPUT_WINBACKGAMMON] = 1.0f;
     }
 
-    if (!fContact && anCross[1] > 4 * anMaxTurns[0])
+    if (unlikely(!fContact) && anCross[1] > 4 * anMaxTurns[0])
         /* Certain loss */
         arOutput[OUTPUT_WIN] = 0.0f;
 
-    if (ac[1] < 15)
+    if (unlikely(ac[1] < 15))
         /* Player has borne off; no gammon or backgammon losses possible */
         arOutput[OUTPUT_LOSEGAMMON] = arOutput[OUTPUT_LOSEBACKGAMMON] = 0.0f;
-    else if (!fContact) {
+    else if (unlikely(!fContact)) {
         if (anCross[0] > 8 * anGammonCross[1] - 4)
             /* Gammon loss impossible */
             arOutput[OUTPUT_LOSEGAMMON] = 0.0f;
@@ -1721,29 +1714,29 @@ SanityCheck(const TanBoard anBoard, float arOutput[])
     }
 
     /* gammons must be less than wins */
-    if (arOutput[OUTPUT_WINGAMMON] > arOutput[OUTPUT_WIN]) {
+    if (unlikely(arOutput[OUTPUT_WINGAMMON] > arOutput[OUTPUT_WIN])) {
         arOutput[OUTPUT_WINGAMMON] = arOutput[OUTPUT_WIN];
     }
 
     {
         float lose = 1.0f - arOutput[OUTPUT_WIN];
-        if (arOutput[OUTPUT_LOSEGAMMON] > lose) {
+        if (unlikely(arOutput[OUTPUT_LOSEGAMMON] > lose)) {
             arOutput[OUTPUT_LOSEGAMMON] = lose;
         }
     }
 
     /* Backgammons cannot exceed gammons */
-    if (arOutput[OUTPUT_WINBACKGAMMON] > arOutput[OUTPUT_WINGAMMON])
+    if (unlikely(arOutput[OUTPUT_WINBACKGAMMON] > arOutput[OUTPUT_WINGAMMON]))
         arOutput[OUTPUT_WINBACKGAMMON] = arOutput[OUTPUT_WINGAMMON];
 
-    if (arOutput[OUTPUT_LOSEBACKGAMMON] > arOutput[OUTPUT_LOSEGAMMON])
+    if (unlikely(arOutput[OUTPUT_LOSEBACKGAMMON] > arOutput[OUTPUT_LOSEGAMMON]))
         arOutput[OUTPUT_LOSEBACKGAMMON] = arOutput[OUTPUT_LOSEGAMMON];
 
     {
         float noise = 1 / 10000.0f;
 
-        for (i = OUTPUT_WINGAMMON; i < 5; ++i) {
-            if (arOutput[i] < noise) {
+        for (i = OUTPUT_WINGAMMON; i < NUM_OUTPUTS; ++i) {
+            if (unlikely(arOutput[i] < noise)) {
                 arOutput[i] = 0.0;
             }
         }
@@ -1768,7 +1761,7 @@ ClassifyPosition(const TanBoard anBoard, const bgvariation bgv)
         }
     }
 
-    if (nBack < 0 || nOppBack < 0)
+    if (unlikely(nBack < 0 || nOppBack < 0))
         return CLASS_OVER;
 
     /* special classes for hypergammon variants */
@@ -1805,19 +1798,19 @@ ClassifyPosition(const TanBoard anBoard, const bgvariation bgv)
                     tot += board[i];
                 }
 
-                if (tot <= N) {
+                if (unlikely(tot <= N)) {
                     return CLASS_CRASHED;
                 } else {
-                    if (board[0] > 1) {
-                        if (tot <= (N + board[0])) {
+                    if (unlikely(board[0] > 1)) {
+                        if (unlikely(tot <= (N + board[0]))) {
                             return CLASS_CRASHED;
                         } else {
-                            if (board[1] > 1 && (1 + tot - (board[0] + board[1])) <= N) {
+                            if (unlikely((1 + tot - (board[0] + board[1])) <= N) && board[1] > 1) {
                                 return CLASS_CRASHED;
                             }
                         }
                     } else {
-                        if (tot <= (N + (board[1] - 1))) {
+                        if (unlikely(tot <= (N + (board[1] - 1)))) {
                             return CLASS_CRASHED;
                         }
                     }
@@ -1827,16 +1820,16 @@ ClassifyPosition(const TanBoard anBoard, const bgvariation bgv)
             return CLASS_CONTACT;
         } else {
 
-            if (isBearoff(pbc2, anBoard))
+            if (unlikely(isBearoff(pbc2, anBoard)))
                 return CLASS_BEAROFF2;
 
-            if (isBearoff(pbcTS, anBoard))
+            if (unlikely(isBearoff(pbcTS, anBoard)))
                 return CLASS_BEAROFF_TS;
 
-            if (isBearoff(pbc1, anBoard))
+            if (unlikely(isBearoff(pbc1, anBoard)))
                 return CLASS_BEAROFF1;
 
-            if (isBearoff(pbcOS, anBoard))
+            if (unlikely(isBearoff(pbcOS, anBoard)))
                 return CLASS_BEAROFF_OS;
 
             return CLASS_RACE;
@@ -1898,16 +1891,6 @@ EvalHypergammon3(const TanBoard anBoard, float arOutput[], const bgvariation UNU
 {
 
     return BearoffEval(apbcHyper[2], anBoard, arOutput);
-
-}
-
-
-
-extern int
-EvalBearoff1Full(const TanBoard anBoard, float arOutput[])
-{
-
-    return BearoffEval(pbc1, anBoard, arOutput);
 
 }
 
@@ -2095,7 +2078,7 @@ EvalRaceBG(const TanBoard anBoard, float arOutput[], const bgvariation bgv)
 static int
 EvalRace(const TanBoard anBoard, float arOutput[], const bgvariation bgv, NNState * nnStates)
 {
-    SSE_ALIGN(float arInput[NUM_INPUTS]);
+    SSE_ALIGN(float arInput[NUM_RACE_INPUTS]);
 
     CalculateRaceInputs(anBoard, arInput);
 
@@ -2243,8 +2226,8 @@ Noise(const evalcontext * pec, const TanBoard anBoard, int iOutput)
         int i;
 
         for (i = 0; i < 25; i++) {
-            auchBoard[i << 1] = anBoard[0][i];
-            auchBoard[(i << 1) + 1] = anBoard[1][i];
+            auchBoard[i << 1] = (char) anBoard[0][i];
+            auchBoard[(i << 1) + 1] = (char) anBoard[1][i];
         }
 
         auchBoard[0] += iOutput;
@@ -3059,6 +3042,8 @@ EvalStatus(char *szOutput)
     for (i = N_CLASSES - 1; i >= 0; i--)
         if (acsf[i])
             acsf[i] (strchr(szOutput, 0));
+
+    sprintf(strchr(szOutput, 0), _(" * " "Weights file and databases installed in" ":\n   - %s\n"), getPkgDataDir());
 }
 
 
@@ -3589,9 +3574,6 @@ MoneyLive(const float rW, const float rL, const float p, const cubeinfo * pci)
 
     }
 
-    g_assert_not_reached();
-    return 0;
-
 }
 
 
@@ -4058,7 +4040,7 @@ FormatEval(char *sz, evalsetup * pes)
         strcpy(sz, "");
         break;
     case EVAL_EVAL:
-        sprintf(sz, "%s %1i-%s", pes->ec.fCubeful ? _("Cubeful") : _("Cubeless"), pes->ec.nPlies, _("ply"));
+        sprintf(sz, "%s %1u-%s", pes->ec.fCubeful ? _("Cubeful") : _("Cubeless"), pes->ec.nPlies, _("ply"));
         break;
     case EVAL_ROLLOUT:
         sprintf(sz, "%s", _("Rollout"));
@@ -4209,7 +4191,7 @@ CalcCubefulEquity(positionclass pc, float arOutput[NUM_ROLLOUT_OUTPUTS], int nPl
     arOutput[OUTPUT_CUBEFUL_EQUITY] = r;
 
 }
-#endif
+#endif                          /* !LOCKING_VERSION */
 
 
 
@@ -5220,24 +5202,18 @@ DoubleType(const int fDoubled, const int fMove, const int fTurn)
 #define CacheLookup CacheLookupWithLocking
 
 static int EvaluatePositionCache(NNState * nnStates, const TanBoard anBoard, float arOutput[],
-                                 const cubeinfo * pci, const evalcontext * pecx, int nPlies, positionclass pc);
+                                 cubeinfo * const pci, const evalcontext * pecx, int nPlies, positionclass pc);
 
 static int FindBestMovePlied(int anMove[8], int nDice0, int nDice1,
                              TanBoard anBoard, const cubeinfo * pci,
                              const evalcontext * pec, int nPlies, movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES]);
 
-extern neuralnet nnpContact, nnpRace, nnpCrashed;
-extern evalCache cEval;
-extern evalCache cpEval;
-extern classevalfunc acef[N_CLASSES];
-extern unsigned int cCache;
-extern evalcontext ecBasic;
 #endif
 
 static int GeneralEvaluationEPlied(NNState * nnStates, float arOutput[NUM_ROLLOUT_OUTPUTS],
-                                   const TanBoard anBoard, const cubeinfo * pci, const evalcontext * pec, int nPlies);
+                                   const TanBoard anBoard, cubeinfo * const pci, const evalcontext * pec, int nPlies);
 static int EvaluatePositionCubeful3(NNState * nnStates, const TanBoard anBoard, float arOutput[NUM_OUTPUTS],
-                                    float arCubeful[], const cubeinfo aciCubePos[], int cci, const cubeinfo * pciMove,
+                                    float arCubeful[], const cubeinfo aciCubePos[], int cci, cubeinfo * const pciMove,
                                     const evalcontext * pec, int nPlies, int fTop);
 
 /* Functions that have both locking and non-locking versions below here */
@@ -5249,7 +5225,7 @@ static int ScoreMovesPruned(movelist * pml, const cubeinfo * pci, const evalcont
 
 static SIMD_AVX_STACKALIGN void
 FindBestMoveInEval(NNState * nnStates, int const nDice0, int const nDice1, const TanBoard anBoardIn,
-                   TanBoard anBoardOut, const cubeinfo * const pci, const evalcontext * pec)
+                   TanBoard anBoardOut, cubeinfo * const pci, const evalcontext * pec)
 {
     unsigned int i;
     movelist ml;
@@ -5276,11 +5252,11 @@ FindBestMoveInEval(NNState * nnStates, int const nDice0, int const nDice1, const
         return;
     }
 
-    ((cubeinfo *) pci)->fMove = !pci->fMove;
+    pci->fMove = !pci->fMove;
 
     for (i = 0; i < ml.cMoves; i++) {
         positionclass pc;
-        SSE_ALIGN(float arInput[200]);
+        SSE_ALIGN(float arInput[NUM_PRUNING_INPUTS]);
         SSE_ALIGN(float arOutput[NUM_OUTPUTS]);
         evalcache ec;
         uint32_t l;
@@ -5345,7 +5321,7 @@ FindBestMoveInEval(NNState * nnStates, int const nDice0, int const nDice1, const
         }
     }
 
-    ((cubeinfo *) pci)->fMove = !pci->fMove;
+    pci->fMove = !pci->fMove;
 
     if (i == ml.cMoves)
         ScoreMovesPruned(&ml, pci, pec, bmovesi);
@@ -5357,7 +5333,7 @@ FindBestMoveInEval(NNState * nnStates, int const nDice0, int const nDice1, const
 
 static int
 EvaluatePositionFull(NNState * nnStates, const TanBoard anBoard, float arOutput[],
-                     const cubeinfo * pci, const evalcontext * pec, unsigned int nPlies, positionclass pc)
+                     cubeinfo * const pci, const evalcontext * pec, unsigned int nPlies, positionclass pc)
 {
     int i, n0, n1;
     SSE_ALIGN(float arVariationOutput[NUM_OUTPUTS]);
@@ -5451,7 +5427,7 @@ EvaluatePositionFull(NNState * nnStates, const TanBoard anBoard, float arOutput[
 
 static int
 EvaluatePositionCache(NNState * nnStates, const TanBoard anBoard, float arOutput[],
-                      const cubeinfo * pci, const evalcontext * pecx, int nPlies, positionclass pc)
+                      cubeinfo * const pci, const evalcontext * pecx, int nPlies, positionclass pc)
 {
     evalcache ec;
     uint32_t l;
@@ -5480,7 +5456,7 @@ EvaluatePositionCache(NNState * nnStates, const TanBoard anBoard, float arOutput
 
 extern int
 EvaluatePosition(NNState * nnStates, const TanBoard anBoard, float arOutput[],
-                 const cubeinfo * pci, const evalcontext * pec)
+                 cubeinfo * const pci, const evalcontext * pec)
 {
 
     positionclass pc = ClassifyPosition(anBoard, pci->bgv);
@@ -5643,7 +5619,7 @@ FindBestMovePlied(int anMove[8], int nDice0, int nDice1,
 extern
     int
 FindBestMove(int anMove[8], int nDice0, int nDice1,
-             TanBoard anBoard, cubeinfo * pci, evalcontext * pec, movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES])
+             TanBoard anBoard, const cubeinfo * pci, evalcontext * pec, movefilter aamf[MAX_FILTER_PLIES][MAX_FILTER_PLIES])
 {
 
     return FindBestMovePlied(anMove, nDice0, nDice1, anBoard, pci, pec ? pec : &ecBasic, pec ? pec->nPlies : 0, aamf);
@@ -5804,7 +5780,7 @@ FindnSaveBestMoves(movelist * pml, int nDice0, int nDice1, const TanBoard anBoar
 extern int
 GeneralCubeDecisionE(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
                      const TanBoard anBoard,
-                     const cubeinfo * pci, const evalcontext * pec, const evalsetup * UNUSED(pes))
+                     cubeinfo * const pci, const evalcontext * pec, const evalsetup * UNUSED(pes))
 {
 
     SSE_ALIGN(float arOutput[NUM_OUTPUTS]);
@@ -5848,7 +5824,7 @@ GeneralCubeDecisionE(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
 
 extern int
 GeneralEvaluationE(float arOutput[NUM_ROLLOUT_OUTPUTS],
-                   const TanBoard anBoard, const cubeinfo * pci, const evalcontext * pec)
+                   const TanBoard anBoard, cubeinfo * const pci, const evalcontext * pec)
 {
 
     return GeneralEvaluationEPlied(NULL, arOutput, anBoard, pci, pec, pec->nPlies);
@@ -5858,7 +5834,7 @@ GeneralEvaluationE(float arOutput[NUM_ROLLOUT_OUTPUTS],
 
 static int
 GeneralEvaluationEPliedCubeful(NNState * nnStates, float arOutput[NUM_ROLLOUT_OUTPUTS],
-                               const TanBoard anBoard, const cubeinfo * pci, const evalcontext * pec, int nPlies)
+                               const TanBoard anBoard, cubeinfo * const pci, const evalcontext * pec, int nPlies)
 {
 
     float rCubeful;
@@ -5875,7 +5851,7 @@ GeneralEvaluationEPliedCubeful(NNState * nnStates, float arOutput[NUM_ROLLOUT_OU
 
 extern int
 GeneralEvaluationEPlied(NNState * nnStates, float arOutput[NUM_ROLLOUT_OUTPUTS],
-                        const TanBoard anBoard, const cubeinfo * pci, const evalcontext * pec, int nPlies)
+                        const TanBoard anBoard, cubeinfo * const pci, const evalcontext * pec, int nPlies)
 {
 
     if (pec->fCubeful) {
@@ -5901,7 +5877,7 @@ EvaluatePositionCubeful4(NNState * nnStates, const TanBoard anBoard,
                          float arOutput[NUM_OUTPUTS],
                          float arCubeful[],
                          const cubeinfo aciCubePos[], int cci,
-                         const cubeinfo * pciMove, const evalcontext * pec, unsigned int nPlies, int fTop)
+                         cubeinfo * const pciMove, const evalcontext * pec, unsigned int nPlies, int fTop)
 {
 
 
@@ -6132,7 +6108,7 @@ EvaluatePositionCubeful4(NNState * nnStates, const TanBoard anBoard,
                         rCf = Cl2CfMoney(arOutput, &ciMoney, rCubeX);
                         rCfMoney = CFHYPER(arEquity, &ciMoney);
 
-                        if (fabs(rCl - rCf) > 0.0001)
+                        if (fabsf(rCl - rCf) > 0.0001f)
                             rCubeX = (rCfMoney - rCl) / (rCf - rCl);
 
                         arCf[ici] = Cl2CfMatch(arOutput, &aci[ici], rCubeX);
@@ -6152,7 +6128,7 @@ EvaluatePositionCubeful4(NNState * nnStates, const TanBoard anBoard,
                         rCf = Cl2CfMoney(arOutput, &ciMoney, rCubeX);
                         rCfMoney = CFMONEY(arEquity, &ciMoney);
 
-                        if (fabs(rCl - rCf) > 0.0001)
+                        if (fabsf(rCl - rCf) > 0.0001f)
                             rCubeX = (rCfMoney - rCl) / (rCf - rCl);
                         else
                             rCubeX = X;
@@ -6208,7 +6184,7 @@ EvaluatePositionCubeful3(NNState * nnStates, const TanBoard anBoard,
                          float arOutput[NUM_OUTPUTS],
                          float arCubeful[],
                          const cubeinfo aciCubePos[], int cci,
-                         const cubeinfo * pciMove, const evalcontext * pec, int nPlies, int fTop)
+                         cubeinfo * const pciMove, const evalcontext * pec, int nPlies, int fTop)
 {
 
     int ici;

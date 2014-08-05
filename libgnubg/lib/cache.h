@@ -15,13 +15,15 @@
  * cache.h
  *
  * by Gary Wong, 1997-2000
- * $Id: cache.h,v 1.22 2013/06/16 02:16:23 mdpetch Exp $
+ * $Id: cache.h,v 1.24 2014/07/29 15:21:48 plm Exp $
  */
 
 #ifndef CACHE_H
 #define CACHE_H
 
 #include <stdlib.h>
+
+#include "config.h"
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -88,6 +90,6 @@ void CacheFlush(const evalCache * pc);
 void CacheDestroy(const evalCache * pc);
 void CacheStats(const evalCache * pc, unsigned int *pcLookup, unsigned int *pcHit, unsigned int *pcUsed);
 
-uint32_t GetHashKey(const uint32_t hashMask, const cacheNodeDetail * e);
+uint32_t GetHashKey(uint32_t hashMask, const cacheNodeDetail * e);
 
 #endif

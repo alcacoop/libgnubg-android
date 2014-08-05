@@ -1,4 +1,4 @@
-/* $Id: simd.h,v 1.4 2013/07/18 12:41:12 mdpetch Exp $ 
+/* $Id: simd.h,v 1.5 2014/07/27 15:53:09 plm Exp $ 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of version 3 or later of the GNU General Public License as
  * published by the Free Software Foundation.

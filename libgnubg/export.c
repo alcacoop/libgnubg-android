@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: export.c,v 1.78 2013/07/26 21:21:34 plm Exp $
+ * $Id: export.c,v 1.79 2014/01/24 22:53:28 plm Exp $
  */
 
 #include "config.h"
@@ -1051,7 +1051,7 @@ ExportGameJF(FILE * pf, listOLD * plGame, int iGame, int withScore, int fSst)
             break;
         case MOVE_NORMAL:
             diceRolled = 0;
-            sprintf(sz, "%d%d: ", pmr->anDice[0], pmr->anDice[1]);
+            sprintf(sz, "%u%u: ", pmr->anDice[0], pmr->anDice[1]);
             if (fSst) {         /* Snowie standard text */
                 moverecord *pnextmr;
                 if (pl->plNext && pl->plNext->p) {
@@ -1096,7 +1096,7 @@ ExportGameJF(FILE * pf, listOLD * plGame, int iGame, int withScore, int fSst)
             break;
         case MOVE_SETDICE:
             /* Could be rolled dice just before resign or an illegal move */
-            sprintf(sz, "%d%d: ", pmr->anDice[0], pmr->anDice[1]);
+            sprintf(sz, "%u%u: ", pmr->anDice[0], pmr->anDice[1]);
             diceRolled = 1;
             break;
         case MOVE_SETBOARD:

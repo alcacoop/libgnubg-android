@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: import.c,v 1.179 2013/07/03 19:17:42 plm Exp $
+ * $Id: import.c,v 1.199 2014/07/20 21:01:48 plm Exp $
  */
 
 #include "config.h"
@@ -41,6 +41,14 @@
 #include "file.h"
 #include "positionid.h"
 #include "matchequity.h"
+
+#ifdef WIN32
+#define GStatBuf struct _g_stat_struct
+#else
+#if !GLIB_CHECK_VERSION (2,26,0)
+typedef struct stat GStatBuf;
+#endif
+#endif
 
 static int
 ParseSnowieTxt(char *sz,
@@ -74,7 +82,7 @@ ParseSetDate(char *szFilename)
      * for other files use last file access date
      */
 
-    struct stat filestat;
+    GStatBuf filestat;
     struct tm *matchdate = NULL;
 
 #if HAVE_STRPTIME
@@ -91,10 +99,10 @@ ParseSetDate(char *szFilename)
         }
     }
 #endif
-    /* date could not be parsed out of filename, use last access date */
+    /* date could not be parsed, use date of last modification */
     if (matchdate == NULL) {
         if (g_stat(szFilename, &filestat) == 0) {
-            matchdate = localtime(&filestat.st_mtime);
+            matchdate = localtime((time_t *) &filestat.st_mtime);
         }
     }
 
@@ -346,7 +354,7 @@ ParseJF(FILE * fp, int *pnMatchTo, int *pfJacoby, int *pfTurn, char aszPlayer[2]
     return 0;
 
   read_failed:
-    outputerr(_("Failed reading jellyfish file"));
+    outputerr(_("Failed reading Jellyfish file"));
     fclose(fp);
     return -2;
 }
@@ -490,6 +498,8 @@ ExpandMatMove(const TanBoard anBoard, int anMove[8], int *pc, const unsigned int
 
     if (anDice[0] != anDice[1]) {
 
+        /* FIXME: accept bearoff moves with overage, like 65: 9/Off */
+
         if ((unsigned int) (anMove[0] - anMove[1]) == (anDice[0] + anDice[1])) {
 
             int an[8];
@@ -583,6 +593,8 @@ ParseMatMove(char *sz, int iPlayer, int *warned)
         *pch = 0;
 
     if (sz[0] >= '1' && sz[0] <= '6' && sz[1] >= '1' && sz[1] <= '6' && sz[2] == ':') {
+        int dice1 = sz[0] - '0';
+        int dice2 = sz[1] - '0';
 
         if (fBeaver) {
             /* look likes the previous beaver was taken */
@@ -619,6 +631,10 @@ ParseMatMove(char *sz, int iPlayer, int *warned)
             sz[4] = 0;
         }
 
+        /* XG can have additional spaces between roll and "Illegal play" */
+        while (sz[4] == ' ')
+            sz++;
+
         if (!StrNCaseCmp(sz + 4, "illegal play", 12)) {
             /* Snowie type illegal play */
 
@@ -647,8 +663,8 @@ ParseMatMove(char *sz, int iPlayer, int *warned)
             pmr = NewMoveRecord();
             pmr->mt = MOVE_SETDICE;
             pmr->fPlayer = iPlayer;
-            pmr->anDice[0] = sz[0] - '0';
-            pmr->anDice[1] = sz[1] - '0';
+            pmr->anDice[0] = dice1;
+            pmr->anDice[1] = dice2;
             AddMoveRecord(pmr);
 
             pmr = NewMoveRecord();
@@ -663,8 +679,8 @@ ParseMatMove(char *sz, int iPlayer, int *warned)
 
         pmr = NewMoveRecord();
         pmr->mt = MOVE_NORMAL;
-        pmr->anDice[0] = sz[0] - '0';
-        pmr->anDice[1] = sz[1] - '0';
+        pmr->anDice[0] = dice1;
+        pmr->anDice[1] = dice2;
         pmr->fPlayer = iPlayer;
 
         c = ParseMove(sz + 3, pmr->n.anMove);
@@ -802,8 +818,8 @@ ParseMatMove(char *sz, int iPlayer, int *warned)
     }
 }
 
-#define START_STRING " Game "
-#define START_STRING_LEN 6
+#define START_STRING "Game "
+#define START_STRING_LEN 5
 
 static char *
 GetMatLine(FILE * fp)
@@ -881,7 +897,7 @@ ImportGame(FILE * fp, int iGame, int nLength, bgvariation bgVariation, int *warn
     for (; pch >= sz0; pch--)
         if (isspace(*pch))
             *pch = ' ';
-        else if (*pch == ',') { /* GamesGrid mat files have ratings */
+        else if (*pch == ',' && strtol(pch + 1, NULL, 10) > 0) {        /* GamesGrid mat files have ratings */
             *pch = '\0';        /* after player name                */
             SetMatchInfo(&mi.pchRating[0], pch + 1, NULL);
         }
@@ -893,7 +909,7 @@ ImportGame(FILE * fp, int iGame, int nLength, bgvariation bgVariation, int *warn
     for (; pch >= sz1; pch--)
         if (isspace(*pch))
             *pch = ' ';
-        else if (*pch == ',') { /* GamesGrid mat files have ratings */
+        else if (*pch == ',' && strtol(pch + 1, NULL, 10) > 0) {        /* GamesGrid mat files have ratings */
             *pch = '\0';        /* after player name                */
             SetMatchInfo(&mi.pchRating[1], pch + 1, NULL);
         }
@@ -918,11 +934,52 @@ ImportGame(FILE * fp, int iGame, int nLength, bgvariation bgVariation, int *warn
     IniStatcontext(&pmr->g.sc);
     AddMoveRecord(pmr);
 
-    while ((szLine = GetMatLine(fp)) && strncmp(szLine, START_STRING, START_STRING_LEN)) {
+    while ((szLine = GetMatLine(fp)) && strncmp(g_strchug(szLine), START_STRING, START_STRING_LEN)) {
         pchRight = pchLeft = NULL;
 
         if ((pch = strpbrk(szLine, "\n\r")) != 0)
             *pch = 0;
+
+        if (!strncmp(szLine, "; Set Pos=", 10) && szLine[36] == '/') {
+            /* XG Set Pos extension */
+            char *pos, *posid;
+            TanBoard anBoard;
+            char szcv[5], szco[2];
+
+            pos = g_strndup(szLine + 10, 26);
+            PositionFromXG(anBoard, pos);
+            g_free(pos);
+
+            ms.gs = GAME_PLAYING;
+            ms.fMove = 0;
+
+            if (szLine[37] == '0') {
+                sprintf(szcv, "1");
+                CommandSetCubeCentre(NULL);
+            } else if (szLine[37] == '-') {
+                sprintf(szcv, "%d", 1 << (szLine[38] - '0'));
+                /* FIXME:
+                 * CommandSetCubeOwner() needs its argument to be writable
+                 * CommandSetCubeOwner("1") coredumps
+                 */
+                sprintf(szco, "0");
+                CommandSetCubeOwner(szco);
+            } else {
+                sprintf(szcv, "%d", 1 << (szLine[37] - '0'));
+                sprintf(szco, "1");
+                CommandSetCubeOwner(szco);
+            }
+
+            CommandSetCubeValue(szcv);
+
+            ms.fMove = 0;
+
+            posid = g_strdup(PositionID((ConstTanBoard) anBoard));
+            CommandSetBoard(posid);
+            g_free(posid);
+
+            continue;
+        }
 
         if ((pchLeft = strchr(szLine, ':')) && (pchRight = strchr(pchLeft + 1, ':')) && pchRight > szLine + 3)
             *((pchRight -= 2) - 1) = 0;
@@ -1022,7 +1079,27 @@ ImportMatVariation(FILE * fp, char *szFilename, bgvariation bgVariation, int war
                 } else if (g_str_has_prefix(pch, "[Jacoby ")) {
                     ;           /* discard for now */
                 } else if (g_str_has_prefix(pch, "[Beaver ")) {
-                    /* discard for now */
+                    ;           /* discard for now */
+                } else if (g_str_has_prefix(pch, "[Game ")) {
+
+                    /* Discard useless BGNJ comment. Its format is :
+                     * ; [Game 1, Move 1: Dice set to Manual Rolls]
+                     * or
+                     * ; [Game 2, Move 1: Dice set to Mersenne Twister, seed=1290023973, rollNum=586]
+                     */
+                    gchar **token;
+
+                    token = g_strsplit(pch, " ", 8);
+                    if (!strcmp(token[2], "Move")
+                        && !strcmp(token[4], "Dice")
+                        && !strcmp(token[5], "set")
+                        && !strcmp(token[6], "to"));    /* discard */
+                    else {
+                        pchComment = g_strconcat(pchComment ? pchComment : "", pch, "\n", NULL);
+                        g_free(pchOld);
+                    }
+                    g_strfreev(token);
+
                 } else {
                     pchComment = g_strconcat(pchComment ? pchComment : "", pch, "\n", NULL);
                     g_free(pchOld);
@@ -1030,7 +1107,7 @@ ImportMatVariation(FILE * fp, char *szFilename, bgvariation bgVariation, int war
             }
         } else
             /* Look for start of mat file */
-            n = sscanf(szLine, "%d %*1[Pp]oint %*1[Mm]atch%c", &nLength, &ch);
+            n = sscanf(szLine, "%10d %*1[Pp]oint %*1[Mm]atch%c", &nLength, &ch);
     } while (n != 2);
 
     if (nLength < 0) {
@@ -1057,8 +1134,8 @@ ImportMatVariation(FILE * fp, char *szFilename, bgvariation bgVariation, int war
 
     szLine = GetMatLine(fp);
     while (szLine) {
-        if (!strncmp(szLine, START_STRING, START_STRING_LEN)) {
-            game = atoi(szLine + START_STRING_LEN);
+        if (!strncmp(g_strchug(szLine), START_STRING, START_STRING_LEN)) {
+            game = atoi(g_strchug(szLine) + START_STRING_LEN);
             if (!game)
                 outputf(_("WARNING! Unrecognized line in mat file: '%s'\n"), szLine);
             {
@@ -1071,6 +1148,21 @@ ImportMatVariation(FILE * fp, char *szFilename, bgvariation bgVariation, int war
     }
 
     UpdateSettings();
+
+    {
+        gchar **token;
+        int i = 0;
+
+        token = g_strsplit_set(player1aliases, ";", -1);
+
+        while (token[i] != NULL)
+            if (!strcmp(token[i++], ap[0].szName)) {
+                CommandSwapPlayers(NULL);
+                break;
+            }
+
+        g_strfreev(token);
+    }
 
 #if USE_GTK
     if (fX) {
@@ -1515,7 +1607,7 @@ ImportOldmoves(FILE * pf, char *szFilename)
         return -1;
     }
 
-    if ((n = sscanf(p, "Score is %d-%d in a %d", &n0, &n1, &nLength)) < 2) {
+    if ((n = sscanf(p, "Score is %10d-%10d in a %10d", &n0, &n1, &nLength)) < 2) {
         outputerrf(_("%s: not a valid oldmoves file"), szFilename);
         return -1;
     }
@@ -1541,7 +1633,7 @@ ImportOldmoves(FILE * pf, char *szFilename)
         if (p == 0)
             break;
 
-        n = sscanf(p, "Score is %d-%d in a %d", &n0, &n1, &nLength);
+        n = sscanf(p, "Score is %10d-%10d in a %10d", &n0, &n1, &nLength);
         if (n < 2)
             break;
     }
@@ -1980,14 +2072,14 @@ ParseSGGGame(char *pch, int *pi, int *pn0, int *pn1, int *pfCrawford, int *pnLen
 
     pch += 5;
 
-    *pi = (int)strtol(pch, &pch, 10);
+    *pi = (int) strtol(pch, &pch, 10);
 
     if (*pch != '.')
         return -1;
 
     pch++;
 
-    *pn0 = (int)strtol(pch, &pch, 10);
+    *pn0 = (int) strtol(pch, &pch, 10);
 
     if (*pch == '*') {
         pch++;
@@ -1999,7 +2091,7 @@ ParseSGGGame(char *pch, int *pi, int *pn0, int *pn1, int *pfCrawford, int *pnLen
 
     pch++;
 
-    *pn1 = (int)strtol(pch, &pch, 10);
+    *pn1 = (int) strtol(pch, &pch, 10);
 
     if (*pch == '*') {
         pch++;
@@ -2014,7 +2106,7 @@ ParseSGGGame(char *pch, int *pi, int *pn0, int *pn1, int *pfCrawford, int *pnLen
 
     pch++;
 
-    *pnLength = (int)strtol(pch, &pch, 10);
+    *pnLength = (int) strtol(pch, &pch, 10);
 
     return 0;
 }
@@ -2070,7 +2162,7 @@ ParseSGGDate(const char *sz, unsigned int *pnDay, unsigned int *pnMonth, unsigne
     *pnMonth = 1;
     *pnYear = 1900;
 
-    if (sscanf(sz, "%*s %79s %u, %u", szMonth, &nDay, &nYear) != 3)
+    if (sscanf(sz, "%*s %79s %2u, %4u", szMonth, &nDay, &nYear) != 3)
         return;
 
     *pnDay = nDay;
@@ -2125,7 +2217,7 @@ ParseSGGOptions(const char *sz, matchinfo * pmi, int *pfCrawfordRule,
         /* Players are swapped later (at the end of ImportSGG()) and ratings
          * must be swapped here as well to be correctly attributed at the end
          * Order in SGG file is player1 player0 */
-        if ((sscanf(sz, "%*s %lf %d %lf %d", &arRating[0], &anExp[0], &arRating[1], &anExp[1])) != 4)
+        if ((sscanf(sz, "%*s %20lf %10d %20lf %10d", &arRating[0], &anExp[0], &arRating[1], &anExp[1])) != 4)
             break;
 
         for (i = 0; i < 2; ++i) {
@@ -2356,7 +2448,7 @@ ParseTMGOptions(const char *sz, matchinfo * pmi, int *pfCrawfordRule,
 
     case 1:                    /* Player1: */
     case 2:                    /* Player2: */
-        if (sscanf(sz, "Player%d: %*d %79s %*f", &j, szName) == 2)
+        if (sscanf(sz, "Player%1d: %*d %79s %*f", &j, szName) == 2)
             if ((j == 1 || j == 2) && *szName)
                 strcpy(ap[j - 1].szName, szName);
         return 0;
@@ -2376,7 +2468,7 @@ ParseTMGOptions(const char *sz, matchinfo * pmi, int *pfCrawfordRule,
 
     case 6:                    /* Startdate */
 
-        if ((sscanf(sz, "Startdate: %u-%u-%u", &pmi->nYear, &pmi->nMonth, &pmi->nDay)) != 3)
+        if ((sscanf(sz, "Startdate: %4u-%2u-%2u", &pmi->nYear, &pmi->nMonth, &pmi->nDay)) != 3)
             pmi->nYear = pmi->nMonth = pmi->nDay = 0;
         return 0;
 
@@ -2443,7 +2535,7 @@ ParseTMGOptions(const char *sz, matchinfo * pmi, int *pfCrawfordRule,
 static int
 ParseTMGGame(const char *sz, int *piGame, int *pn0, int *pn1, int *pfCrawford, int *post_crawford, const int nLength)
 {
-    int i = sscanf(sz, "Game %d: %d-%d", piGame, pn0, pn1) == 3;
+    int i = sscanf(sz, "Game %10d: %10d-%10d", piGame, pn0, pn1) == 3;
 
     if (!i)
         return FALSE;
@@ -2726,7 +2818,7 @@ ImportTMG(FILE * pf, const char *UNUSED(szFilename))
 
     for (j = 0; j < 2; ++j)
         SetMatchInfo(&mi.pchRating[j], NULL, NULL);
-    SetMatchInfo(&mi.pchPlace, "TrueMoneyGames (http://www.truemoneygames.com)", NULL);
+    SetMatchInfo(&mi.pchPlace, "TrueMoneyGames", NULL);
     SetMatchInfo(&mi.pchEvent, NULL, NULL);
     SetMatchInfo(&mi.pchRound, NULL, NULL);
     SetMatchInfo(&mi.pchAnnotator, NULL, NULL);
@@ -2761,172 +2853,6 @@ ImportTMG(FILE * pf, const char *UNUSED(szFilename))
 
     if (ms.gs != GAME_NONE)
         CommandSwapPlayers(NULL);
-
-#if USE_GTK
-    if (fX) {
-        GTKThaw();
-        GTKSet(ap);
-    }
-#endif
-
-    return 0;
-}
-
-static void
-ImportBKGGame(FILE * pf, int *pi)
-{
-    char sz[80], *pch;
-    moverecord *pmr, *pmrGame;
-    int i, fPlayer;
-
-    /* skip to first game */
-    do {
-        if (fgets(sz, 80, pf) == NULL) {
-            if (ferror(pf))
-                outputerr("bkggame");
-            return;
-        }
-    } while (strncmp(sz, "Black", 5) && strncmp(sz, "White", 5));
-
-    InitBoard(ms.anBoard, ms.bgv);
-
-    ClearMoveRecord();
-
-    ListInsert(&lMatch, plGame);
-
-    pmrGame = pmr = NewMoveRecord();
-    pmr->mt = MOVE_GAMEINFO;
-    pmr->g.i = (*pi)++;
-    pmr->g.nMatch = 0;          /* not stored in BKG files -- assume money sessions */
-    pmr->g.anScore[0] = ms.anScore[0];
-    pmr->g.anScore[1] = ms.anScore[1];
-    pmr->g.fCrawford = FALSE;
-    pmr->g.fCrawfordGame = FALSE;
-    pmr->g.fJacoby = fJacoby;
-    pmr->g.fWinner = -1;
-    pmr->g.nPoints = 0;
-    pmr->g.fResigned = FALSE;
-    pmr->g.nAutoDoubles = 0;
-    pmr->g.bgv = VARIATION_STANDARD;    /* assume standard backgammon */
-    pmr->g.fCubeUse = TRUE;     /* assume use of cube */
-    IniStatcontext(&pmr->g.sc);
-    AddMoveRecord(pmr);
-
-  uglyloop:
-    {
-        if (!strncmp(sz, "Black", 5) || !strncmp(sz, "White", 5)) {
-            fPlayer = !strncmp(sz, "White", 5);
-
-            if (strlen(sz) > 6 && !strncmp(sz + 6, "wins", 4)) {
-                if (ms.gs == GAME_PLAYING) {
-                    /* Neither a drop nor a bearoff to win, so we
-                     * presume the loser resigned. */
-                    pmr = NewMoveRecord();
-                    pmr->mt = MOVE_RESIGN;
-                    pmr->fPlayer = !fPlayer;
-                    if (strlen(sz) > 14 && !strncmp(sz + 14, "gammon", 6))
-                        pmr->r.nResigned = 2;
-                    else if (strlen(sz) > 14 && !strncmp(sz + 14, "backgammon", 10))
-                        pmr->r.nResigned = 3;
-                    else
-                        pmr->r.nResigned = 1;
-                    AddMoveRecord(pmr);
-                }
-
-                AddGame(pmrGame);
-
-                return;
-            } else if (strlen(sz) > 6 && !strncmp(sz + 6, "Doubles", 7)) {
-
-                pmr = NewMoveRecord();
-                pmr->mt = MOVE_DOUBLE;
-                pmr->fPlayer = fPlayer;
-                LinkToDouble(pmr);
-                AddMoveRecord(pmr);
-
-                pmr = NewMoveRecord();
-                pmr->mt = strlen(sz) > 22 && !strncmp(sz + 22, "Accepted", 8) ? MOVE_TAKE : MOVE_DROP;
-                pmr->fPlayer = !fPlayer;
-                if (!LinkToDouble(pmr)) {
-                    outputl(_("Take record found but doesn't follow a double"));
-                    free(pmr);
-                    return;
-                }
-                AddMoveRecord(pmr);
-            } else if (strlen(sz) > 9 && isdigit(sz[7]) && isdigit(sz[9])) {
-                pmr = NewMoveRecord();
-                pmr->mt = MOVE_NORMAL;
-                pmr->anDice[0] = sz[7] - '0';
-                pmr->anDice[1] = sz[9] - '0';
-                pmr->fPlayer = fPlayer;
-
-                if (strlen(sz) > 13) {
-                    for (i = 0, pch = sz + 13; i < 8 && *pch; i++) {
-                        while (*pch && !isdigit(*pch))
-                            pch++;
-
-                        if (!*pch)
-                            break;
-
-                        pmr->n.anMove[i] = fPlayer ? 24 - atoi(pch) : atoi(pch) - 1;
-
-                        while (isdigit(*pch))
-                            pch++;
-                    }
-
-                    if (i < 8)
-                        pmr->n.anMove[i] = -1;
-                } else
-                    pmr->n.anMove[0] = -1;
-
-                AddMoveRecord(pmr);
-            }
-        }
-
-        if (fgets(sz, 80, pf) == NULL) {
-            outputerr("bkggame");
-            return;
-        }
-        if (feof(pf))
-            return;
-    }
-    goto uglyloop;              /* The logic here should be rewritten */
-}
-
-static int
-ImportBKG(FILE * pf, const char *UNUSED(szFilename))
-{
-    int i;
-
-    if (!get_input_discard())
-        return -1;
-
-#if USE_GTK
-    if (fX) {                   /* Clear record to avoid ugly updates */
-        GTKClearMoveRecord();
-        GTKFreeze();
-    }
-#endif
-
-    FreeMatch();
-    ClearMatch();
-
-    /* clear matchinfo */
-    SetMatchInfo(&mi.pchRating[0], NULL, NULL);
-    SetMatchInfo(&mi.pchRating[1], NULL, NULL);
-    SetMatchInfo(&mi.pchPlace, NULL, NULL);
-    SetMatchInfo(&mi.pchEvent, NULL, NULL);
-    SetMatchInfo(&mi.pchRound, NULL, NULL);
-    SetMatchInfo(&mi.pchAnnotator, NULL, NULL);
-    SetMatchInfo(&mi.pchComment, NULL, NULL);
-    mi.nYear = mi.nMonth = mi.nDay = 0;
-
-    i = 0;
-
-    while (!feof(pf))
-        ImportBKGGame(pf, &i);
-
-    UpdateSettings();
 
 #if USE_GTK
     if (fX) {
@@ -3456,32 +3382,6 @@ ConvertPartyGammonFileToMat(FILE * partyFP, FILE * matFP)
 }
 
 extern void
-CommandImportBKG(char *sz)
-{
-    FILE *pf;
-    int rc;
-
-    sz = NextToken(&sz);
-
-    if (!sz || !*sz) {
-        outputl(_("You must specify a BKG session file to import (see `help " "import bkg')."));
-        return;
-    }
-
-    if ((pf = g_fopen(sz, "r")) != 0) {
-        rc = ImportBKG(pf, sz);
-        fclose(pf);
-        if (rc)
-            /* no file imported */
-            return;
-        setDefaultFileName(sz);
-        if (fGotoFirstGame)
-            CommandFirstGame(NULL);
-    } else
-        outputerr(sz);
-}
-
-extern void
 CommandImportJF(char *sz)
 {
     FILE *pf;
@@ -3747,7 +3647,7 @@ CommandImportAuto(char *sz)
 }
 
 #define BGR_STRING "BGF version"
-int moveNum;
+static int moveNum;
 
 static void
 OutputMove(FILE * fpOut, int side, const char *outBuf)
@@ -3765,7 +3665,7 @@ OutputMove(FILE * fpOut, int side, const char *outBuf)
 }
 
 static int
-ConvertBackGammonRoomFileToMat(FILE * bgrFP, FILE * matFP)
+ConvertBGRoomFileToMat(FILE * bgrFP, FILE * matFP)
 {
 
     char *player1 = NULL;
@@ -3947,7 +3847,7 @@ CommandImportBGRoom(char *sz)
     sz = NextToken(&sz);
 
     if (!sz || !*sz) {
-        outputl(_("You must specify a BackGammonRoom file to import (see `help " "import bgroom')."));
+        outputl(_("You must specify a BGRoom file to import (see `help " "import bgroom')."));
         return;
     }
 
@@ -3964,7 +3864,7 @@ CommandImportBGRoom(char *sz)
         return;
     }
 
-    if (ConvertBackGammonRoomFileToMat(gamf, matf)) {
+    if (ConvertBGRoomFileToMat(gamf, matf)) {
         if ((pf = g_fopen(matfile, "r")) != 0) {
             rc = ImportMat(pf, matfile);
             fclose(pf);

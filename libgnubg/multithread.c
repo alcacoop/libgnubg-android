@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
- * $Id: multithread.c,v 1.87 2013/07/21 00:58:40 mdpetch Exp $
+ * $Id: multithread.c,v 1.90 2014/07/26 06:23:35 mdpetch Exp $
  */
 
 #include "config.h"
@@ -74,7 +74,7 @@ MT_GetTask(void)
 {
     Task *task = NULL;
 
-    Mutex_Lock(td.queueLock, "get task");
+    Mutex_Lock(&td.queueLock, "get task");
 
     if (g_list_length(td.tasks) > 0) {
         task = (Task *) g_list_first(td.tasks)->data;
@@ -85,7 +85,7 @@ MT_GetTask(void)
     }
 
     multi_debug("get task: release");
-    Mutex_Release(td.queueLock);
+    Mutex_Release(&td.queueLock);
 
     return task;
 }
@@ -126,7 +126,7 @@ MT_WorkerThreadFunction(void *tld)
 #endif
     {
         ThreadLocalData *pTLD = (ThreadLocalData *) tld;
-        TLSSetValue(td.tlsItem, (size_t)pTLD);
+        TLSSetValue(td.tlsItem, (size_t) pTLD);
 
         MT_SafeInc(&td.result);
         MT_TaskDone(NULL);      /* Thread created */
@@ -232,7 +232,7 @@ void
 MT_AddTask(Task * pt, gboolean lock)
 {
     if (lock) {
-        Mutex_Lock(td.queueLock, "add task");
+        Mutex_Lock(&td.queueLock, "add task");
     }
     if (td.addedTasks == 0)
         td.result = 0;          /* Reset result for new tasks */
@@ -243,7 +243,7 @@ MT_AddTask(Task * pt, gboolean lock)
     }
     if (lock) {
         multi_debug("add task: release");
-        Mutex_Release(td.queueLock);
+        Mutex_Release(&td.queueLock);
     }
 }
 
@@ -255,9 +255,9 @@ mt_add_tasks(unsigned int num_tasks, AsyncFun pFun, void *taskData, gpointer lin
 #ifdef DEBUG_MULTITHREADED
         char buf[20];
         sprintf(buf, "add %u tasks", num_tasks);
-        Mutex_Lock(td.queueLock, buf);
+        Mutex_Lock(&td.queueLock, buf);
 #else
-        Mutex_Lock(td.queueLock, NULL);
+        Mutex_Lock(&td.queueLock, NULL);
 #endif
     }
     for (i = 0; i < num_tasks; i++) {
@@ -268,7 +268,7 @@ mt_add_tasks(unsigned int num_tasks, AsyncFun pFun, void *taskData, gpointer lin
         MT_AddTask(pt, FALSE);
     }
     multi_debug("add many release: lock");
-    Mutex_Release(td.queueLock);
+    Mutex_Release(&td.queueLock);
 }
 
 static gboolean
@@ -386,12 +386,11 @@ MT_SyncEnd(void)
 #include <gtkgame.h>
 #endif
 
-#define UI_UPDATETIME 250
-
 int asyncRet;
 void
 MT_AddTask(Task * pt, gboolean lock)
 {
+    (void) lock;                /* silence compiler warning */
     td.result = 0;              /* Reset result for new tasks */
     td.tasks = g_list_append(td.tasks, pt);
 }
@@ -420,6 +419,8 @@ MT_WaitForTasks(gboolean(*pCallback) (gpointer), int callbackTime, int autosave)
 {
     GList *member;
     guint as_source, cb_source = 0;
+
+    (void) callbackTime;        /* silence compiler warning */
     td.doneTasks = 0;
 
 #if USE_GTK
@@ -455,5 +456,3 @@ MT_AbortTasks(void)
 }
 
 #endif
-
-
