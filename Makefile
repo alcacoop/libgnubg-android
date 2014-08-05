@@ -58,7 +58,6 @@ OBJS= \
     libgnubg/levels.o \
     libgnubg/matchequity.o \
     libgnubg/matchid.o \
-    libgnubg/nativeAPI.o \
     libgnubg/util.o \
     libgnubg/mec.o \
     libgnubg/positionid.o \
@@ -66,6 +65,7 @@ OBJS= \
 		libgnubg/rollout.o \
 		libgnubg/evallock.o \
 		libgnubg/jniAPI.o \
+    libgnubg/nativeAPI.o \
     libgnubg/test.o
 
 
@@ -92,6 +92,13 @@ ndk-clean:
 
 ndk:
 	ndk-build
-	cp -rf libs/armeabi/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi/  
-	cp -rf libs/armeabi-v7a/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi-v7a/  
-	cp -rf libs/x86/* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/x86/
+	make ndk-install
+
+ndk-debug:
+	ndk-build NDK_DEBUG=1
+	make ndk-install
+
+ndk-install: 
+	cp -rf libs/armeabi/libgnubg* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi/  
+	cp -rf libs/armeabi-v7a/libgnubg* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi-v7a/  
+	cp -rf libs/x86/libgnubg* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/x86/
