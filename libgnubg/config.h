@@ -12,6 +12,7 @@
 
 /* Define if you wish to use glib threads */
 #define GLIB_THREADS 1
+#undef GLIB_THREADS
 
 /* Define if you want to disable deprecated gtk functions */
 /* #undef GTK_DISABLE_DEPRECATED */
@@ -166,7 +167,8 @@
 #define LT_OBJDIR ".libs/"
 
 /* maximum number of evaluation threads */
-#define MAX_NUMTHREAD 2
+// #define MAX_NUMTHREAD 2
+#define MAX_NUMTHREAD 0
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */
@@ -217,7 +219,8 @@
 /* #undef USE_GTK */
 
 /* Define if you want to have multithread support */
-#define USE_MULTITHREAD 1
+// #define USE_MULTITHREAD 1
+#undef USE_MULTITHREAD
 
 /* Define if you want to use Python inside gnubg */
 /* #undef USE_PYTHON */
