@@ -49,8 +49,6 @@ void initEnvironment(const char* path) {
   DATA_DIR = (char*)calloc(len, sizeof(char));
   sprintf(DATA_DIR, "%s", path);
 
-  MT_InitThreads();
-
   char *w1, *w2, *met;
   w1 = BuildFilename("gnubg.weights");
   w2 = BuildFilename("gnubg.wd");
@@ -85,6 +83,8 @@ int acceptResign(int r) {
   if (rEqAfter - rEqBefore < max_gain )
     resign = ms.fResigned;
 
+  MT_Close();
+
   return resign;
 }
 
@@ -114,6 +114,8 @@ int acceptDouble() {
   dd.pes = &es;
   asyncCubeDecision(&dd);
   cd = FindCubeDecision(arDouble, dd.aarOutput, &ci);
+
+  MT_Close();
 
   /*
   printf("CD: %d\n");
@@ -186,6 +188,7 @@ int askForResignation() {
     esResign.ec = ecResign;
     return getResignation(arResign, anBoardMove, &ci, &esResign);
   }
+  MT_Close();
   return 0;
 }
 
@@ -218,6 +221,7 @@ int askForDoubling() {
 
       /* Determine market window */
       if (EvaluatePosition(NULL, (ConstTanBoard)anBoardMove, arOutput, &ci, &ecDH)) {
+        MT_Close();
         return -1; //ERROR
       }
 
@@ -240,42 +244,48 @@ int askForDoubling() {
         asyncCubeDecision(&dd);
         cd = FindCubeDecision(arDouble, dd.aarOutput, &ci);
         switch (cd) {
-        case DOUBLE_TAKE:
-        case REDOUBLE_TAKE:
-        case DOUBLE_PASS:
-        case REDOUBLE_PASS:
-        case DOUBLE_BEAVER:
-          return 1;
-
-        case NODOUBLE_TAKE:
-        case TOOGOOD_TAKE:
-        case NO_REDOUBLE_TAKE:
-        case TOOGOODRE_TAKE:
-        case TOOGOOD_PASS:
-        case TOOGOODRE_PASS:
-        case NODOUBLE_BEAVER:
-        case NO_REDOUBLE_BEAVER:
-          return 0;
-
-        case OPTIONAL_DOUBLE_BEAVER:
-        case OPTIONAL_DOUBLE_TAKE:
-        case OPTIONAL_REDOUBLE_TAKE:
-        case OPTIONAL_DOUBLE_PASS:
-        case OPTIONAL_REDOUBLE_PASS:
-          if (ec.nPlies==0) /* double if 0-ply */
+          case DOUBLE_TAKE:
+          case REDOUBLE_TAKE:
+          case DOUBLE_PASS:
+          case REDOUBLE_PASS:
+          case DOUBLE_BEAVER:
+            MT_Close();
             return 1;
-          else 
+
+          case NODOUBLE_TAKE:
+          case TOOGOOD_TAKE:
+          case NO_REDOUBLE_TAKE:
+          case TOOGOODRE_TAKE:
+          case TOOGOOD_PASS:
+          case TOOGOODRE_PASS:
+          case NODOUBLE_BEAVER:
+          case NO_REDOUBLE_BEAVER:
+            MT_Close();
             return 0;
 
-        default:
-          return -1; // error
+          case OPTIONAL_DOUBLE_BEAVER:
+          case OPTIONAL_DOUBLE_TAKE:
+          case OPTIONAL_REDOUBLE_TAKE:
+          case OPTIONAL_DOUBLE_PASS:
+          case OPTIONAL_REDOUBLE_PASS:
+            MT_Close();
+            if (ec.nPlies==0) /* double if 0-ply */
+              return 1;
+            else 
+              return 0;
+
+          default:
+            MT_Close();
+            return -1; // error
         }
       } /* market window */
       else {
+        MT_Close();
         return 0;
       }
     } /* access to cube */
   }
+  MT_Close();
   return 0; //IA can't play the cube
 }
 
@@ -289,6 +299,7 @@ void evaluateBestMove(int dices[2], int move[8]) {
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
   SwapSides(anBoardMove);
   FindBestMove(move, dices[0], dices[1], anBoardMove, &ci, &ec, mf);
+  MT_Close();
 }
 
 
@@ -361,6 +372,7 @@ int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
   }
 
   *l = f * ml.cMoves;
+  MT_Close();
   return moves;
 }
 
