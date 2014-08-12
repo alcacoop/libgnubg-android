@@ -91,16 +91,16 @@ rolloutcontext rcRollout =
 
   TRUE, /* cubeful */
   TRUE, /* variance reduction */
-  FALSE, /* initial position */
+  TRUE, /* initial position */
   TRUE, /* rotate */
   TRUE, /* truncate at BEAROFF2 for cubeless rollouts */
   TRUE, /* truncate at BEAROFF2_OS for cubeless rollouts */
-  FALSE, /* late evaluations */
-  FALSE,  /* Truncation enabled */
-  FALSE,  /* no stop on STD */
-  FALSE,  /* no stop on JSD */
-  FALSE,  /* no move stop on JSD */
-  10, /* truncation */
+  TRUE, /* late evaluations */
+  TRUE,  /* Truncation enabled */
+  TRUE,  /* no stop on STD */
+  TRUE,  /* no stop on JSD */
+  TRUE,  /* no move stop on JSD */
+  12, /* truncation */
   1296, /* number of trials */
   5,  /* late evals start here */
   RNG_MERSENNE, /* RNG */
