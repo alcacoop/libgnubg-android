@@ -48,6 +48,17 @@ typedef enum _available_levels {
 } available_levels;
 
 
+/*
+typedef struct {
+    unsigned int fCubeful:1;
+    unsigned int nPlies:3;
+    unsigned int fUsePrune:1;
+    unsigned int fDeterministic:1;
+    float rNoise;
+} evalcontext;
+*/
+
+
 typedef struct _level {
   evalcontext ec;
   movefilter mf[4][4];
