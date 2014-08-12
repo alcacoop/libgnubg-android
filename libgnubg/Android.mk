@@ -35,6 +35,7 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)  
 
 LOCAL_SRC_FILES := \
+		evallock.c \
     lib/list.c \
     lib/neuralnet.c \
     lib/mt19937ar.c \
@@ -62,7 +63,6 @@ LOCAL_SRC_FILES := \
     positionid.c \
     eval.c \
     rollout.c \
-		evallock.c \
 		test.c
 
 

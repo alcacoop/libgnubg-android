@@ -34,6 +34,8 @@
 
 #include "nativeAPI.h"
 
+pthread_t thread;
+
 //UTILS: PRINT A BOARD
 void printBoard(ConstTanBoard board) {
   int i, j;
@@ -188,11 +190,8 @@ void testGenerateMoves() {
 }
 
 
-void testAll () {
+void* testAll (void* o) {
   initEnvironment("./");
-
-  setAILevel(SUPREMO);
-
   setAILevel(GRANDMASTER);
   testPlayTurn();
   testResignation();
@@ -202,5 +201,7 @@ void testAll () {
 
 
 int main (int argc, char** argv) {
-  testAll();
+  testAll(NULL);
+  /* pthread_create(&thread, NULL, testAll, NULL); */
+  /* pthread_join(thread, NULL); */
 }

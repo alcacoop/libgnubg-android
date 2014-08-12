@@ -38,6 +38,7 @@ INCLUDES=-Ilibgnubg -Ilibgnubg/lib -I/usr/lib/jvm/java-6-openjdk-amd64/include/
 
 
 OBJS= \
+		libgnubg/evallock.o \
     libgnubg/lib/list.o \
     libgnubg/lib/neuralnet.o \
     libgnubg/lib/mt19937ar.o \
@@ -63,7 +64,6 @@ OBJS= \
     libgnubg/positionid.o \
 		libgnubg/eval.o \
 		libgnubg/rollout.o \
-		libgnubg/evallock.o \
 		libgnubg/jniAPI.o \
     libgnubg/nativeAPI.o \
     libgnubg/test.o
@@ -73,7 +73,7 @@ OBJS= \
 LDFLAGS=-Llibgnubg/lib -lm -fPIC
 
 all: src
-	$(CC) -o test $(OBJS) $(LDFLAGS) -lglib-2.0
+	$(CC) -o test $(OBJS) $(LDFLAGS) -lglib-2.0 -lpthread
 
 %.o : %.c
 	$(CC) $(INCLUDES) $(CFLAGS) -o $@ -c $<

@@ -56,6 +56,8 @@ void initEnvironment(const char* path) {
   EvalInitialise(w1, w2, 0, NULL);
   InitMatchEquity(met);
   init_rng();
+  MT_InitThreads();
+  MT_SetNumThreads(2);
 }
 
 
@@ -67,7 +69,6 @@ void setAILevel(available_levels l) {
 
 
 int acceptResign(int r) {
-  MT_InitThreads();
   ConstTanBoard board = msBoard();
   cubeinfo ci;
   ms.fResigned = r;
@@ -83,8 +84,6 @@ int acceptResign(int r) {
   if (rEqAfter - rEqBefore < max_gain )
     resign = ms.fResigned;
 
-  MT_Close();
-
   return resign;
 }
 
@@ -96,7 +95,6 @@ void updateMSCubeInfo(int nCube, int fCubeOwner) {
 
 
 int acceptDouble() {
-  MT_InitThreads();
   decisionData dd;
   cubedecision cd;
   cubeinfo ci;
@@ -114,8 +112,6 @@ int acceptDouble() {
   dd.pes = &es;
   asyncCubeDecision(&dd);
   cd = FindCubeDecision(arDouble, dd.aarOutput, &ci);
-
-  MT_Close();
 
   /*
   printf("CD: %d\n");
@@ -164,7 +160,6 @@ int acceptDouble() {
 
 
 int askForResignation() {
-  MT_InitThreads();
   TanBoard anBoardMove;
   cubeinfo ci;
   float arResign[NUM_ROLLOUT_OUTPUTS];
@@ -188,13 +183,11 @@ int askForResignation() {
     esResign.ec = ecResign;
     return getResignation(arResign, anBoardMove, &ci, &esResign);
   }
-  MT_Close();
   return 0;
 }
 
 
 int askForDoubling() {
-  MT_InitThreads();
   TanBoard anBoardMove;
   cubeinfo ci;
   float arDouble[4];
@@ -221,7 +214,6 @@ int askForDoubling() {
 
       /* Determine market window */
       if (EvaluatePosition(NULL, (ConstTanBoard)anBoardMove, arOutput, &ci, &ecDH)) {
-        MT_Close();
         return -1; //ERROR
       }
 
@@ -249,7 +241,6 @@ int askForDoubling() {
           case DOUBLE_PASS:
           case REDOUBLE_PASS:
           case DOUBLE_BEAVER:
-            MT_Close();
             return 1;
 
           case NODOUBLE_TAKE:
@@ -260,7 +251,6 @@ int askForDoubling() {
           case TOOGOODRE_PASS:
           case NODOUBLE_BEAVER:
           case NO_REDOUBLE_BEAVER:
-            MT_Close();
             return 0;
 
           case OPTIONAL_DOUBLE_BEAVER:
@@ -268,30 +258,25 @@ int askForDoubling() {
           case OPTIONAL_REDOUBLE_TAKE:
           case OPTIONAL_DOUBLE_PASS:
           case OPTIONAL_REDOUBLE_PASS:
-            MT_Close();
             if (ec.nPlies==0) /* double if 0-ply */
               return 1;
             else 
               return 0;
 
           default:
-            MT_Close();
             return -1; // error
         }
       } /* market window */
       else {
-        MT_Close();
         return 0;
       }
     } /* access to cube */
   }
-  MT_Close();
   return 0; //IA can't play the cube
 }
 
 
 void evaluateBestMove(int dices[2], int move[8]) {
-  MT_InitThreads();
   TanBoard anBoardMove;
   cubeinfo ci;
 
@@ -299,7 +284,6 @@ void evaluateBestMove(int dices[2], int move[8]) {
   memcpy(anBoardMove, ms.anBoard, sizeof(TanBoard));
   SwapSides(anBoardMove);
   FindBestMove(move, dices[0], dices[1], anBoardMove, &ci, &ec, mf);
-  MT_Close();
 }
 
 
@@ -326,7 +310,6 @@ void setMatchTo(int matchTo) {
 
 
 int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
-  MT_InitThreads();
   int f = 2;
   if (d1==d2) f=1;
 
@@ -372,7 +355,6 @@ int** generateMoves(ConstTanBoard b, int d1, int d2, int* l) {
   }
 
   *l = f * ml.cMoves;
-  MT_Close();
   return moves;
 }
 
