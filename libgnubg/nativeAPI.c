@@ -33,6 +33,7 @@
 
 
 #include "nativeAPI.h"
+#include <unistd.h>
 
 char* DATA_DIR;
 int currentAILevel;
@@ -56,8 +57,19 @@ void initEnvironment(const char* path) {
   EvalInitialise(w1, w2, 0, NULL);
   InitMatchEquity(met);
   init_rng();
+
+  int cores = sysconf(_SC_NPROCESSORS_CONF);
+  int nthreads = 4;
+  if (cores <=4) nthreads = 2;
+  if (cores <=1) nthreads = 0;
+
   MT_InitThreads();
-  MT_SetNumThreads(2);
+  MT_SetNumThreads(nthreads);
+
+  char* t = calloc(30, sizeof(char));
+  sprintf(t, "===> NTHREAD: %d/%d", nthreads, cores);
+  MYLOG(t);
+  free(t);
 }
 
 
