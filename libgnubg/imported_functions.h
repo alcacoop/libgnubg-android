@@ -46,4 +46,5 @@ extern void EvaluateRoll ( float ar[ NUM_ROLLOUT_OUTPUTS ], int nDie1, int nDie2
 extern void init_rng(void);
 extern void GetMatchStateCubeInfo( cubeinfo* pci, const matchstate* pms );
 extern int check_resigns(cubeinfo * pci);
+extern int TryBearoff(ConstTanBoard b, int dice0, int dice1);
 #endif

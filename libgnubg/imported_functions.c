@@ -52,46 +52,29 @@ extern void get_eq_before_resign(cubeinfo *pci, decisionData *pdd)
   pdd->pci = pci;
   pdd->pec = &ecResign;
   RunAsyncProcess((AsyncFun) asyncMoveDecisionE, pdd, "Considering resignation...");
-
-  //if (ms.anDice[0] > 0) {
-  //  float t;
-  //  /* Opponent has rolled the dice and then resigned. We want to find out if the resignation is OK after
-  //     the roll */
-  //  RunAsyncProcess((AsyncFun) asyncEvalRoll, pdd, "Considering resignation...");
-  //  /* Swap the equities as evaluation is for other player */
-  //  pdd->aarOutput[0][OUTPUT_WIN] = 1 - pdd->aarOutput[0][OUTPUT_WIN];
-  //  t = pdd->aarOutput[0][OUTPUT_WINGAMMON];
-  //  pdd->aarOutput[0][OUTPUT_WINGAMMON] = pdd->aarOutput[0][OUTPUT_LOSEGAMMON];
-  //  pdd->aarOutput[0][OUTPUT_LOSEGAMMON] = t;
-  //  t = pdd->aarOutput[0][OUTPUT_WINBACKGAMMON];
-  //  pdd->aarOutput[0][OUTPUT_WINBACKGAMMON] = pdd->aarOutput[0][OUTPUT_LOSEBACKGAMMON];
-  //  pdd->aarOutput[0][OUTPUT_LOSEBACKGAMMON] = t;
-  //} else {
-  //  RunAsyncProcess((AsyncFun) asyncMoveDecisionE, pdd, "Considering resignation...");
-  //}
 }
 
-extern void EvaluateRoll ( float ar[ NUM_ROLLOUT_OUTPUTS ], int nDie1, int nDie2, const TanBoard anBoard, 
-    const cubeinfo *pci, const evalcontext *pec) {
-  TanBoard anBoardTemp;
-  cubeinfo ciOpp;
+extern void EvaluateRoll(float ar[NUM_ROLLOUT_OUTPUTS], int nDie1, int nDie2, const TanBoard anBoard,
+             const cubeinfo * pci, const evalcontext * pec)
+{
+    TanBoard anBoardTemp;
+    cubeinfo ciOpp;
 
-  memcpy ( &ciOpp, pci, sizeof ( cubeinfo ) );
-  ciOpp.fMove = ! pci->fMove;
+    memcpy(&ciOpp, pci, sizeof(cubeinfo));
+    ciOpp.fMove = !pci->fMove;
 
-  memcpy( &anBoardTemp[ 0 ][ 0 ], &anBoard[ 0 ][ 0 ], 2 * 25 * sizeof( int ) );
+    memcpy(&anBoardTemp[0][0], &anBoard[0][0], 2 * 25 * sizeof(int));
 
-  if( FindBestMove( NULL, nDie1, nDie2, anBoardTemp,
-        (cubeinfo *) pci, NULL, defaultFilters ) < 0 )
+    if (FindBestMove(NULL, nDie1, nDie2, anBoardTemp, pci, NULL, defaultFilters) < 0)
+        g_assert_not_reached();
+
+    SwapSides(anBoardTemp);
+
+    GeneralEvaluationE(ar, (ConstTanBoard) anBoardTemp, &ciOpp, pec);
+
     return;
-
-
-  SwapSides( anBoardTemp );
-
-  if ( GeneralEvaluationE( ar, (ConstTanBoard)anBoardTemp, &ciOpp, (evalcontext *) pec ) )
-    return;
-
 }
+
 
 extern void init_rng(void)
 {
@@ -103,41 +86,67 @@ extern void init_rng(void)
 }
 
 
-extern void GetMatchStateCubeInfo( cubeinfo* pci, const matchstate* pms )
+extern void GetMatchStateCubeInfo(cubeinfo * pci, const matchstate * pms)
 {
-  SetCubeInfo( pci, pms->nCube, pms->fCubeOwner, pms->fMove,
-      pms->nMatchTo, pms->anScore, pms->fCrawford,
-      pms->fJacoby, 3, pms->bgv );
+  SetCubeInfo(pci, pms->nCube, pms->fCubeOwner, pms->fMove,
+      pms->nMatchTo, pms->anScore, pms->fCrawford, pms->fJacoby, 3, pms->bgv);
 }
 
 extern int check_resigns(cubeinfo * pci)
 {
-  float rEqBefore, rEqAfter;
-  const float max_cost = 0.05f;
-  const float max_gain = 1e-6f;
-  decisionData dd;
-  cubeinfo ci;
-  int resigned = 1;
+    float rEqBefore, rEqAfter;
+    const float max_cost = 0.05f;
+    const float max_gain = 1e-6f;
+    decisionData dd;
+    cubeinfo ci;
+    int resigned = 1;
 
-  if (pci == NULL)
-    {
-      GetMatchStateCubeInfo(&ci, &ms);
-      pci = &ci;
+    if (pci == NULL) {
+        GetMatchStateCubeInfo(&ci, &ms);
+        pci = &ci;
     }
 
-  get_eq_before_resign(pci, &dd);
-  do
-    {
-      getResignEquities(dd.aarOutput[0], pci, resigned, &rEqBefore, &rEqAfter);
-      if (rEqBefore - rEqAfter > max_cost)
-        {
-          resigned=4;
-          break;
-        }
-      else if (rEqAfter - rEqBefore < max_gain )
-        break;
+    get_eq_before_resign(pci, &dd);
+    do {
+        getResignEquities(dd.aarOutput[0], pci, resigned, &rEqBefore, &rEqAfter);
+        if (rEqBefore - rEqAfter > max_cost) {
+            resigned = 4;
+            break;
+        } else if (rEqAfter - rEqBefore < max_gain)
+            break;
     }
-  while (resigned++ < 3);
-  return resigned == 4 ? -1 : resigned;
+    while (resigned++ <= 3);
+    return resigned == 4 ? -1 : resigned;
 }
 
+
+
+//NOT USED!
+extern int TryBearoff(ConstTanBoard b, int dice0, int dice1) {
+
+  movelist ml;
+  unsigned int i, iMove, cMoves;
+
+  if (ClassifyPosition(msBoard(), VARIATION_STANDARD) > CLASS_RACE) {
+    /* It's a contact position; don't automatically bear off */
+    printf("> CLASS_RACE!\n");
+    return -2;
+  }
+
+  GenerateMoves(&ml, b, dice0, dice1, FALSE);
+  cMoves = (dice0 == dice1) ? 4 : 2;
+
+  for (i = 0; i < ml.cMoves; i++)
+    for (iMove = 0; iMove < cMoves; iMove++) {
+      if ((ml.amMoves[i].anMove[iMove << 1] < 0) || (ml.amMoves[i].anMove[(iMove << 1) + 1] != -1)) {
+        break;
+      } else if (iMove == cMoves - 1) {
+        printf("OK\n");
+        printMove(ml.amMoves[i].anMove);
+        return 0;
+      }
+    }
+
+  printf("KO\n");
+  return -1;
+}
