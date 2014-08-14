@@ -160,6 +160,23 @@ void testGenerateMoves() {
   printf("AIlevel: %d\n\n", currentAILevel);
 }
 
+void testGreedyBearoff() {
+  int _b[2][25] =   
+  {
+    {0, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 2, 2, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} //PC
+  };
+  
+  setBoard((ConstTanBoard)_b);
+  ConstTanBoard b=(ConstTanBoard)ms.anBoard;
+  printf("\n\nTEST GREEDY BEAROFF...\n");
+  printBoard((ConstTanBoard)b);
+  int dices[2] = {6, 4};
+  printDices(dices);
+  
+  TryBearoff(b, dices[0], dices[1]);
+}
+
 
 void* testAll (void* o) {
   initEnvironment("./");
@@ -168,6 +185,7 @@ void* testAll (void* o) {
   testResignation();
   testDoubling();
   testGenerateMoves();
+  testGreedyBearoff();
 }
 
 
