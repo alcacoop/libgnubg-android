@@ -239,6 +239,5 @@ void printMove(int move[8]) {
 
 //UTILS: PRINT A COUPLE OF DICES
 void printDices(int dices[2]) {
-  int i=0;
   printf("DICES: %d %d\n", dices[0], dices[1]);
 }

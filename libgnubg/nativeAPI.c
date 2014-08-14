@@ -67,7 +67,7 @@ void initEnvironment(const char* path) {
   MT_SetNumThreads(nthreads);
 
   char* t = calloc(30, sizeof(char));
-  sprintf(t, "===> NTHREAD: %d/%d", nthreads, cores);
+  sprintf(t, "===> NTHREAD: %d/%d\n", nthreads, cores);
   MYLOG(t);
   free(t);
 }
