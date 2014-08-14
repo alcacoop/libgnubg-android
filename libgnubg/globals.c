@@ -32,6 +32,9 @@
 */
 
 
+#include <stdio.h>
+#include <stdarg.h>
+
 #include "globals.h"
 #include "dice.h"
 #include "backgammon.h"
@@ -157,7 +160,18 @@ ConstTanBoard msBoard(){return (ConstTanBoard)ms.anBoard;};
 
 #ifdef IS_ANDROID
 #include <android/log.h>
-void MYLOG(char* s) {__android_log_print(ANDROID_LOG_ERROR,"MYLOG", s);};
+void MYLOG(char* fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  __android_log_vprint(ANDROID_LOG_ERROR,"MYLOG", fmt, args);
+  va_end(args);
+};
 #else
-void MYLOG(char* s) {printf("%s", s);}
+void MYLOG(char* fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  vprintf(fmt, args);
+  va_end(args);
+  fflush(stdout);
+}
 #endif

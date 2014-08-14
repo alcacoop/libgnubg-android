@@ -56,11 +56,7 @@ void initRNG(int type) {
     _rng = RNG_ISAAC;
   }
   RNGSystemSeed(_rng, rngctxCurrent, NULL);
-
-  if (_rng == RNG_MERSENNE)
-    MYLOG("===> DICE GENERATOR: MERSENNE-TWISTER\n");
-  else
-    MYLOG("===> DICE GENERATOR: ISAAC\n");
+  MYLOG("===> DICE GENERATOR: %s\n", (_rng==RNG_MERSENNE?"MERSENNE-TWISTER":"ISAAC"));
 }
 
 
@@ -89,10 +85,8 @@ void initEnvironment(const char* path) {
   MT_InitThreads();
   MT_SetNumThreads(nthreads);
 
-  char* t = calloc(30, sizeof(char));
-  sprintf(t, "===> NTHREAD: %d/%d\n", nthreads, cores);
-  MYLOG(t);
-  free(t);
+  MYLOG("===> NTHREAD: %d/%d\n", nthreads, cores);
+  initRNG(0);
 }
 
 

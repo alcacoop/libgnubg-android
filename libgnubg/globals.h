@@ -71,7 +71,7 @@ extern char* DATA_DIR;
 
 #undef BuildFilename
 extern char* BuildFilename(char* str);
-extern void MYLOG(char*);
+void MYLOG(char* fmt, ...);
 
 
 extern matchstate ms;
