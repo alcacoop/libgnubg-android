@@ -43,6 +43,7 @@ int fShowProgress = FALSE;
 int fAutoSaveRollout = FALSE;
 int fAutoCrawford = TRUE;
 rngcontext *rngctxRollout = NULL;
+rng _rng = -1;
 
 
 evalcontext ec;

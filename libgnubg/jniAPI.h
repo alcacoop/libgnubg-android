@@ -47,6 +47,10 @@ JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_InitializeE
   (JNIEnv *, jclass, jstring);
 
 
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_InitRNG
+  (JNIEnv *, jclass, jint);
+
+
 JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_SetAILevel
   (JNIEnv *, jclass, jint);
 

@@ -37,10 +37,34 @@
 
 char* DATA_DIR;
 int currentAILevel;
+int lastRNGType = -1;
+
+
+void initRNG(int type) {
+  if (type == lastRNGType)
+    return;
+  lastRNGType = type;
+
+  if (rngctxCurrent!=NULL)
+    free_rngctx(rngctxCurrent);
+
+  init_rng();
+
+  if (type == 0) {
+    _rng = RNG_MERSENNE;
+  } else {
+    _rng = RNG_ISAAC;
+  }
+  RNGSystemSeed(_rng, rngctxCurrent, NULL);
+
+  if (_rng == RNG_MERSENNE)
+    MYLOG("===> DICE GENERATOR: MERSENNE-TWISTER\n");
+  else
+    MYLOG("===> DICE GENERATOR: ISAAC\n");
+}
+
 
 void rollDice(int dices[2]) {
-  rng _rng = RNG_MERSENNE;
-  //rng _rng = RNG_ISAAC;
   RollDice(dices, &_rng, rngctxCurrent); 
 }
 
@@ -56,7 +80,6 @@ void initEnvironment(const char* path) {
   met = BuildFilename("g11.xml");
   EvalInitialise(w1, w2, 0, NULL);
   InitMatchEquity(met);
-  init_rng();
 
   int cores = sysconf(_SC_NPROCESSORS_CONF);
   int nthreads = 4;

@@ -38,6 +38,12 @@
 #include <stdlib.h>
 
 
+JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_InitRNG
+  (JNIEnv * env, jclass class, jint type)
+{
+  initRNG(type);
+}
+
 
 JNIEXPORT void JNICALL Java_it_alcacoop_gnubackgammon_logic_GnubgAPI_RollDice
   (JNIEnv * env, jclass class, jintArray dices) 
