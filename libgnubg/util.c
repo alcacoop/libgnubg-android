@@ -211,3 +211,34 @@ GetTemporaryFile(const char *nameTemplate, char **retName)
     } else
         return pf;
 }
+
+//UTILS: PRINT A BOARD
+void printBoard(ConstTanBoard board) {
+  int i, j;
+  for(i = 0; i<2; i++) {
+    for(j=0; j<25; j++) {
+      printf(" %d ", board[i][j]);
+    }
+    printf("\n");
+  }
+}
+
+
+
+//UTILS: PRINT A MOVE
+void printMove(int move[8]) {
+  int i=0;
+  printf("MOVE: ");
+  printf("%d/%d ", move[0], move[1]);
+  printf("%d/%d ", move[2], move[3]);
+  printf(" | %d/%d ", move[4], move[5]);
+  printf("%d/%d", move[6], move[7]);
+  printf("\n");
+}
+
+
+//UTILS: PRINT A COUPLE OF DICES
+void printDices(int dices[2]) {
+  int i=0;
+  printf("DICES: %d %d\n", dices[0], dices[1]);
+}

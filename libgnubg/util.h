@@ -24,6 +24,7 @@
 
 #include <glib.h>
 #include <stdio.h>
+#include "globals.h"
 
 extern char *prefsdir;
 extern char *datadir;
@@ -32,6 +33,10 @@ extern char *docdir;
 extern char *getDataDir(void);
 extern char *getPkgDataDir(void);
 extern char *getDocDir(void);
+
+extern void printBoard(ConstTanBoard board);
+extern void printMove(int move[8]);
+extern void printDices(int dices[2]);
 
 #define BuildFilename(file) g_build_filename(getPkgDataDir(), file, NULL)
 #define BuildFilename2(file1, file2) g_build_filename(getPkgDataDir(), file1, file2, NULL)
