@@ -178,19 +178,46 @@ void testGreedyBearoff() {
 }
 
 
+void testDiceGenerators() {
+  int i=0;
+  printf("\n\nISAAC SEQUENCE...\n");
+  initRNG(1);
+  for (i=0;i<10;i++){
+    int d[2];
+    rollDice(d);
+    printDices(d);
+  }
+
+  printf("\n\nMERSENNE-TWISTER SEQUENCE...\n");
+  initRNG(0);
+  for (i=0;i<10;i++){
+    int d[2];
+    rollDice(d);
+    printDices(d);
+  }
+  printf("\n");
+}
+
+
 void* testAll (void* o) {
   initEnvironment("./");
+  initRNG(0);
   setAILevel(GRANDMASTER);
   testPlayTurn();
   testResignation();
   testDoubling();
   testGenerateMoves();
   testGreedyBearoff();
+  testDiceGenerators();
 }
 
 
 int main (int argc, char** argv) {
   testAll(NULL);
+
+  /* InitRNGSeed(893358218, RNG_ISAAC, rngctxCurrent); */
+  /* InitRNGSeed(893358218, RNG_MERSENNE, rngctxCurrent); */
+  /* RNGSystemSeed(RNG_ISAAC, rngctxCurrent, NULL); */
   /* pthread_create(&thread, NULL, testAll, NULL); */
   /* pthread_join(thread, NULL); */
 }
