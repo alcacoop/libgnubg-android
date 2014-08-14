@@ -78,11 +78,11 @@ extern void EvaluateRoll(float ar[NUM_ROLLOUT_OUTPUTS], int nDie1, int nDie2, co
 
 extern void init_rng(void)
 {
-  if (!rngctxCurrent) {
+  /* if (!rngctxCurrent) { */
     rngctxCurrent = InitRNG(NULL, NULL, TRUE, rngCurrent);
-    rngctxRollout = InitRNG(&rcRollout.nSeed, NULL, TRUE, rcRollout.rngRollout);
     rcRollout.nSeed ^= 0x792A584B;
-  }
+    rngctxRollout = InitRNG(&rcRollout.nSeed, NULL, TRUE, rcRollout.rngRollout);
+  /* } */
 }
 
 
