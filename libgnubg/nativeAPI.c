@@ -78,9 +78,9 @@ void initEnvironment(const char* path) {
   InitMatchEquity(met);
 
   int cores = sysconf(_SC_NPROCESSORS_CONF);
-  int nthreads = 4;
-  if (cores <=4) nthreads = 2;
-  if (cores <=1) nthreads = 0;
+  int nthreads = 0;
+  /* if (cores <=4) nthreads = 2; */
+  /* if (cores <=1) nthreads = 0; */
 
   MT_InitThreads();
   MT_SetNumThreads(nthreads);
