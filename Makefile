@@ -85,7 +85,7 @@ clean:
 
 jar: src
 	$(CC)  -shared -o libgnubg64.so $(OBJS) glib-static/libpcre.a glib-static/libglib.a glib-static/libcharset.a $(LDFLAGS)
-	jar cvf /home/dmt/Progetti/Android/workspace/gnubg-gdx/GnuBackgammon-desktop/libs/gnubg.jar libgnubg64.so
+	jar cvf gnubg.jar libgnubg64.so gnubg.wd gnubg.weights g11.xml gnubg_os0.bd gnubg_ts0.bd devtools.bsh
 
 ndk-clean:
 	ndk-build clean
@@ -99,6 +99,6 @@ ndk-debug:
 	make ndk-install
 
 ndk-install: 
-	cp -rf libs/armeabi/libgnubg* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi/  
-	cp -rf libs/armeabi-v7a/libgnubg* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/armeabi-v7a/  
-	cp -rf libs/x86/libgnubg* /home/dmt/Progetti/Android/workspace/gnubg-gdx/Backgammon-android/libs/x86/
+	cp -rf libs/armeabi/libgnubg* /home/dmt/Progetti/Android/workspace/it.alcacoop.backgammon/android/libs/armeabi/  
+	cp -rf libs/armeabi-v7a/libgnubg* /home/dmt/Progetti/Android/workspace/it.alcacoop.backgammon/android/libs/armeabi-v7a/  
+	cp -rf libs/x86/libgnubg* /home/dmt/Progetti/Android/workspace/it.alcacoop.backgammon/android/libs/x86/
