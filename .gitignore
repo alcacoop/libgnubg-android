@@ -3,11 +3,13 @@
 gnubg
 test
 *.swp
-libgnubg.so
 *.so
 libs
 objs
 obj
+gnubg.jar
+
+
 ## EMACS
 *~
 \#*
