@@ -822,6 +822,7 @@ BearoffInit(const char *szFilename, const int bo, void (*p) (unsigned int))
 
     if (!szFilename || !*szFilename) {
         g_printerr("%s\n", _("No database filename provided"));
+        MYLOG("BEAROFF ERROR: %s\n", szFilename);
         InvalidDb(pbc);
         return NULL;
     }
@@ -829,6 +830,7 @@ BearoffInit(const char *szFilename, const int bo, void (*p) (unsigned int))
 
     if (!g_file_test(szFilename, G_FILE_TEST_IS_REGULAR)) {
         /* fail silently */
+        MYLOG("BEAROFF ERROR: %s\n", szFilename);
         errno = 0;
         InvalidDb(pbc);
         return NULL;
@@ -837,6 +839,7 @@ BearoffInit(const char *szFilename, const int bo, void (*p) (unsigned int))
 
     if ((pbc->pf = g_fopen(szFilename, "rb")) == 0) {
         g_printerr("%s\n", _("Invalid or nonexistent database"));
+        MYLOG("BEAROFF ERROR: %s\n", szFilename);
         InvalidDb(pbc);
         return NULL;
     }
@@ -848,6 +851,7 @@ BearoffInit(const char *szFilename, const int bo, void (*p) (unsigned int))
 
     if (fread(sz, 1, 40, pbc->pf) < 40) {
         g_printerr("%s\n", _("Database read failed"));
+        MYLOG("BEAROFF ERROR: %s\n", szFilename);
         InvalidDb(pbc);
         return NULL;
     }
@@ -856,6 +860,7 @@ BearoffInit(const char *szFilename, const int bo, void (*p) (unsigned int))
 
     if (strncmp(sz, "gnubg", 5) != 0) {
         g_printerr("%s\n", _("Unknown bearoff database"));
+        MYLOG("BEAROFF ERROR: %s\n", szFilename);
         InvalidDb(pbc);
         return NULL;
     }
@@ -871,6 +876,7 @@ BearoffInit(const char *szFilename, const int bo, void (*p) (unsigned int))
     else {
         g_printerr("%s: %s\n (%s: '%2s')\n", szFilename, _("incomplete bearoff database"), _("illegal bearoff type"),
                    sz + 6);
+        MYLOG("BEAROFF ERROR: %s\n", szFilename);
         InvalidDb(pbc);
         return NULL;
     }
@@ -885,6 +891,7 @@ BearoffInit(const char *szFilename, const int bo, void (*p) (unsigned int))
         if (pbc->nPoints < 1 || pbc->nPoints >= 24) {
             g_printerr("%s: %s\n (%s: %d)\n", szFilename, _("incomplete bearoff database"),
                        _("illegal number of points"), pbc->nPoints);
+            MYLOG("BEAROFF ERROR: %s\n", szFilename);
             InvalidDb(pbc);
             return NULL;
         }
@@ -895,6 +902,7 @@ BearoffInit(const char *szFilename, const int bo, void (*p) (unsigned int))
         if (pbc->nChequers < 1 || pbc->nChequers > 15) {
             g_printerr("%s: %s\n (%s: %d)", szFilename, _("incomplete bearoff database"),
                        _("illegal number of chequers"), pbc->nChequers);
+            MYLOG("BEAROFF ERROR: %s\n", szFilename);
             InvalidDb(pbc);
             return NULL;
         }
@@ -935,6 +943,7 @@ BearoffInit(const char *szFilename, const int bo, void (*p) (unsigned int))
         if ((ReadIntoMemory(pbc) == NULL))
             if ((pbc->pf = g_fopen(szFilename, "rb")) == 0) {
                 g_printerr("%s\n", _("Invalid or nonexistent database"));
+                MYLOG("BEAROFF ERROR: %s\n", szFilename);
                 InvalidDb(pbc);
                 return NULL;
             }
